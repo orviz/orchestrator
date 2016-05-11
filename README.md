@@ -1,75 +1,40 @@
-[![GitHub license](https://img.shields.io/github/license/indigo-dc/orchestrator.svg?style=flat-square)](https://github.com/indigo-dc/orchestrator/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/indigo-dc/orchestrator.svg?style=flat-square)](https://github.com/indigo-dc/orchestrator/releases/latest)
+# Intro 
 
-INDIGO Orchestrator
-============================
+VizGrimoireJS aims at providing a framework for software metrics visualization using HTML, 
+CSS and JavaScript as main technologies.
 
-This is the orchestrator of the PaaS layer, a core component of the INDIGO project. It receives high-level deployment requests and coordinates the deployment process over the IaaS platforms or Mesos.
+It was born as a complement to the outcomes of VizGrimoireR project (now GrimoireLib), 
+whose main focus is to parse information from any of the tools found in Metrics Grimoire 
+project.
 
-You can find the REST APIs docs [orchestrator-rest-doc] (http://indigo-dc.github.io/orchestrator/restdocs/).
+## Q. What libraries are used by this front-end?
 
+- Bootstrap 3.1.1
+- Jasny Boostrap 3.1.3
+- JQuery 1.11.1
+- VizGrimoireJS-lib
 
-1. INSTALLATION
-===============
+## Q. How do I generate the HTML?
 
-1.1 REQUISITES
---------------
+make
 
-This project has been created with maven 3.3.3 and Java 1.8. Maven will take care of downloading the extra dependencies needed for the project but this project dependes on [im-java-api](https://github.com/indigo-dc/im-java-api) and [workflow-manager](https://github.com/ConceptReplyIT/workflow-manager) too.
-To run the Orchestrator you need [Docker](https://www.docker.com) and a MySQL Server instance (which may be local, remote, or in a docker container). See next section to have details.
+## Q. How do I clean the generated HTML?
 
-1.2 INSTALLING
---------------
+make clean
 
-First you have to customize:
-- the IM endpoint in `/orchestrator/src/main/resources/im-config/im-java-api.properties`;
-- the authorization file in `/orchestrator/src/main/resources/im-config/auth.dat`.
+## Q. Where do I include the JSON files?
 
-### Compile the code
-To compile the project you need to be in the same folder as the `pom.xml` file and type:
-```
-mvn clean install
-```
-This command compiles the code and creates a war package, `orchestrator.war`, which will be put inside the `docker` folder.
+Copy them to the directory browser/data/json
 
-### Build the Docker image
+## Q. Where is the famous metrics.json file located?
 
-You can build the docker image with the command
-```
-docker build -t indigodatacloud/orchestrator /path/to/the/docker/folder
-```
+It is located at browser/data/metrics.json
 
-1.3 RUNNING
---------------
-### With MySQL dockerized on the same host
-The orchestrator can be run in 3 steps:
+## Q. What if I don't want project support?
 
-1. Run the MySQL deployments database with the command
+The project hierarchy is provided by the file browser/data/json/projects_hierarchy.json, if
+the file is not present the dash works with no subprojects support.
 
-    ```
-    sudo docker run --name databaseOrchestrator -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=orchestrator -d mysql:5.7
-    ```
+## Q. What if I don't want to generate all the HTML files?
 
-2. Run the MySQL workflow database with the command
-
-    ```
-    sudo docker run --name databaseWorkflow -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=workflow -d mysql:5.7
-    ```
-
-3. Run the orchestrator with the command
-
-    ```
-    sudo docker run --name orchestrator --link databaseWorkflow:databaseWorkflow --link databaseOrchestrator:databaseOrchestrator \
-    -p 80:8080 -d indigodatacloud/orchestrator
-    ```
-
-### With external databases
-
-The orchestrator can also be run using already deployed DBs; you just need to start it with the command
-```
-sudo docker run --name orchestrator1 -h orchestrator1 -e ORCHESTRATOR_DB_ENDPOINT=DOMAIN_NAME:PORT \
-  -e ORCHESTRATOR_DB_NAME=SCHEMA_NAME -e ORCHESTRATOR_DB_USER=DB_USER -e ORCHESTRATOR_DB_PWD=DB_USER_PASSWORD  \
-  -e WORKFLOW_DB_ENDPOINT=DOMAIN_NAME:PORT -e WORKFLOW_DB_NAME=SCHEMA_NAME -e WORKFLOW_DB_USER=DB_USER \
-  -e WORKFLOW_DB_PWD=DB_USER_PASSWORD -p 80:8080 -d indigodatacloud/orchestrator
-```
-using as parameters (`DOMAIN_NAME`, `PORT`, `SCHEMA_NAME`, `DB_USER`, `DB_USER_PASSWORD`) the correct values.
+Easy, comment the proper lines in the shell script at templates/gen.sh
