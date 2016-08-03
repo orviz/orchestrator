@@ -1,27 +1,52 @@
 package it.reply.orchestrator.resource;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import it.reply.orchestrator.enums.Status;
 import it.reply.orchestrator.enums.Task;
 import it.reply.orchestrator.resource.common.AbstractResource;
+import it.reply.orchestrator.resource.common.CustomSerializer;
 
 import java.util.List;
 import java.util.Map;
 
 public class DeploymentResource extends AbstractResource {
 
-  private Map<String, Object> outputs;
+  private Status status;
+  private String statusReason;
+
+  @JsonSerialize(using = CustomSerializer.class)
+  private Map<String, String> outputs;
   private Task task;
   private String callback;
   private List<BaseResource> resources;
+  private String cloudProviderName;
 
   public DeploymentResource() {
     super();
   }
 
-  public Map<String, Object> getOutputs() {
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public String getStatusReason() {
+    return statusReason;
+  }
+
+  public void setStatusReason(String statusReason) {
+    this.statusReason = statusReason;
+  }
+
+  public Map<String, String> getOutputs() {
     return outputs;
   }
 
-  public void setOutputs(Map<String, Object> outputs) {
+  public void setOutputs(Map<String, String> outputs) {
     this.outputs = outputs;
   }
 
@@ -47,6 +72,14 @@ public class DeploymentResource extends AbstractResource {
 
   public void setResources(List<BaseResource> resources) {
     this.resources = resources;
+  }
+
+  public String getCloudProviderName() {
+    return cloudProviderName;
+  }
+
+  public void setCloudProviderName(String cloudProviderName) {
+    this.cloudProviderName = cloudProviderName;
   }
 
 }

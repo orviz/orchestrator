@@ -12,7 +12,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.StampedLock;
 
@@ -43,10 +42,11 @@ public class DeploymentResourceAssembler
     resource.setUpdateTime(entity.getUpdated());
     resource.setStatus(entity.getStatus());
     resource.setStatusReason(entity.getStatusReason());
+    resource.setCloudProviderName(entity.getCloudProviderName());
 
     resource.setTask(entity.getTask());
 
-    resource.setOutputs((Map) entity.getOutputs());
+    resource.setOutputs(entity.getOutputs());
 
     if (entity.getCallback() != null) {
       resource.setCallback(entity.getCallback());
@@ -72,7 +72,7 @@ public class DeploymentResourceAssembler
             ctrlUri = uri;
             lock.unlockRead(readStamp);
           }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ex) {
           // DO NOTHING
         }
       }
@@ -96,8 +96,8 @@ public class DeploymentResourceAssembler
   private boolean isInHttpRequest() {
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
     if (requestAttributes != null && requestAttributes instanceof ServletRequestAttributes) {
-      HttpServletRequest servletRequest = ((ServletRequestAttributes) requestAttributes)
-          .getRequest();
+      HttpServletRequest servletRequest =
+          ((ServletRequestAttributes) requestAttributes).getRequest();
       return servletRequest != null;
     }
     return false;

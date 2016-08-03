@@ -22,9 +22,10 @@ import java.io.FileOutputStream;
 @RestController
 @RequestMapping("/proxy")
 @PropertySource("classpath:im-config/im-java-api.properties")
+@Deprecated
 public class ProxyController {
 
-  @Value("${onedock.proxy.file.path}")
+  @Value("${occi.proxy.file.path}")
   private String proxy;
 
   @Autowired
@@ -46,9 +47,9 @@ public class ProxyController {
         BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(proxyFile));
         FileCopyUtils.copy(file.getInputStream(), stream);
         stream.close();
-      } catch (Exception e) {
-        LOG.error(e);
-        throw new OrchestratorApiException("Error durung the upload", e);
+      } catch (Exception ex) {
+        LOG.error(ex);
+        throw new OrchestratorApiException("Error durung the upload", ex);
 
       }
     } else {

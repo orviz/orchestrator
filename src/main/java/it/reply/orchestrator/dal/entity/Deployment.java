@@ -1,8 +1,12 @@
 package it.reply.orchestrator.dal.entity;
 
+import it.reply.orchestrator.dto.CloudProviderEndpoint;
 import it.reply.orchestrator.enums.DeploymentProvider;
+import it.reply.orchestrator.enums.Status;
 import it.reply.orchestrator.enums.Task;
+import it.reply.utils.json.JsonUtility;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +30,13 @@ public class Deployment extends AbstractResourceEntity {
   private static final long serialVersionUID = 3866893436735377053L;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "status", length = 500)
+  private Status status;
+
+  @Column(name = "statusReason", columnDefinition = "LONGTEXT")
+  private String statusReason;
+
+  @Enumerated(EnumType.STRING)
   @Column(name = "task")
   private Task task;
 
@@ -42,24 +53,60 @@ public class Deployment extends AbstractResourceEntity {
   @Column(name = "template", columnDefinition = "LONGTEXT")
   private String template;
 
-  @ElementCollection(fetch = FetchType.EAGER)
-  @MapKeyColumn(name = "name")
-  @Column(name = "value")
-  Map<String, String> parameters = new HashMap<String, String>();
+  @Column(name = "cloudProviderEndpoint", columnDefinition = "TEXT")
+  private String cloudProviderEndpoint;
+
+  /**
+   * The user's inputs to the template.
+   */
+  @Transient
+  Map<String, Object> unserializedParameters = null;
 
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "name")
-  @Column(name = "value")
+  @Column(name = "value", columnDefinition = "TEXT")
+  private Map<String, String> parameters = new HashMap<>();
+
+  @ElementCollection(fetch = FetchType.EAGER)
+  @MapKeyColumn(name = "name")
+  @Column(name = "value", columnDefinition = "TEXT")
   Map<String, String> outputs = new HashMap<String, String>();
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "deployment")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "deployment", orphanRemoval = true)
   List<Resource> resources = new ArrayList<>();
+
+  @Column(name = "cloudProviderName", length = 128)
+  String cloudProviderName;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "deployment", orphanRemoval = true)
   List<WorkflowReference> workflowReferences = new ArrayList<>();
 
   public Deployment() {
     super();
+  }
+
+  public String getCloudProviderName() {
+    return cloudProviderName;
+  }
+
+  public void setCloudProviderName(String cloudProviderName) {
+    this.cloudProviderName = cloudProviderName;
+  }
+
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public String getStatusReason() {
+    return statusReason;
+  }
+
+  public void setStatusReason(String statusReason) {
+    this.statusReason = statusReason;
   }
 
   public Task getTask() {
@@ -102,12 +149,83 @@ public class Deployment extends AbstractResourceEntity {
     this.template = template;
   }
 
-  public Map<String, String> getParameters() {
-    return parameters;
+  /**
+   * The user's inputs to the template.
+   */
+  public synchronized Map<String, Object> getParameters() {
+
+    if (unserializedParameters != null) {
+      return unserializedParameters;
+    }
+
+    unserializedParameters = new HashMap<>();
+    for (Map.Entry<String, String> serializedParam : parameters.entrySet()) {
+      Object paramObject = null;
+      if (serializedParam.getValue() != null) {
+        try {
+          paramObject = JsonUtility.deserializeJson(serializedParam.getValue(), Object.class);
+        } catch (IOException ex) {
+          throw new RuntimeException("Failed to deserialize parameters in JSON", ex);
+        }
+      }
+
+      unserializedParameters.put(serializedParam.getKey(), paramObject);
+    }
+
+    return unserializedParameters;
   }
 
-  public void setParameters(Map<String, String> parameters) {
-    this.parameters = parameters;
+  /**
+   * The user's inputs to the template.
+   *
+   */
+  public synchronized void setParameters(Map<String, Object> parameters) {
+    this.parameters = new HashMap<>();
+    for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
+      String paramString = null;
+      if (parameter.getValue() != null) {
+        try {
+          paramString = JsonUtility.serializeJson(parameter.getValue());
+        } catch (IOException ex) {
+          throw new RuntimeException("Failed to serialize parameters in JSON", ex);
+        }
+      }
+
+      this.parameters.put(parameter.getKey(), paramString);
+    }
+    this.unserializedParameters = null;
+  }
+
+  /**
+   * 
+   * @return .
+   */
+  public synchronized CloudProviderEndpoint getCloudProviderEndpoint() {
+
+    CloudProviderEndpoint cpe = null;
+
+    if (cloudProviderEndpoint != null) {
+      try {
+        cpe = JsonUtility.deserializeJson(cloudProviderEndpoint, CloudProviderEndpoint.class);
+      } catch (IOException ex) {
+        throw new RuntimeException("Failed to deserialize CloudProviderEndpoint in JSON", ex);
+      }
+    }
+    return cpe;
+  }
+
+  /**
+   * .
+   *
+   */
+  public synchronized void setCloudProviderEndpoint(CloudProviderEndpoint cpe) {
+    if (cpe != null) {
+      try {
+        cloudProviderEndpoint = JsonUtility.serializeJson(cpe);
+      } catch (IOException ex) {
+        throw new RuntimeException("Failed to serialize CloudProviderEndpoint in JSON", ex);
+      }
+    }
   }
 
   public Map<String, String> getOutputs() {

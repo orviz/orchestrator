@@ -3,6 +3,8 @@ package it.reply.orchestrator.config;
 import it.reply.workflowmanager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
 import it.reply.workflowmanager.utils.Constants;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -32,8 +34,11 @@ import javax.transaction.UserTransaction;
 @PropertySource(value = { "classpath:application.properties" })
 public class PersistenceConfig {
 
+  private static final Logger LOG = LogManager.getLogger(PersistenceConfig.class);
+
   private static final String ENTITY_MANAGER_PACKAGE_TO_SCAN = "entitymanager.packages.to.scan";
   private static final String HIBERNATE_HBM2DDL_AUTO = "hibernate.hbm2ddl.auto";
+  private static final String HIBERNATE_SHOW_SQL = "hibernate.show_sql";
   private static final String HIBERNATE_DIALECT = "hibernate.dialect";
   private static final String HIBERNATE_TRANSACTION_JTA_PLATFORM =
       "hibernate.transaction.jta.platform";
@@ -67,11 +72,16 @@ public class PersistenceConfig {
 
     HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
     vendorAdapter.setGenerateDdl(Boolean.TRUE);
-    vendorAdapter.setShowSql(Boolean.TRUE);
+    vendorAdapter.setShowSql(Boolean.valueOf(this.env.getProperty(HIBERNATE_SHOW_SQL)));
 
     factory.setJtaDataSource(dataSource());
     factory.setJpaVendorAdapter(vendorAdapter);
     factory.setPackagesToScan(this.env.getProperty(ENTITY_MANAGER_PACKAGE_TO_SCAN));
+
+    LOG.debug(env.getProperty(ENTITY_MANAGER_PACKAGE_TO_SCAN));
+    LOG.debug(env.getProperty(HIBERNATE_HBM2DDL_AUTO));
+    LOG.debug(env.getProperty(HIBERNATE_DIALECT));
+    LOG.debug(env.getProperty(HIBERNATE_TRANSACTION_JTA_PLATFORM));
 
     Properties jpaProperties = new Properties();
     jpaProperties.put(HIBERNATE_HBM2DDL_AUTO, env.getProperty(HIBERNATE_HBM2DDL_AUTO));
