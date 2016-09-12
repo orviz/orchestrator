@@ -1,5 +1,5 @@
 # Summary
 
 * [About Indigo Component](README.md)
-* [Index....](restdocs/index.html)
+* [Index....](restdocs/index.adoc)
 
