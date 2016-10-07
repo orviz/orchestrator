@@ -1,6 +1,8 @@
 package it.reply.orchestrator.controller;
 
 import static org.hamcrest.Matchers.is;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.atomLinks;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
@@ -20,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import it.reply.orchestrator.dal.entity.AbstractResourceEntity;
 import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dto.request.DeploymentRequest;
 import it.reply.orchestrator.exception.GlobalControllerExceptionHandler;
@@ -44,10 +47,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.PagedResourcesAssemblerArgumentResolver;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.JUnitRestDocumentation;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -111,13 +118,18 @@ public class DeploymentControllerTest {
   @Test
   public void getDeployments() throws Exception {
 
-    List<Deployment> deployments = ControllerTestUtils.createDeployments(5);
+    List<Deployment> deployments = ControllerTestUtils.createDeployments(5, true);
     Pageable pageable = ControllerTestUtils.createDefaultPageable();
     Mockito.when(deploymentService.getDeployments(pageable))
         .thenReturn(new PageImpl<Deployment>(deployments));
 
-    mockMvc.perform(get("/deployments").accept(MediaType.APPLICATION_JSON))
+    mockMvc
+        .perform(get("/deployments").accept(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andDo(document("authentication",
+            requestHeaders(
+                headerWithName(HttpHeaders.AUTHORIZATION).description("OAuth2 bearer token"))))
         .andDo(document("deployments", preprocessResponse(prettyPrint()),
 
             responseFields(fieldWithPath("links[]").ignored(),
@@ -139,12 +151,15 @@ public class DeploymentControllerTest {
   @Test
   public void getPagedDeployments() throws Exception {
 
-    List<Deployment> deployments = ControllerTestUtils.createDeployments(5);
-    Pageable pageable = new PageRequest(1, 2);
+    List<Deployment> deployments = ControllerTestUtils.createDeployments(5, true);
+    Pageable pageable =
+        new PageRequest(1, 2, new Sort(Direction.DESC, AbstractResourceEntity.CREATED_COLUMN_NAME));
     Mockito.when(deploymentService.getDeployments(pageable))
         .thenReturn(new PageImpl<Deployment>(deployments, pageable, deployments.size()));
 
-    mockMvc.perform(get("/deployments?page=1&size=2").accept(MediaType.APPLICATION_JSON))
+    mockMvc
+        .perform(get("/deployments?page=1&size=2").accept(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andDo(document("deployment-paged", preprocessResponse(prettyPrint()),
             links(atomLinks(), linkWithRel("first").description("Hyperlink to the first page"),
@@ -161,13 +176,15 @@ public class DeploymentControllerTest {
   @Test
   public void deploymentsPagination() throws Exception {
 
-    List<Deployment> deployments = ControllerTestUtils.createDeployments(5);
+    List<Deployment> deployments = ControllerTestUtils.createDeployments(5, true);
     Pageable pageable = ControllerTestUtils.createDefaultPageable();
     Mockito.when(deploymentService.getDeployments(pageable))
         .thenReturn(new PageImpl<Deployment>(deployments));
 
-    mockMvc.perform(get("/deployments")).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+    mockMvc
+        .perform(get("/deployments").header(HttpHeaders.AUTHORIZATION,
+            OAuth2AccessToken.BEARER_TYPE + " <access token>"))
+        .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andDo(document("deployment-pagination", preprocessResponse(prettyPrint()), responseFields(
             fieldWithPath("links[]").ignored(), fieldWithPath("content[].links[]").ignored(),
 
@@ -208,8 +225,10 @@ public class DeploymentControllerTest {
     Deployment deployment = ControllerTestUtils.createDeployment(deploymentId);
     Mockito.when(deploymentService.getDeployment(deploymentId)).thenReturn(deployment);
 
-    mockMvc.perform(get("/deployments/" + deploymentId)).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+    mockMvc
+        .perform(get("/deployments/" + deploymentId).header(HttpHeaders.AUTHORIZATION,
+            OAuth2AccessToken.BEARER_TYPE + " <access token>"))
+        .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andDo(document("deployment-hypermedia", preprocessResponse(prettyPrint()),
             links(atomLinks(), linkWithRel("self").description("Self-referencing hyperlink"),
                 linkWithRel("template").description("Template reference hyperlink"),
@@ -238,8 +257,10 @@ public class DeploymentControllerTest {
     deployment.setOutputs(outputs);
     Mockito.when(deploymentService.getDeployment(deploymentId)).thenReturn(deployment);
 
-    mockMvc.perform(get("/deployments/" + deploymentId)).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+    mockMvc
+        .perform(get("/deployments/" + deploymentId).header(HttpHeaders.AUTHORIZATION,
+            OAuth2AccessToken.BEARER_TYPE + " <access token>"))
+        .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.outputs", Matchers.hasEntry(key, value)))
 
         .andDo(document("deployment", preprocessResponse(prettyPrint()),
@@ -267,7 +288,10 @@ public class DeploymentControllerTest {
     Mockito.when(deploymentService.getDeployment(deploymentId))
         .thenThrow(new NotFoundException("Message"));
 
-    mockMvc.perform(get("/deployments/" + deploymentId)).andExpect(status().isNotFound())
+    mockMvc
+        .perform(get("/deployments/" + deploymentId).header(HttpHeaders.AUTHORIZATION,
+            OAuth2AccessToken.BEARER_TYPE + " <access token>"))
+        .andExpect(status().isNotFound())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.code", is(404)))
         .andDo(document("deployment-not-found", preprocessResponse(prettyPrint()),
@@ -308,7 +332,8 @@ public class DeploymentControllerTest {
         .thenReturn(ControllerTestUtils.createDeployment());
 
     mockMvc.perform(post("/deployments").contentType(MediaType.APPLICATION_JSON)
-        .content(TestUtil.convertObjectToJsonBytes(request)))
+        .content(TestUtil.convertObjectToJsonBytes(request))
+        .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
 
         .andDo(document("create-deployment", preprocessRequest(prettyPrint()),
             preprocessResponse(prettyPrint()),
@@ -384,7 +409,8 @@ public class DeploymentControllerTest {
     Mockito.doNothing().when(deploymentService).updateDeployment(deploymentId, request);
 
     mockMvc.perform(put("/deployments/" + deploymentId).contentType(MediaType.APPLICATION_JSON)
-        .content(TestUtil.convertObjectToJsonBytes(request)))
+        .content(TestUtil.convertObjectToJsonBytes(request))
+        .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
 
         .andDo(document("update-deployment", preprocessRequest(prettyPrint()),
             preprocessResponse(prettyPrint()),
@@ -439,9 +465,11 @@ public class DeploymentControllerTest {
     String deploymentId = "mmd34483-d937-4578-bfdb-ebe196bf82dd";
     Mockito.doNothing().when(deploymentService).deleteDeployment(deploymentId);
 
-    mockMvc.perform(delete("/deployments/" + deploymentId)).andExpect(status().isNoContent())
-        .andDo(document("delete-deployment", preprocessRequest(prettyPrint()),
-            preprocessResponse(prettyPrint())));
+    mockMvc
+        .perform(delete("/deployments/" + deploymentId).header(HttpHeaders.AUTHORIZATION,
+            OAuth2AccessToken.BEARER_TYPE + " <access token>"))
+        .andExpect(status().isNoContent()).andDo(document("delete-deployment",
+            preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())));
 
   }
 

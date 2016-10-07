@@ -1,0 +1,11 @@
+{
+    "root": "./gitbook",
+    "plugins": [
+        "advanced-emoji"
+    ],
+    "pluginsConfig": {
+        "advanced-emoji": {
+            "embedEmojis": false
+        }
+    }
+}
