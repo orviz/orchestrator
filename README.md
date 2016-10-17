@@ -1,7 +1,7 @@
 # Intro 
 
-INDIGO PaaS Orchestrator
-============================
+VizGrimoireJS aims at providing a framework for software metrics visualization using HTML, 
+CSS and JavaScript as main technologies.
 
 It was born as a complement to the outcomes of VizGrimoireR project (now GrimoireLib), 
 whose main focus is to parse information from any of the tools found in Metrics Grimoire 
@@ -16,24 +16,25 @@ project.
 
 ## Q. How do I generate the HTML?
 
-The INDIGO PaaS Orchestrator is a component of the PaaS layer that allows to instantiate resources on Cloud Management Frameworks (like [OpenStack](https://www.openstack.org/) and [Opennebula](http://opennebula.org/)) and [Mesos](http://mesos.apache.org/) clusters.
+make
 
-It takes the deployment requests, expressed through templates written in [TOSCA YAML Simple Profile](http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/TOSCA-Simple-Profile-YAML-v1.0.html), and deploys them on the best cloud site available. In order to do that
- 1. it gathers SLAs, monitoring info and other data from other platform services,
- 2. it asks to the cloud provider ranker for a list of the best cloud sites.
+## Q. How do I clean the generated HTML?
 
-The exposed REST APIs are consumed by the Future Gateway portal.
-Here you can find the [REST APIs documentation](http://indigo-dc.github.io/orchestrator/restdocs/) and the [Java doc](http://indigo-dc.github.io/orchestrator/apidocs/).
+make clean
 
-### DEPENDENCIES TO OTHER SERVICES
+## Q. Where do I include the JSON files?
 
-The Orchestrator needs the presence of the following INDIGO services:
+Copy them to the directory browser/data/json
 
- 1. `SLAM`: [SLA Manager](https://indigo-dc.gitbooks.io/slam/content); allows to retrieve all the SLAs of the user
- 2. `CMDB`: Configuration Manager DataBase; contains all the cloud sites information, like the identity endpoint, the OCCI endpoint, etc...
- 3. `Zabbix Wrapper`: [REST wrapper for Zabbix](https://indigo-dc.gitbooks.io/monitoring/content#1-zabbix-wrapper); allows to retrieve monitoring metrics to zabbix through a REST interface
- 4. `CPR` [Cloud Provider Ranker](https://www.gitbook.com/book/indigo-dc/cloud-provider-ranker/content); it receives all the information retrieved from the aforementioned services and provides the ordered list of the best sites
+## Q. Where is the famous metrics.json file located?
 
-### HOW TO
-* [Build](gitbook/how_to_build.md)
-* [Deploy](gitbook/how_to_deploy.md)
+It is located at browser/data/metrics.json
+
+## Q. What if I don't want project support?
+
+The project hierarchy is provided by the file browser/data/json/projects_hierarchy.json, if
+the file is not present the dash works with no subprojects support.
+
+## Q. What if I don't want to generate all the HTML files?
+
+Easy, comment the proper lines in the shell script at templates/gen.sh
