@@ -1,4 +1,8 @@
+it.reply.orchestrator.annotation
 it.reply.orchestrator.config
+it.reply.orchestrator.config.filters
+it.reply.orchestrator.config.persistence
+it.reply.orchestrator.config.properties
 it.reply.orchestrator.config.security
 it.reply.orchestrator.controller
 it.reply.orchestrator.dal.entity
@@ -7,6 +11,8 @@ it.reply.orchestrator.dto
 it.reply.orchestrator.dto.cmdb
 it.reply.orchestrator.dto.common
 it.reply.orchestrator.dto.deployment
+it.reply.orchestrator.dto.mesos
+it.reply.orchestrator.dto.mesos.marathon
 it.reply.orchestrator.dto.monitoring
 it.reply.orchestrator.dto.onedata
 it.reply.orchestrator.dto.ranker
@@ -21,9 +27,7 @@ it.reply.orchestrator.resource
 it.reply.orchestrator.resource.common
 it.reply.orchestrator.service
 it.reply.orchestrator.service.commands
-it.reply.orchestrator.service.commands.chronos
 it.reply.orchestrator.service.deployment.providers
 it.reply.orchestrator.service.security
-it.reply.orchestrator.service.utils
 it.reply.orchestrator.utils
 it.reply.orchestrator.validator
