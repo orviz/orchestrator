@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.service;
 
 import com.google.common.collect.Lists;
@@ -10,7 +26,6 @@ import it.reply.orchestrator.dto.onedata.UserSpaces;
 import it.reply.orchestrator.exception.service.DeploymentException;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.elasticsearch.common.base.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -22,12 +37,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Objects;
 
-import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
 @Service
-@PropertySource(value = { "classpath:application.properties", "${onedata.conf.file.path}" })
+@PropertySource(value = { "classpath:application.properties", "${conf-file-path.onedata}" })
 public class OneDataServiceImpl implements OneDataService {
 
   @Autowired
@@ -98,7 +113,7 @@ public class OneDataServiceImpl implements OneDataService {
   }
 
   @Override
-  public UserSpaces getUserSpacesId(String oneZoneEndpoint, @Nonnull String oneDataToken) {
+  public UserSpaces getUserSpacesId(String oneZoneEndpoint, String oneDataToken) {
     if (oneZoneEndpoint == null) {
       oneZoneEndpoint = defaultOneZoneEndpoint;
     }
@@ -119,8 +134,8 @@ public class OneDataServiceImpl implements OneDataService {
   }
 
   @Override
-  public SpaceDetails getSpaceDetailsFromId(String oneZoneEndpoint, @Nonnull String oneDataToken,
-      @Nonnull String oneSpaceId) {
+  public SpaceDetails getSpaceDetailsFromId(String oneZoneEndpoint, String oneDataToken,
+      String oneSpaceId) {
     if (oneZoneEndpoint == null) {
       oneZoneEndpoint = defaultOneZoneEndpoint;
     }
@@ -137,39 +152,37 @@ public class OneDataServiceImpl implements OneDataService {
   }
 
   @Override
-  public SpaceDetails getSpaceDetailsFromId(@Nonnull String oneDataToken,
-      @Nonnull String oneSpaceId) {
+  public SpaceDetails getSpaceDetailsFromId(String oneDataToken, String oneSpaceId) {
     return getSpaceDetailsFromId(null, oneDataToken, oneSpaceId);
   }
 
   @Override
-  public String getUserSpaceNameById(String oneZoneEndpoint, @Nonnull String oneDataToken,
-      @Nonnull String oneSpaceId) {
+  public String getUserSpaceNameById(String oneZoneEndpoint, String oneDataToken,
+      String oneSpaceId) {
     SpaceDetails details = getSpaceDetailsFromId(oneZoneEndpoint, oneDataToken, oneSpaceId);
     return details.getName();
   }
 
   @Override
-  public String getUserSpaceNameById(@Nonnull String onedataToken, @Nonnull String oneSpaceId) {
+  public String getUserSpaceNameById(String onedataToken, String oneSpaceId) {
     return getUserSpaceNameById(null, onedataToken, oneSpaceId);
   }
 
   @Override
-  public List<String> getProvidersIdBySpaceId(String oneZoneEndpoint, @Nonnull String oneDataToken,
-      @Nonnull String oneSpaceId) {
+  public List<String> getProvidersIdBySpaceId(String oneZoneEndpoint, String oneDataToken,
+      String oneSpaceId) {
     SpaceDetails details = getSpaceDetailsFromId(oneZoneEndpoint, oneDataToken, oneSpaceId);
     return Lists.newArrayList(details.getProvidersSupports().keySet());
   }
 
   @Override
-  public List<String> getProvidersIdBySpaceId(@Nonnull String oneDataToken,
-      @Nonnull String oneSpaceId) {
+  public List<String> getProvidersIdBySpaceId(String oneDataToken, String oneSpaceId) {
     return getProvidersIdBySpaceId(null, oneDataToken, oneSpaceId);
   }
 
   @Override
-  public ProviderDetails getProviderDetailsFromId(String oneZoneEndpoint,
-      @Nonnull String oneDataToken, @Nonnull String oneSpaceId, @Nonnull String oneProviderId) {
+  public ProviderDetails getProviderDetailsFromId(String oneZoneEndpoint, String oneDataToken,
+      String oneSpaceId, String oneProviderId) {
     if (oneZoneEndpoint == null) {
       oneZoneEndpoint = defaultOneZoneEndpoint;
     }
@@ -186,8 +199,8 @@ public class OneDataServiceImpl implements OneDataService {
   }
 
   @Override
-  public ProviderDetails getProviderDetailsFromId(@Nonnull String oneDataToken,
-      @Nonnull String oneSpaceId, @Nonnull String oneProviderId) {
+  public ProviderDetails getProviderDetailsFromId(String oneDataToken, String oneSpaceId,
+      String oneProviderId) {
     return getProviderDetailsFromId(null, oneDataToken, oneSpaceId, oneProviderId);
   }
 
@@ -246,7 +259,7 @@ public class OneDataServiceImpl implements OneDataService {
     for (String spaceId : spaces.getSpaces()) {
       spaceDetail =
           getSpaceDetailsFromId(onedataParameter.getZone(), onedataParameter.getToken(), spaceId);
-      if (Objects.equal(onedataParameter.getSpace(), spaceDetail.getCanonicalName())) {
+      if (Objects.equals(onedataParameter.getSpace(), spaceDetail.getCanonicalName())) {
         providersId.addAll(spaceDetail.getProvidersSupports().keySet());
         break;
       }
@@ -262,8 +275,8 @@ public class OneDataServiceImpl implements OneDataService {
           onedataParameter.getToken(), spaceDetail.getSpaceId(), providerId);
       if (addAllProvidersinfo) {
         OneDataProviderInfo providerInfo = new OneDataProviderInfo();
-        providerInfo.id = providerId;
-        providerInfo.endpoint = providerDetails.getRedirectionPoint();
+        providerInfo.setId(providerId);
+        providerInfo.setEndpoint(providerDetails.getRedirectionPoint());
         onedataParameter.getProviders().add(providerInfo);
       } else {
         // TODO implement the logic

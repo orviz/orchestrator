@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.service;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -6,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import alien4cloud.model.components.AbstractPropertyValue;
+import alien4cloud.model.components.ComplexPropertyValue;
 import alien4cloud.model.components.ListPropertyValue;
 import alien4cloud.model.components.PropertyValue;
 import alien4cloud.model.components.ScalarPropertyValue;
@@ -21,6 +38,7 @@ import es.upv.i3m.grycap.im.exceptions.FileException;
 import it.reply.orchestrator.config.specific.WebAppConfigurationAware;
 import it.reply.orchestrator.dto.onedata.OneData;
 import it.reply.orchestrator.exception.service.ToscaException;
+import it.reply.orchestrator.utils.CommonUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,8 +65,6 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
   public static final String TEMPLATES_INPUT_BASE_DIR = TEMPLATES_BASE_DIR + "inputs/";
   public static final String TEMPLATES_ONEDATA_BASE_DIR =
       TEMPLATES_BASE_DIR + "onedata_requirements/";
-
-  private String deploymentId = "deployment_id";
 
   // @Test(expected = ToscaException.class)
   // public void customizeTemplateWithInvalidTemplate() throws Exception {
@@ -122,10 +138,14 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
     Map<String, NodeTemplate> nodes = ar.getTopology().getNodeTemplates();
     NodeTemplate chronosJob = nodes.get("chronos_job");
     // Node's properties
-    assertEquals(inputs.get("command"),
-        toscaService.getNodePropertyValueByName(chronosJob, "command").getValue());
+    assertEquals(
+        inputs
+            .get(
+                "command"),
+        CommonUtils.<ScalarPropertyValue> optionalCast(
+            toscaService.getNodePropertyByName(chronosJob, "command")).get().getValue());
     // Validate list replacement (little bit hard-coded... should be improved)
-    AbstractPropertyValue uris = toscaService.getNodePropertyValueByName(chronosJob, "uris");
+    AbstractPropertyValue uris = toscaService.getNodePropertyByName(chronosJob, "uris").get();
     assertThat(uris, instanceOf(ListPropertyValue.class));
     AbstractPropertyValue urisOne =
         (AbstractPropertyValue) ((ListPropertyValue) uris).getValue().get(0);
@@ -137,11 +157,11 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
         ((ScalarPropertyValue) urisTwo).getValue()));
 
     // Recursive node's properties
-    @SuppressWarnings("unchecked")
-    AbstractPropertyValue outputFileNames =
-        (AbstractPropertyValue) (((Map<String, Object>) toscaService
-            .getNodePropertyValueByName(chronosJob, "environment_variables").getValue())
-                .get("OUTPUT_FILENAMES"));
+    AbstractPropertyValue outputFileNames = (AbstractPropertyValue) CommonUtils
+        .<ComplexPropertyValue> optionalCast(
+            toscaService.getNodePropertyByName(chronosJob, "environment_variables"))
+        .get().getValue().get("OUTPUT_FILENAMES");
+
     assertThat(outputFileNames, instanceOf(ScalarPropertyValue.class));
     assertEquals(inputs.get("output_filenames").toString(),
         ((ScalarPropertyValue) outputFileNames).getValue());
@@ -157,9 +177,15 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
     NodeTemplate dockerNode = dockerRelationships.values().iterator().next();
     Capability dockerCapability = dockerNode.getCapabilities().get("host");
     assertEquals(inputs.get("cpus").toString(),
-        toscaService.getCapabilityPropertyValueByName(dockerCapability, "num_cpus").getValue());
+        CommonUtils
+            .<ScalarPropertyValue> optionalCast(
+                toscaService.getCapabilityPropertyByName(dockerCapability, "num_cpus"))
+            .get().getValue());
     assertEquals(inputs.get("mem").toString(),
-        toscaService.getCapabilityPropertyValueByName(dockerCapability, "mem_size").getValue());
+        CommonUtils
+            .<ScalarPropertyValue> optionalCast(
+                toscaService.getCapabilityPropertyByName(dockerCapability, "mem_size"))
+            .get().getValue());
 
     // FIXME: Also test relationships' properties
   }
@@ -202,10 +228,10 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
     Map<String, OneData> odr = toscaService.extractOneDataRequirements(ar, inputs);
     assertEquals(true, odr.containsKey("input"));
     assertArrayEquals(inputs.get("input_onedata_providers").toString().split(","), odr.get("input")
-        .getProviders().stream().map(info -> info.endpoint).collect(Collectors.toList()).toArray());
+        .getProviders().stream().map(info -> info.getEndpoint()).collect(Collectors.toList()).toArray());
     assertEquals(true, odr.containsKey("output"));
     assertArrayEquals(inputs.get("output_onedata_providers").toString().split(","),
-        odr.get("output").getProviders().stream().map(info -> info.endpoint)
+        odr.get("output").getProviders().stream().map(info -> info.getEndpoint())
             .collect(Collectors.toList()).toArray());
   }
 

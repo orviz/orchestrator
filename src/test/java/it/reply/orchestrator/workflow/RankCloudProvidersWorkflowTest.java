@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.workflow;
 
 import static org.junit.Assert.assertEquals;
@@ -6,24 +22,30 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import it.reply.orchestrator.config.WorkflowConfigProducerBean;
+import it.reply.orchestrator.config.properties.CprProperties;
+import it.reply.orchestrator.config.specific.WebAppConfigurationAwareIT;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.dto.ranker.RankedCloudProvider;
 import it.reply.orchestrator.exception.OrchestratorException;
 import it.reply.orchestrator.service.CloudProviderRankerService;
+import it.reply.orchestrator.service.CloudProviderRankerServiceIT;
+import it.reply.orchestrator.service.CloudProviderRankerServiceTest;
 import it.reply.orchestrator.service.CmdbService;
 import it.reply.orchestrator.service.MonitoringService;
 import it.reply.orchestrator.service.SlamService;
-import it.reply.orchestrator.service.WorkflowConstants;
+import it.reply.orchestrator.utils.WorkflowConstants;
 import it.reply.utils.json.JsonUtility;
 import it.reply.workflowmanager.exceptions.WorkflowException;
 import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager;
 import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager.RUNTIME_STRATEGY;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jbpm.workflow.instance.WorkflowProcessInstance;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -31,14 +53,16 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RankCloudProvidersWorkflowTest { // extends WebAppConfigurationAware {
+@Ignore //FIXME Re-enable when jBPM serialization problems are solved
+public class RankCloudProvidersWorkflowTest extends WebAppConfigurationAwareIT {
 
-  static final Logger LOG = LogManager.getLogger(RankCloudProvidersWorkflowTest.class);
+  static final Logger LOG = LoggerFactory.getLogger(RankCloudProvidersWorkflowTest.class);
 
   // @Mock
   // private WorkItemHandlersProducer testWorkItemHandlersProducer;
@@ -54,6 +78,9 @@ public class RankCloudProvidersWorkflowTest { // extends WebAppConfigurationAwar
 
   @Autowired
   private CloudProviderRankerService cloudProviderRankerService;
+  
+  @Autowired
+  private CprProperties cprProperties;
 
   // @InjectMocks
   @Autowired
@@ -76,7 +103,7 @@ public class RankCloudProvidersWorkflowTest { // extends WebAppConfigurationAwar
    * @throws Exception
    *           in case something went wrong...
    */
-  // @Test //FIXME Re-enable when jBPM serialization problems are solved
+  @Test
   @Transactional
   public void testProcess() throws Exception {
 
@@ -84,11 +111,13 @@ public class RankCloudProvidersWorkflowTest { // extends WebAppConfigurationAwar
     mockSlam(mockServer, slamService.getUrl());
     mockCmdb(mockServer, cmdbService.getUrl());
     mockMonitoring(mockServer, monitoringService.getUrl());
-    mockCpr(mockServer, cloudProviderRankerService.getUrl());
+    List<RankedCloudProvider> providers =
+        CloudProviderRankerServiceTest.generateMockedRankedProviders();
+    CloudProviderRankerServiceIT.mockCpr(mockServer, cprProperties.getUrl(), providers);
 
     // Init params: empty RCPM
     Map<String, Object> params = new HashMap<>();
-    RankCloudProvidersMessage rcpm = new RankCloudProvidersMessage(null);
+    RankCloudProvidersMessage rcpm = new RankCloudProvidersMessage();
     params.put(WorkflowConstants.WF_PARAM_RANK_CLOUD_PROVIDERS_MESSAGE, rcpm);
 
     ProcessInstance processInstance = null;
@@ -206,15 +235,6 @@ public class RankCloudProvidersWorkflowTest { // extends WebAppConfigurationAwar
         .andRespond(withSuccess(
             "{\"meta\":{\"status\":200,\"additionalProperties\":{}},\"result\":{\"groups\":[{\"groupName\":\"Cloud_Providers\",\"paasMachines\":[{\"machineName\":\"provider-UPV-GRyCAP\",\"ip\":\"127.0.0.1\",\"serviceCategory\":\"\",\"serviceId\":\"id\",\"services\":[{\"serviceName\":\"\",\"paasMetrics\":[{\"metricName\":\"OCCI Create VM availability\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI Create VM availability\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI CreateVM Response Time\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI CreateVM Response Time\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"ms\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI CreateVM Result\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI CreateVM Result\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI Delete VM Availability\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI Delete VM Availability\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI DeleteVM Response Time\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI DeleteVM Response Time\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"ms\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI DeleteVM Result\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI DeleteVM Result\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"General OCCI API Availability\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..General OCCI API Availability\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"General OCCI API Response Time\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..General OCCI API Response Time\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"ms\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"General OCCI API Result\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..General OCCI API Result\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI Inspect VM availability\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI Inspect VM availability\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI InspectVM Response Time\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI InspectVM Response Time\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"ms\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]},{\"metricName\":\"OCCI InspectVM Result\",\"metricKey\":\"Cloud_Providers.provider-UPV-GRyCAP..OCCI InspectVM Result\",\"metricValue\":0.0,\"metricTime\":\"Instant null because no metrics were returned in the last 24hs\",\"metricUnit\":\"bit\",\"paasThresholds\":[],\"historyClocks\":[],\"historyValues\":[]}]}]}]}]},\"additionalProperties\":{}}",
             MediaType.APPLICATION_JSON));
-  }
-
-  public static void mockCpr(MockRestServiceServer mockServer, String baseUrl) throws Exception {
-    List<RankedCloudProvider> response =
-        Arrays.asList(new RankedCloudProvider("Name1", 1, true, ""),
-            new RankedCloudProvider("Name2", 0, false, "Error msg"));
-
-    mockServer.expect(requestTo(baseUrl)).andExpect(method(HttpMethod.POST))
-        .andRespond(withSuccess(JsonUtility.serializeJson(response), MediaType.APPLICATION_JSON));
   }
 
 }

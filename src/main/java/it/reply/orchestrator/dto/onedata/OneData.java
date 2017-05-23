@@ -1,30 +1,51 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.dto.onedata;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import lombok.Data;
+import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Data
+@ToString(exclude = "token")
 public class OneData implements Serializable {
 
   private static final long serialVersionUID = 8590316308119399053L;
 
+  @Data
   public static class OneDataProviderInfo implements Serializable {
 
     private static final long serialVersionUID = -4904767929269221557L;
 
-    public String id;
+    private String id;
 
-    public String endpoint;
+    private String endpoint;
 
-    public String cloudProviderId;
+    private String cloudProviderId;
 
-    public String cloudServiceId;
+    private String cloudServiceId;
 
     public OneDataProviderInfo() {
     }
@@ -38,7 +59,7 @@ public class OneData implements Serializable {
   private String space;
   private String path;
   private String zone;
-  private List<OneDataProviderInfo> providers = Lists.newArrayList();
+  private List<OneDataProviderInfo> providers = new ArrayList<>();
   private boolean smartScheduling;
 
   /**
@@ -83,59 +104,15 @@ public class OneData implements Serializable {
   public OneData(String token, String space, String path, String providers, String zone) {
     this(token, space, path, Lists.newArrayList(), zone);
     if (!Strings.isNullOrEmpty(providers)) {
-      this.providers.addAll(Arrays.asList(providers.split(",")).stream()
-          .map(prov -> new OneDataProviderInfo(prov)).collect(Collectors.toList()));
+      this.providers.addAll(Arrays.asList(providers.split(","))
+          .stream()
+          .map(prov -> new OneDataProviderInfo(prov))
+          .collect(Collectors.toList()));
     }
   }
 
   public OneData(String token, String space, String path, String providers) {
     this(token, space, path, providers, null);
-  }
-
-  public String getToken() {
-    return token;
-  }
-
-  public String getSpace() {
-    return space;
-  }
-
-  public String getPath() {
-    return path;
-  }
-
-  public String getZone() {
-    return zone;
-  }
-
-  public List<OneDataProviderInfo> getProviders() {
-    return providers;
-  }
-
-  public void setProviders(List<OneDataProviderInfo> providers) {
-    this.providers = providers;
-  }
-
-  // /**
-  // * Generate the provider list as CSV.
-  // *
-  // * @return the provider list as CSV
-  // */
-  // public String getProvidersAsList() {
-  // return providers != null ? StringUtils.join(providers, ",") : "";
-  // }
-
-  public boolean isSmartScheduling() {
-    return smartScheduling;
-  }
-
-  public void setSmartScheduling(boolean smartScheduling) {
-    this.smartScheduling = smartScheduling;
-  }
-
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this);
   }
 
 }

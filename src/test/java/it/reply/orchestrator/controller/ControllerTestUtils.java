@@ -1,4 +1,22 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.controller;
+
+import com.google.common.collect.Lists;
 
 import it.reply.orchestrator.dal.entity.AbstractResourceEntity;
 import it.reply.orchestrator.dal.entity.Deployment;
@@ -7,7 +25,6 @@ import it.reply.orchestrator.enums.NodeStates;
 import it.reply.orchestrator.enums.Status;
 import it.reply.orchestrator.enums.Task;
 
-import org.elasticsearch.common.collect.Lists;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -79,13 +96,10 @@ public class ControllerTestUtils {
     }
 
     if (sorted) {
-      resources.stream().sorted(new Comparator<Resource>() {
-
-        @Override
-        public int compare(Resource o1, Resource o2) {
-          return o1.getCreated().compareTo(o2.getCreated());
-        }
-      }).collect(Collectors.toList());
+      resources.stream()
+          .sorted(
+              Comparator.comparing(Resource::getCreated, Comparator.nullsFirst(Date::compareTo)))
+          .collect(Collectors.toList());
     }
 
     return resources;

@@ -1,4 +1,25 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.dal.entity;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.hateoas.Identifiable;
@@ -15,6 +36,10 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Version;
 
 @MappedSuperclass
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public abstract class AbstractResourceEntity implements Identifiable<String>, Serializable {
 
   private static final long serialVersionUID = 3797345592958668261L;
@@ -30,47 +55,12 @@ public abstract class AbstractResourceEntity implements Identifiable<String>, Se
 
   @Column(name = CREATED_COLUMN_NAME)
   private Date created;
+
+  @Column(name = "updated")
   private Date updated;
 
   @Version
   private Long version;
-
-  protected AbstractResourceEntity() {
-    this.id = null;
-  }
-
-  @Override
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  public void setUpdated(Date updated) {
-    this.updated = updated;
-  }
-
-  public Date getCreated() {
-    return created;
-  }
-
-  public Date getUpdated() {
-    return updated;
-  }
-
-  public Long getVersion() {
-    return version;
-  }
-
-  public void setVersion(Long version) {
-    this.version = version;
-  }
 
   @PrePersist
   protected void onCreate() {
@@ -81,11 +71,4 @@ public abstract class AbstractResourceEntity implements Identifiable<String>, Se
   protected void onUpdate() {
     this.updated = new Date();
   }
-
-  @Override
-  public String toString() {
-    return "AbstractResourceEntity [id=" + id + ", created=" + created + ", updated=" + updated
-        + "]";
-  }
-
 }

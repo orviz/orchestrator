@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.service.commands;
 
 import com.google.common.collect.ImmutableMap;
@@ -9,15 +25,17 @@ import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
 import it.reply.orchestrator.dto.onedata.OneData;
 import it.reply.orchestrator.dto.ranker.RankedCloudProvider;
+import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.service.CloudProviderEndpointServiceImpl;
 import it.reply.orchestrator.service.OneDataService;
-import it.reply.orchestrator.service.WorkflowConstants;
 import it.reply.orchestrator.service.deployment.providers.DeploymentStatusHelper;
+import it.reply.orchestrator.utils.CommonUtils;
+import it.reply.orchestrator.utils.WorkflowConstants;
 import it.reply.workflowmanager.spring.orchestrator.bpm.ejbcommands.BaseCommand;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections4.MapUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +53,8 @@ import java.util.stream.Collectors;
  *
  */
 @Component
+@Slf4j
 public class UpdateDeployment extends BaseCommand {
-
-  private static final Logger LOG = LogManager.getLogger(UpdateDeployment.class);
 
   @Autowired
   private OneDataService oneDataService;
@@ -55,17 +72,17 @@ public class UpdateDeployment extends BaseCommand {
   public ExecutionResults customExecute(CommandContext ctx) throws Exception {
 
     RankCloudProvidersMessage rankCloudProvidersMessage =
-        (RankCloudProvidersMessage) getWorkItem(ctx)
-            .getParameter(WorkflowConstants.WF_PARAM_RANK_CLOUD_PROVIDERS_MESSAGE);
-    DeploymentMessage deploymentMessage = (DeploymentMessage) getWorkItem(ctx)
-        .getParameter(WorkflowConstants.WF_PARAM_DEPLOYMENT_MESSAGE);
+        getParameter(ctx, WorkflowConstants.WF_PARAM_RANK_CLOUD_PROVIDERS_MESSAGE);
+    if (rankCloudProvidersMessage == null) {
+      throw new IllegalArgumentException(String.format("WF parameter <%s> cannot be null",
+          WorkflowConstants.WF_PARAM_RANK_CLOUD_PROVIDERS_MESSAGE));
+    }
+
+    DeploymentMessage deploymentMessage =
+        getParameter(ctx, WorkflowConstants.WF_PARAM_DEPLOYMENT_MESSAGE);
 
     ExecutionResults exResults = new ExecutionResults();
     try {
-      if (rankCloudProvidersMessage == null) {
-        throw new IllegalArgumentException(String.format("WF parameter <%s> cannot be null",
-            WorkflowConstants.WF_PARAM_RANK_CLOUD_PROVIDERS_MESSAGE));
-      }
       if (deploymentMessage == null) {
         throw new IllegalArgumentException(String.format("WF parameter <%s> cannot be null",
             WorkflowConstants.WF_PARAM_DEPLOYMENT_MESSAGE));
@@ -89,7 +106,8 @@ public class UpdateDeployment extends BaseCommand {
 
       // FIXME Generate CP Endpoint
       CloudProviderEndpoint chosenCloudProviderEndpoint = cloudProviderEndpointServiceImpl
-          .getCloudProviderEndpoint(deploymentMessage.getChosenCloudProvider());
+          .getCloudProviderEndpoint(deploymentMessage.getChosenCloudProvider(),
+              rankCloudProvidersMessage.getPlacementPolicies());
       deploymentMessage.setChosenCloudProviderEndpoint(chosenCloudProviderEndpoint);
       LOG.debug("Generated Cloud Provider Endpoint is: {}", chosenCloudProviderEndpoint);
 
@@ -97,13 +115,18 @@ public class UpdateDeployment extends BaseCommand {
       // Save CPE in Deployment for future use
       deployment.setCloudProviderEndpoint(chosenCloudProviderEndpoint);
 
+      DeploymentProvider deploymentProvider =
+          cloudProviderEndpointServiceImpl.getDeploymentProvider(
+              deploymentMessage.getDeploymentType(), deploymentMessage.getChosenCloudProvider());
+      deployment.setDeploymentProvider(deploymentProvider);
+
       // FIXME Implement OneData scheduling properly and move in a dedicated command
       generateOneDataParameters(rankCloudProvidersMessage, deploymentMessage);
 
       exResults.getData().putAll(resultOccurred(true).getData());
       exResults.setData(WorkflowConstants.WF_PARAM_DEPLOYMENT_MESSAGE, deploymentMessage);
     } catch (Exception ex) {
-      LOG.error(ex);
+      LOG.error("Error setting cloud selected providers", ex);
       exResults.getData().putAll(resultOccurred(false).getData());
 
       // Update deployment with error
@@ -122,8 +145,8 @@ public class UpdateDeployment extends BaseCommand {
 
     // No Requirements -> Service space
     if (MapUtils.isEmpty(deploymentMessage.getOneDataRequirements())) {
-      deploymentMessage
-          .setOneDataParameters(ImmutableMap.of("service", generateStubOneData(deploymentMessage)));
+      deploymentMessage.setOneDataParameters(CommonUtils
+          .checkNotNull(ImmutableMap.of("service", generateStubOneData(deploymentMessage))));
       LOG.warn("GENERATING STUB ONE DATA FOR SERVICE"
           + " (remove once OneData parameters generation is completed!)");
     } else {
@@ -134,7 +157,7 @@ public class UpdateDeployment extends BaseCommand {
         if (oneDataInput != null) {
           if (oneDataInput.isSmartScheduling()) {
             oneDataInput.setProviders(oneDataInput.getProviders().stream()
-                .filter(info -> Objects.equals(info.cloudProviderId,
+                .filter(info -> Objects.equals(info.getCloudProviderId(),
                     deploymentMessage.getChosenCloudProvider().getId()))
                 .collect(Collectors.toList()));
           }
@@ -147,7 +170,7 @@ public class UpdateDeployment extends BaseCommand {
         if (oneDataOutput != null) {
           if (oneDataOutput.isSmartScheduling()) {
             oneDataOutput.setProviders(oneDataOutput.getProviders().stream()
-                .filter(info -> Objects.equals(info.cloudProviderId,
+                .filter(info -> Objects.equals(info.getCloudProviderId(),
                     deploymentMessage.getChosenCloudProvider().getId()))
                 .collect(Collectors.toList()));
           }

@@ -1,24 +1,58 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.dto.security;
 
-import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import it.reply.orchestrator.utils.CommonUtils;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.UserInfo;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import javax.validation.constraints.NotNull;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class IndigoUserInfo extends DefaultUserInfo {
 
   private static final long serialVersionUID = -6165120150633146681L;
 
   private static final String GROUPS_KEY = "groups";
   private static final String ORGANIZATION_NAME_KEY = "organisation_name";
-  private List<String> groups;
+
+  @NonNull
+  @NotNull
+  private List<String> groups = new ArrayList<>();
+
+  @Nullable
   private String organizationName;
 
   /**
@@ -51,40 +85,24 @@ public class IndigoUserInfo extends DefaultUserInfo {
     this.setSource(other.getSource());
   }
 
-  public List<String> getGroups() {
-    return groups;
-  }
-
-  public void setGroups(List<String> groups) {
-    this.groups = groups;
-  }
-
   public String getOrganizationName() {
-    return organizationName;
-  }
-
-  public void setOrganizationName(String organizationName) {
-    this.organizationName = organizationName;
+    return Optional.ofNullable(organizationName).orElse("indigo-dc");
   }
 
   @Override
   public JsonObject toJson() {
-    if (this.getSource() == null) {
+    return Optional.ofNullable(this.getSource()).orElseGet(() -> {
       JsonObject result = super.toJson();
-      if (groups != null) {
-        JsonArray groupsJson = new JsonArray();
-        for (String g : groups) {
-          groupsJson.add(g);
-        }
-        result.add(GROUPS_KEY, groupsJson);
-      }
-      if (organizationName != null) {
-        result.addProperty(ORGANIZATION_NAME_KEY, organizationName);
-      }
+      JsonArray groupsJson = new JsonArray();
+      groups.forEach(g -> groupsJson.add(new JsonPrimitive(g)));
+      result.add(GROUPS_KEY, groupsJson);
+
+      Optional.ofNullable(organizationName)
+          .ifPresent(name -> result.addProperty(ORGANIZATION_NAME_KEY, name));
+
       return result;
-    } else {
-      return this.getSource();
-    }
+    });
+
   }
 
   /**
@@ -96,36 +114,29 @@ public class IndigoUserInfo extends DefaultUserInfo {
    */
   public static UserInfo fromJson(JsonObject obj) {
     IndigoUserInfo result = new IndigoUserInfo(DefaultUserInfo.fromJson(obj));
-    if (obj.has(GROUPS_KEY) && obj.get(GROUPS_KEY).isJsonArray()) {
-      List<String> groups = Lists.newArrayList();
-      JsonArray groupsJson = obj.getAsJsonArray(GROUPS_KEY);
-      for (JsonElement groupJson : groupsJson) {
-        if (groupJson != null && groupJson.isJsonPrimitive()) {
-          groups.add(groupJson.getAsString());
-        }
-      }
-      result.setGroups(groups);
-    }
-    result.setOrganizationName(
-        obj.has(ORGANIZATION_NAME_KEY) && obj.get(ORGANIZATION_NAME_KEY).isJsonPrimitive()
-            ? obj.get(ORGANIZATION_NAME_KEY).getAsString() : null);
+
+    // get groups json array
+    Optional.ofNullable(obj.get(GROUPS_KEY))
+        .filter(groups -> groups.isJsonArray())
+        .map(groups -> groups.getAsJsonArray())
+        // deserialize groups json array and set it
+        .map(groupsJson -> deserializeGroups(groupsJson))
+        .ifPresent(groups -> result.setGroups(CommonUtils.checkNotNull(groups)));
+
+    // get organization, deserialize it and set it (if present)
+    Optional.ofNullable(obj.get(ORGANIZATION_NAME_KEY))
+        .filter(element -> element.isJsonPrimitive())
+        .ifPresent(element -> result.setOrganizationName(element.getAsString()));
+
     return result;
   }
 
-  @Override
-  public int hashCode() {
-    return new HashCodeBuilder().appendSuper(super.hashCode()).append(this.getGroups())
-        .append(this.getOrganizationName()).build();
+  private static List<String> deserializeGroups(JsonArray groupsJson) {
+    return CommonUtils.spliteratorToStream(groupsJson.spliterator())
+        .filter(groupJson -> groupJson != null)
+        .filter(groupJson -> groupJson.isJsonPrimitive())
+        .map(groupJson -> groupJson.getAsString())
+        .collect(Collectors.toList());
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null || !(obj instanceof IndigoUserInfo)) {
-      return false;
-    }
-    IndigoUserInfo other = (IndigoUserInfo) obj;
-    return new EqualsBuilder().appendSuper(super.equals(other))
-        .append(this.getGroups(), other.getGroups())
-        .append(this.getOrganizationName(), other.getOrganizationName()).build();
-  }
 }

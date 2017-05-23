@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.controller;
 
 import static org.hamcrest.Matchers.is;
@@ -27,7 +43,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.JUnitRestDocumentation;
+import org.springframework.restdocs.RestDocumentation;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -50,8 +66,7 @@ public class TemplateControllerTest {
   private GlobalControllerExceptionHandler globalControllerExceptionHandler;
 
   @Rule
-  public JUnitRestDocumentation restDocumentation =
-      new JUnitRestDocumentation("target/generated-snippets");
+  public RestDocumentation restDocumentation = new RestDocumentation("target/generated-snippets");
 
   private final MediaType applicationJsonUtf8 = new MediaType(MediaType.APPLICATION_JSON.getType(),
       MediaType.APPLICATION_JSON.getSubtype(), Charset.forName("utf8"));
@@ -84,7 +99,9 @@ public class TemplateControllerTest {
         mockMvc
             .perform(get("/deployments/" + deployment.getId() + "/template").header(
                 HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
-            .andExpect(status().isOk()).andExpect(content().contentType(MediaType.TEXT_PLAIN))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(new MediaType(MediaType.TEXT_PLAIN.getType(),
+                MediaType.TEXT_PLAIN.getSubtype(), Charset.forName("ISO-8859-1"))))
             .andDo(document("get-template")).andReturn();
 
     String content = result.getResponse().getContentAsString();

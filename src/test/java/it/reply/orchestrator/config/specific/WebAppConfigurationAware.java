@@ -1,25 +1,39 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.config.specific;
 
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 
+import it.reply.orchestrator.annotation.SpringTestProfile;
 import it.reply.orchestrator.config.ApplicationConfigTest;
-import it.reply.orchestrator.config.PersistenceConfigTest;
-import it.reply.orchestrator.config.WebAppInitializer;
-import it.reply.orchestrator.config.WebMvcConfig;
 import it.reply.orchestrator.config.WorkflowConfigProducerBean;
-import it.reply.orchestrator.config.WorklfowPersistenceConfigTest;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestExecutionListeners;
@@ -29,24 +43,23 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.inject.Inject;
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@ActiveProfiles(SpringTestProfile.PROFILE_QUALIFIER)
 @WebAppConfiguration
 @ContextHierarchy({
-    @ContextConfiguration(name = "baseContext",
-        classes = { ApplicationConfigTest.class, WebAppInitializer.class, WebMvcConfig.class,
-            PersistenceConfigTest.class, WorklfowPersistenceConfigTest.class }),
-    @ContextConfiguration(name = "workflowContext",
-        classes = { WebAppConfigurationAware.Config.class }) })
-@TestPropertySource(locations = { "classpath:application-test.properties" })
+    @ContextConfiguration(name = "baseContext", classes = ApplicationConfigTest.class) })
+@TestPropertySource(locations = { "classpath:application.properties", "classpath:application-test.properties" })
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
     TransactionalTestExecutionListener.class, DbUnitTestExecutionListener.class })
+@Transactional
 public abstract class WebAppConfigurationAware {
 
-  private static final Logger LOG = LogManager.getLogger(WebAppConfigurationAware.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WebAppConfigurationAware.class);
 
   @Inject
   protected WebApplicationContext wac;

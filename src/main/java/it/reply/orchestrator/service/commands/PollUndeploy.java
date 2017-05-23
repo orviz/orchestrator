@@ -1,8 +1,25 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
 import it.reply.orchestrator.service.deployment.providers.DeploymentProviderService;
-import it.reply.orchestrator.service.deployment.providers.ImServiceImpl;
+import it.reply.orchestrator.service.deployment.providers.DeploymentProviderServiceRegistry;
+import it.reply.orchestrator.utils.WorkflowConstants;
 import it.reply.utils.misc.polling.AbstractPollingBehaviour;
 import it.reply.utils.misc.polling.ExternallyControlledPoller;
 import it.reply.utils.misc.polling.PollingBehaviour;
@@ -12,19 +29,17 @@ import it.reply.workflowmanager.spring.orchestrator.bpm.OrchestratorContextBean;
 import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PollUndeploy extends BaseDeployCommand {
 
   @Autowired
-  @Qualifier("IM")
-  private DeploymentProviderService imService;
+  private DeploymentProviderServiceRegistry deploymentProviderServiceRegistry;
 
   @Override
   protected String getErrorMessagePrefix() {
-    return "Error undeploying through IM";
+    return "Error during undeploy status check";
   }
 
   @Override
@@ -33,22 +48,26 @@ public class PollUndeploy extends BaseDeployCommand {
 
     ExecutionResults exResults = new ExecutionResults();
     ExternallyControlledPoller<DeploymentMessage, Boolean> pollingStatus =
-        getParameter(ctx, "pollingStatus");
+        getParameter(ctx, WorkflowConstants.WF_PARAM_POLLING_STATUS);
     if (pollingStatus == null) {
       pollingStatus = getPoller();
     }
-    exResults.setData("pollingStatus", pollingStatus);
+    exResults.setData(WorkflowConstants.WF_PARAM_POLLING_STATUS, pollingStatus);
+
+    DeploymentProviderService deploymentProviderService = deploymentProviderServiceRegistry
+        .getDeploymentProviderService(deploymentMessage.getDeployment());
+
     try {
       Boolean result = pollingStatus.doPollEvent(deploymentMessage);
       if (result != null && result) {
-        imService.finalizeUndeploy(deploymentMessage, result);
+        deploymentProviderService.finalizeUndeploy(deploymentMessage, result);
         deploymentMessage.setDeployment(null);
         return resultOccurred(true, exResults);
       } else {
         return resultOccurred(false, exResults);
       }
     } catch (PollingException ex) {
-      imService.finalizeUndeploy(deploymentMessage, false);
+      deploymentProviderService.finalizeUndeploy(deploymentMessage, false);
       return resultOccurred(true, exResults);
     }
   }
@@ -63,10 +82,13 @@ public class PollUndeploy extends BaseDeployCommand {
           private static final long serialVersionUID = -5994059867039967783L;
 
           @Override
-          public Boolean doPolling(DeploymentMessage deploymentId) throws PollingException {
+          public Boolean doPolling(DeploymentMessage deploymentMessage) throws PollingException {
             try {
-              ImServiceImpl imService = OrchestratorContextBean.getBean(ImServiceImpl.class);
-              return imService.isUndeployed(deploymentId);
+              DeploymentProviderServiceRegistry registry =
+                  OrchestratorContextBean.getBean(DeploymentProviderServiceRegistry.class);
+              DeploymentProviderService deploymentProviderService =
+                  registry.getDeploymentProviderService(deploymentMessage.getDeployment());
+              return deploymentProviderService.isUndeployed(deploymentMessage);
             } catch (Exception ex) {
               throw new PollingException("Polling for undeploy - error occured: " + ex.getMessage(),
                   ex);
@@ -80,6 +102,6 @@ public class PollUndeploy extends BaseDeployCommand {
 
         };
 
-    return new ExternallyControlledPoller<DeploymentMessage, Boolean>(pollBehavior, 3);
+    return new ExternallyControlledPoller<>(pollBehavior, 3);
   }
 }

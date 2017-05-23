@@ -1,4 +1,20 @@
 #!/bin/bash
+#
+# Copyright © 2015-2017 Santer Reply S.p.A.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 
 #IPADDR=$(ip a s | sed -ne '/127.0.0.1/!{s/^[ \t]*inet[ \t]*\([0-9.]\+\)\/.*$/\1/p}')
 
@@ -12,25 +28,10 @@ java -jar /usr/share/java/saxon.jar -o:$JBOSS_HOME/standalone/configuration/$JBO
 	workflow.DB.user=$WORKFLOW_DB_USER \
 	workflow.DB.pwd=$WORKFLOW_DB_PWD
 
-IM_PROP_FILE="$JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/im-config/im-java-api.properties"
-SECURITY_PROP_FILE="$JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/security.properties"
 CHRONOS_PROP_FILE="$JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/chronos/chronos.properties"
 CMDB_PROP_FILE="$JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/cmdb/cmdb.properties"
 SLAM_PROP_FILE="$JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/slam/slam.properties"
 CPR_PROP_FILE="$JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/cloud-provider-ranker/cloud-provider-ranker.properties"
-
-if [[ $IM_URL ]];
-	then sed -i "s/^\(url=\).*$/\1$(echo $IM_URL | sed -e 's/[\/&]/\\&/g')/" ${IM_PROP_FILE};
-fi;
-if [[ $OPENNEBULA_AUTH_FILE_PATH ]];
-	then sed -i "s/^\(opennebula\.auth\.file\.path=\).*$/\1$(echo $OPENNEBULA_AUTH_FILE_PATH | sed -e 's/[\/&]/\\&/g')/" ${IM_PROP_FILE};
-fi;
-if [[ $OPENSTACK_AUTH_FILE_PATH ]];
-	then sed -i "s/^\(openstack.auth\.file\.path=\).*$/\1$(echo $OPENSTACK_AUTH_FILE_PATH | sed -e 's/[\/&]/\\&/g')/" ${IM_PROP_FILE};
-fi;
-if [[ $ONEDOCK_AUTH_FILE_PATH ]];
-	then sed -i "s/^\(onedock\.auth\.file\.path=\).*$/\1$(echo $ONEDOCK_AUTH_FILE_PATH | sed -e 's/[\/&]/\\&/g')/" ${IM_PROP_FILE};
-fi;
 
 if [[ $CHRONOS_ENDPOINT ]];
 	then sed -i "s/^\(chronos\.endpoint=\).*$/\1$(echo $CHRONOS_ENDPOINT | sed -e 's/[\/&]/\\&/g')/" ${CHRONOS_PROP_FILE};
@@ -60,23 +61,6 @@ if [[ $CPR_ENDPOINT ]];
 	then sed -i "s/^\(cloud-provider-ranker\.url=\).*$/\1$(echo $CPR_ENDPOINT | sed -e 's/[\/&]/\\&/g')/" ${CPR_PROP_FILE};
 fi;
 
-# CUSTOMIZE SECURITY PROPERTIES
-if [ $SECURITY_ENABLE = "true" ];
-	then sed -i "s/^\(security\.enabled=\).*$/\1$(echo 'true' | sed -e 's/[\/&]/\\&/g')/" ${SECURITY_PROP_FILE};
-	else sed -i "s/^\(security\.enabled=\).*$/\1$(echo 'false' | sed -e 's/[\/&]/\\&/g')/" ${SECURITY_PROP_FILE};
-fi;
-
-if [[ $OIDC_ISSUERS ]];
-	then sed -i "s/^\(OIDC\.issuers=\).*$/\1$(echo $OIDC_ISSUERS | sed -e 's/[\/&]/\\&/g')/" ${SECURITY_PROP_FILE};
-fi;
-
-if [[ $OIDC_CLIENT_ID ]];
-	then sed -i "s/^\(OIDC\.clientID=\).*$/\1$(echo $OIDC_CLIENT_ID | sed -e 's/[\/&]/\\&/g')/" ${SECURITY_PROP_FILE};
-fi;
-
-if [[ $OIDC_CLIENT_SECRET ]];
-	then sed -i "s/^\(OIDC\.clientSecret=\).*$/\1$(echo $OIDC_CLIENT_SECRET | sed -e 's/[\/&]/\\&/g')/" ${SECURITY_PROP_FILE};
-fi;
 ################################
 
 if [ "${ENABLE_DEBUG}" = "true" ];

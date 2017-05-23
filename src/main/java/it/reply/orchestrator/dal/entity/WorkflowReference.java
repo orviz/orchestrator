@@ -1,7 +1,29 @@
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.reply.orchestrator.dal.entity;
 
 import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager;
 import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager.RUNTIME_STRATEGY;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import org.springframework.hateoas.Identifiable;
 
@@ -17,13 +39,26 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(of = { "processId" })
+@ToString(of = { "processId", "runtimeStrategy" })
 public class WorkflowReference implements Identifiable<Long>, Serializable {
 
   private static final long serialVersionUID = -610233480056664663L;
 
-  public WorkflowReference() {
-    super();
-  }
+  @Id
+  @Column(name = "process_id", unique = true, nullable = false)
+  private long processId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "runtime_strategy", length = 100, nullable = false)
+  private BusinessProcessManager.RUNTIME_STRATEGY runtimeStrategy;
+
+  @ManyToOne
+  @JoinColumn(name = "deployment_uuid")
+  private Deployment deployment;
 
   /**
    * Constructor with fields.
@@ -39,46 +74,10 @@ public class WorkflowReference implements Identifiable<Long>, Serializable {
     this.runtimeStrategy = runtimeStrategy;
   }
 
-  @Id
-  @Column(name = "process_id", unique = true, nullable = false)
-  private long processId;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "runtime_strategy", length = 100, nullable = false)
-  private BusinessProcessManager.RUNTIME_STRATEGY runtimeStrategy;
-
-  @ManyToOne
-  @JoinColumn(name = "deployment_uuid")
-  private Deployment deployment;
-
-  public Deployment getDeployment() {
-    return deployment;
-  }
-
-  public void setDeployment(Deployment deployment) {
-    this.deployment = deployment;
-  }
-
   @Override
   @Transient
   public Long getId() {
-    return processId;
-  }
-
-  public Long getProcessId() {
-    return processId;
-  }
-
-  public void setProcessId(long processId) {
-    this.processId = processId;
-  }
-
-  public BusinessProcessManager.RUNTIME_STRATEGY getRuntimeStrategy() {
-    return runtimeStrategy;
-  }
-
-  public void setRuntimeStrategy(BusinessProcessManager.RUNTIME_STRATEGY runtimeStrategy) {
-    this.runtimeStrategy = runtimeStrategy;
+    return this.getProcessId();
   }
 
 }

@@ -1,41 +1,55 @@
-package it.reply.orchestrator.config;
+/*
+ * Copyright © 2015-2017 Santer Reply S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import bitronix.tm.BitronixTransactionManager;
-import bitronix.tm.TransactionManagerServices;
+package it.reply.orchestrator.config;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 
-import it.reply.orchestrator.controller.DeploymentController;
+import it.reply.orchestrator.annotation.OrchestratorPersistenceUnit;
+import it.reply.orchestrator.annotation.SpringTestProfile;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
-import org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.orm.hibernate4.HibernateExceptionTranslator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Properties;
 
 import javax.annotation.Resource;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import bitronix.tm.BitronixTransactionManager;
+import bitronix.tm.TransactionManagerServices;
+
 @Configuration
 @DatabaseSetup("database-init.xml")
+@SpringTestProfile
 public class PersistenceConfigTest {
 
-  private static final Logger LOG = LogManager.getLogger(PersistenceConfigTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PersistenceConfigTest.class);
 
   private static final String ENTITY_MANAGER_PACKAGE_TO_SCAN = "entitymanager.packages.to.scan";
   private static final String HIBERNATE_HBM2DDL_AUTO = "hibernate.hbm2ddl.auto";
@@ -47,6 +61,8 @@ public class PersistenceConfigTest {
   private Environment env;
 
   @Bean(destroyMethod = "shutdown")
+  @Primary
+  @OrchestratorPersistenceUnit
   public DataSource dataSource() {
     EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
     EmbeddedDatabase dataSource = builder.setType(EmbeddedDatabaseType.H2).build();
@@ -54,6 +70,7 @@ public class PersistenceConfigTest {
   }
 
   @Bean
+  @OrchestratorPersistenceUnit
   public LocalContainerEntityManagerFactoryBean entityManagerFactory() throws NamingException {
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
 
@@ -78,14 +95,7 @@ public class PersistenceConfigTest {
 
     factory.setJpaProperties(jpaProperties);
 
-    factory.afterPropertiesSet();
-    factory.setLoadTimeWeaver(new InstrumentationLoadTimeWeaver());
     return factory;
-  }
-
-  @Bean
-  public HibernateExceptionTranslator hibernateExceptionTranslator() {
-    return new HibernateExceptionTranslator();
   }
 
   @Bean
@@ -94,7 +104,6 @@ public class PersistenceConfigTest {
   }
 
   @Bean(destroyMethod = "shutdown")
-  @Primary
   public BitronixTransactionManager bitronixTransactionManager() {
     btmConfig();
     return TransactionManagerServices.getTransactionManager();
