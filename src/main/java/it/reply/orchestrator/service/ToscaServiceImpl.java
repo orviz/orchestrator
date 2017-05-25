@@ -39,6 +39,7 @@ import alien4cloud.tosca.ArchiveUploadService;
 import alien4cloud.tosca.model.ArchiveRoot;
 import alien4cloud.tosca.normative.IPropertyType;
 import alien4cloud.tosca.normative.InvalidPropertyValueException;
+import alien4cloud.tosca.parser.ParsingContext;
 import alien4cloud.tosca.parser.ParsingError;
 import alien4cloud.tosca.parser.ParsingErrorLevel;
 import alien4cloud.tosca.parser.ParsingException;
@@ -110,6 +111,10 @@ import javax.validation.ValidationException;
 @Slf4j
 public class ToscaServiceImpl implements ToscaService {
 
+  public static final String REMOVAL_LIST_PROPERTY_NAME = "removal_list";
+
+  public static final String SCALABLE_CAPABILITY_NAME = "scalable";
+
   @Autowired
   private ApplicationContext ctx;
 
@@ -143,7 +148,7 @@ public class ToscaServiceImpl implements ToscaService {
    */
   @PostConstruct
   public void init() throws IOException, CSARVersionAlreadyExistsException, ParsingException {
-    if (Files.exists(Paths.get(alienRepoDir))) {
+    if (Paths.get(alienRepoDir).toFile().exists()) {
       FileUtil.delete(Paths.get(alienRepoDir));
     }
 
@@ -283,41 +288,44 @@ public class ToscaServiceImpl implements ToscaService {
   @Override
   public ArchiveRoot parseTemplate(String toscaTemplate) throws IOException, ToscaException {
 
-    ParsingResult<ArchiveRoot> result = null;
     try {
-      result = getArchiveRootFromTemplate(toscaTemplate);
+      ParsingResult<ArchiveRoot> result = getArchiveRootFromTemplate(toscaTemplate);
+      Optional<ToscaException> exception = checkParsingErrors(
+          Optional.ofNullable(result.getContext()).map(ParsingContext::getParsingErrors));
+      if (exception.isPresent()) {
+        throw exception.get();
+      }
+      return result.getResult();
     } catch (ParsingException ex) {
-      checkParsingErrors(ex.getParsingErrors());
+      Optional<ToscaException> exception =
+          checkParsingErrors(Optional.ofNullable(ex.getParsingErrors()));
+      if (exception.isPresent()) {
+        throw exception.get();
+      } else {
+        throw new ToscaException("Failed to parse template, ex");
+      }
     }
-    checkParsingErrors(result.getContext().getParsingErrors());
-
-    return result.getResult();
-
   }
 
   @Override
   public String updateTemplate(String template) throws IOException {
-    ParsingResult<ArchiveRoot> result = null;
-    try {
-      result = getArchiveRootFromTemplate(template);
-    } catch (ParsingException ex) {
-      checkParsingErrors(ex.getParsingErrors());
-    }
-    checkParsingErrors(result.getContext().getParsingErrors());
-    removeRemovalList(result.getResult());
-    return getTemplateFromTopology(result.getResult());
+    ArchiveRoot parsedTempalte = parseTemplate(template);
+    removeRemovalList(parsedTempalte);
+    return getTemplateFromTopology(parsedTempalte);
   }
 
-  private void checkParsingErrors(List<ParsingError> errorList) throws ToscaException {
-    if (!errorList.isEmpty()) {
-      StringBuilder errorMessage = new StringBuilder();
-      for (ParsingError error : errorList) {
-        if (!error.getErrorLevel().equals(ParsingErrorLevel.INFO)) {
-          errorMessage.append(error.toString()).append("; ");
-        }
-      }
-      throw new ToscaException(errorMessage.toString());
-    }
+  private Optional<ToscaException> checkParsingErrors(Optional<List<ParsingError>> errorList) {
+    return filterNullAndInfoErrorFromParsingError(errorList)
+        .map(list -> list.stream().map(Object::toString).collect(Collectors.joining("; ")))
+        .map(ToscaException::new);
+  }
+
+  private Optional<List<ParsingError>> filterNullAndInfoErrorFromParsingError(
+      Optional<List<ParsingError>> listToFilter) {
+    return listToFilter.map(list -> list.stream()
+        .filter(Objects::nonNull)
+        .filter(error -> !ParsingErrorLevel.INFO.equals(error.getErrorLevel()))
+        .collect(Collectors.toList())).filter(list -> !list.isEmpty());
   }
 
   @Override
@@ -654,8 +662,8 @@ public class ToscaServiceImpl implements ToscaService {
     Collection<NodeTemplate> nodes = getNodesFromArchiveRoot(archiveRoot);
 
     for (NodeTemplate node : nodes) {
-      getNodeCapabilityByName(node, "scalable").ifPresent(
-          scalable -> CommonUtils.removeFromOptionalMap(scalable.getProperties(), "removal_list"));
+      getNodeCapabilityByName(node, SCALABLE_CAPABILITY_NAME).ifPresent(scalable -> CommonUtils
+          .removeFromOptionalMap(scalable.getProperties(), REMOVAL_LIST_PROPERTY_NAME));
     }
 
   }
@@ -739,7 +747,7 @@ public class ToscaServiceImpl implements ToscaService {
     Collection<NodeTemplate> allNodes = getNodesFromArchiveRoot(archiveRoot);
 
     for (NodeTemplate node : allNodes) {
-      getNodeCapabilityByName(node, "scalable")
+      getNodeCapabilityByName(node, SCALABLE_CAPABILITY_NAME)
           .flatMap(capability -> this
               .<ScalarPropertyValue>getTypedCapabilityPropertyByName(capability, "count"))
           // Check if this value is read from the template and is not a default value
@@ -754,7 +762,7 @@ public class ToscaServiceImpl implements ToscaService {
   public Optional<Integer> getCount(NodeTemplate nodeTemplate) {
 
     // FIXME we should look it up by capability type, not name
-    return getNodeCapabilityByName(nodeTemplate, "scalable")
+    return getNodeCapabilityByName(nodeTemplate, SCALABLE_CAPABILITY_NAME)
         .flatMap(capability -> this
             .<ScalarPropertyValue>getTypedCapabilityPropertyByName(capability, "count"))
         // Check if this value is read from the template and is not a default value
@@ -769,8 +777,8 @@ public class ToscaServiceImpl implements ToscaService {
   public List<String> getRemovalList(NodeTemplate nodeTemplate) {
 
     Optional<ListPropertyValue> listPropertyValue =
-        getNodeCapabilityByName(nodeTemplate, "scalable")
-            .flatMap(capability -> getTypedCapabilityPropertyByName(capability, "removal_list"));
+        getNodeCapabilityByName(nodeTemplate, SCALABLE_CAPABILITY_NAME).flatMap(
+            capability -> getTypedCapabilityPropertyByName(capability, REMOVAL_LIST_PROPERTY_NAME));
 
     List<Object> items =
         listPropertyValue.map(property -> property.getValue()).orElse(Collections.emptyList());
@@ -782,8 +790,8 @@ public class ToscaServiceImpl implements ToscaService {
       } else if (item instanceof String) {
         removalList.add((String) item);
       } else {
-        LOG.warn("Skipped unsupported value <{}> in {} of node {}", item, "removal_list",
-            nodeTemplate.getName());
+        LOG.warn("Skipped unsupported value <{}> in {} of node {}", item,
+            REMOVAL_LIST_PROPERTY_NAME, nodeTemplate.getName());
       }
     }
     return removalList;
@@ -803,10 +811,13 @@ public class ToscaServiceImpl implements ToscaService {
       Map<String, OneData> result = new HashMap<>();
       OneData oneDataInput = null;
       if (inputs.get("input_onedata_space") != null) {
-        oneDataInput = new OneData((String) inputs.get("input_onedata_token"),
-            (String) inputs.get("input_onedata_space"), (String) inputs.get("input_path"),
-            (String) inputs.get("input_onedata_providers"),
-            (String) inputs.get("input_onedata_zone"));
+        oneDataInput = OneData.builder()
+            .token((String) inputs.get("input_onedata_token"))
+            .space((String) inputs.get("input_onedata_space"))
+            .path((String) inputs.get("input_path"))
+            .providers((String) inputs.get("input_onedata_providers"))
+            .zone((String) inputs.get("input_onedata_zone"))
+            .build();
         if (oneDataInput.getProviders().isEmpty()) {
           oneDataInput.setSmartScheduling(true);
         }
@@ -815,10 +826,13 @@ public class ToscaServiceImpl implements ToscaService {
       }
 
       if (inputs.get("output_onedata_space") != null) {
-        OneData oneDataOutput = new OneData((String) inputs.get("output_onedata_token"),
-            (String) inputs.get("output_onedata_space"), (String) inputs.get("output_path"),
-            (String) inputs.get("output_onedata_providers"),
-            (String) inputs.get("output_onedata_zone"));
+        OneData oneDataOutput = OneData.builder()
+            .token((String) inputs.get("output_onedata_token"))
+            .space((String) inputs.get("output_onedata_space"))
+            .path((String) inputs.get("output_path"))
+            .providers((String) inputs.get("output_onedata_providers"))
+            .zone((String) inputs.get("output_onedata_zone"))
+            .build();
         if (oneDataOutput.getProviders().isEmpty()) {
           if (oneDataInput != null) {
             oneDataOutput.setProviders(oneDataInput.getProviders());
