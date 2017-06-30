@@ -7,6 +7,7 @@ it.reply.orchestrator.config.security
 it.reply.orchestrator.controller
 it.reply.orchestrator.dal.entity
 it.reply.orchestrator.dal.repository
+it.reply.orchestrator.dal.util
 it.reply.orchestrator.dto
 it.reply.orchestrator.dto.cmdb
 it.reply.orchestrator.dto.common
