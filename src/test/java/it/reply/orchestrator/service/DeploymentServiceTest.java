@@ -46,6 +46,7 @@ import it.reply.orchestrator.service.security.OAuth2TokenService;
 import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager;
 import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager.RUNTIME_STRATEGY;
 
+import org.assertj.core.api.Assertions;
 import org.jbpm.ruleflow.instance.RuleFlowProcessInstance;
 import org.junit.Assert;
 import org.junit.Before;
@@ -102,7 +103,7 @@ public class DeploymentServiceTest {
     Mockito.when(deploymentRepository.findAll((Pageable) null))
         .thenReturn(new PageImpl<Deployment>(deployments));
 
-    Page<Deployment> pagedDeployment = deploymentService.getDeployments(null);
+    Page<Deployment> pagedDeployment = deploymentService.getDeployments(null, null);
 
     Assert.assertEquals(pagedDeployment.getContent(), deployments);
 
@@ -116,7 +117,7 @@ public class DeploymentServiceTest {
     Mockito.when(deploymentRepository.findAll(pageable))
         .thenReturn(new PageImpl<Deployment>(deployments));
 
-    Page<Deployment> pagedDeployment = deploymentService.getDeployments(pageable);
+    Page<Deployment> pagedDeployment = deploymentService.getDeployments(pageable, null);
 
     Assert.assertEquals(pagedDeployment.getContent(), deployments);
     Assert.assertTrue(pagedDeployment.getNumberOfElements() == 10);
@@ -200,20 +201,17 @@ public class DeploymentServiceTest {
 
     Assert.assertEquals(returneDeployment.getResources().size(), 2);
 
-    Assert.assertThat(returneDeployment.getResources().get(0).getToscaNodeName(),
-        anyOf(is(nodeName1), is(nodeName2)));
-    Assert.assertEquals(returneDeployment.getResources().get(0).getToscaNodeType(), nodeType);
-    Assert.assertEquals(returneDeployment.getResources().get(0).getState(), NodeStates.INITIAL);
-    Mockito.verify(resourceRepository).save(returneDeployment.getResources().get(0));
-
-    Assert.assertThat(returneDeployment.getResources().get(1).getToscaNodeName(),
-        anyOf(is(nodeName1), is(nodeName2)));
-    Assert.assertEquals(returneDeployment.getResources().get(1).getToscaNodeType(), nodeType);
-    Assert.assertEquals(returneDeployment.getResources().get(1).getState(), NodeStates.INITIAL);
-    Mockito.verify(resourceRepository).save(returneDeployment.getResources().get(1));
+    Assertions.assertThat(returneDeployment.getResources())
+        .extracting(Resource::getToscaNodeName)
+        .containsExactlyInAnyOrder(nodeName1, nodeName2);
+    Assertions.assertThat(returneDeployment.getResources()).allSatisfy(resource -> {
+      Assertions.assertThat(resource.getToscaNodeType()).isEqualTo(nodeType);
+      Assertions.assertThat(resource.getState()).isEqualTo(NodeStates.INITIAL);
+    });
+    
+    returneDeployment.getResources().forEach(resource -> Mockito.verify(resourceRepository).save(resource));
 
     Mockito.verify(deploymentRepository, Mockito.atLeast(1)).save(returneDeployment);
-    Mockito.verify(resourceRepository).save(returneDeployment.getResources().get(0));
   }
 
   @Test
@@ -265,12 +263,12 @@ public class DeploymentServiceTest {
     Deployment returneDeployment = basecreateDeploymentSuccessful(deploymentRequest, nts);
 
     Assert.assertEquals(returneDeployment.getResources().size(), 2);
-    Assert.assertEquals(returneDeployment.getResources().get(0).getToscaNodeName(), nodeName);
-    Assert.assertEquals(returneDeployment.getResources().get(0).getToscaNodeType(), nodeType);
-    Assert.assertEquals(returneDeployment.getResources().get(1).getToscaNodeName(), nodeName);
-    Assert.assertEquals(returneDeployment.getResources().get(1).getToscaNodeType(), nodeType);
-    Mockito.verify(resourceRepository).save(returneDeployment.getResources().get(0));
-    Mockito.verify(resourceRepository).save(returneDeployment.getResources().get(1));
+    Assertions.assertThat(returneDeployment.getResources()).allSatisfy(resource -> {
+      Assertions.assertThat(resource.getToscaNodeName()).isEqualTo(nodeName);
+      Assertions.assertThat(resource.getToscaNodeType()).isEqualTo(nodeType);
+    });
+    
+    returneDeployment.getResources().forEach(resource -> Mockito.verify(resourceRepository).save(resource));
 
   }
 
@@ -306,15 +304,14 @@ public class DeploymentServiceTest {
 
     Deployment returneDeployment = basecreateDeploymentSuccessful(deploymentRequest, nts);
 
-    Assert.assertEquals(returneDeployment.getResources().size(), 2);
-    Assert.assertThat(returneDeployment.getResources().get(0).getToscaNodeName(),
-        anyOf(is(nodeName1), is(nodeName2)));
-    Assert.assertEquals(returneDeployment.getResources().get(0).getToscaNodeType(), nodeType);
-    Assert.assertThat(returneDeployment.getResources().get(1).getToscaNodeName(),
-        anyOf(is(nodeName1), is(nodeName2)));
-    Assert.assertEquals(returneDeployment.getResources().get(1).getToscaNodeType(), nodeType);
-    Mockito.verify(resourceRepository).save(returneDeployment.getResources().get(0));
-    Mockito.verify(resourceRepository).save(returneDeployment.getResources().get(1));
+    Assertions.assertThat(returneDeployment.getResources())
+        .extracting(Resource::getToscaNodeName)
+        .containsExactlyInAnyOrder(nodeName1, nodeName2);
+    Assertions.assertThat(returneDeployment.getResources()).allSatisfy(resource -> {
+      Assertions.assertThat(resource.getToscaNodeType()).isEqualTo(nodeType);
+    });
+    
+    returneDeployment.getResources().forEach(resource -> Mockito.verify(resourceRepository).save(resource));
   }
 
   @Test(expected = NotFoundException.class)

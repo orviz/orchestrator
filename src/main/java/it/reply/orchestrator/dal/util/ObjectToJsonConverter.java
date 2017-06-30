@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-package it.reply.orchestrator.enums;
+package it.reply.orchestrator.dal.util;
 
-public enum DeploymentType {
-  CHRONOS,
-  MARATHON,
-  TOSCA
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
+
+@Converter
+public class ObjectToJsonConverter extends AbstractToJsonConverter<Object>
+    implements AttributeConverter<Object, String> {
+
+  private static final TypeReference<Object> REFERENCE = new TypeReference<Object>() {
+  };
+
+  public ObjectToJsonConverter() {
+    super(REFERENCE);
+  }
 }

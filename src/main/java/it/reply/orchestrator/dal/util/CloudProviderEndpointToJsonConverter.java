@@ -14,39 +14,25 @@
  * limitations under the License.
  */
 
-package it.reply.orchestrator.dto.mesos;
+package it.reply.orchestrator.dal.util;
 
-import it.reply.orchestrator.utils.Named;
+import com.fasterxml.jackson.core.type.TypeReference;
 
-import lombok.Data;
-import lombok.Getter;
+import it.reply.orchestrator.dto.CloudProviderEndpoint;
 
-import javax.annotation.Nonnull;
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
-@Data
-public class MesosPortMapping {
+@Converter
+public class CloudProviderEndpointToJsonConverter
+    extends AbstractToJsonConverter<CloudProviderEndpoint>
+    implements AttributeConverter<CloudProviderEndpoint, String> {
 
-  @Getter
-  public enum Protocol implements Named {
+  private static final TypeReference<CloudProviderEndpoint> REFERENCE =
+      new TypeReference<CloudProviderEndpoint>() {
+      };
 
-    TCP("tcp"),
-    UDP("udp"),
-    IGMP("igmp");
-
-    private final String name;
-
-    Protocol(String name) {
-      this.name = name;
-    }
-
+  public CloudProviderEndpointToJsonConverter() {
+    super(REFERENCE);
   }
-
-  @Nonnull
-  private Integer containerPort;
-
-  private Integer servicePort;
-
-  @Nonnull
-  private Protocol protocol = Protocol.TCP;
-
 }

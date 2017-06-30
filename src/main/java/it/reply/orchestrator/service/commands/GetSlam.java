@@ -18,15 +18,13 @@ package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
-import it.reply.orchestrator.dto.slam.Service;
-import it.reply.orchestrator.dto.slam.Sla;
 import it.reply.orchestrator.service.SlamService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GetSlam extends BaseRankCloudProvidersCommand {
+public class GetSlam extends BaseRankCloudProvidersCommand<GetSlam> {
 
   @Autowired
   private SlamService slamService;
@@ -38,20 +36,22 @@ public class GetSlam extends BaseRankCloudProvidersCommand {
         slamService.getCustomerPreferences(rankCloudProvidersMessage.getRequestedWithToken()));
 
     // Get VO (customer) preferences and SLAs (infer available Cloud Providers from it)
-    for (Sla sla : rankCloudProvidersMessage.getSlamPreferences().getSla()) {
-      // Create Cloud Provider, add to the list
-      CloudProvider cp =
-          rankCloudProvidersMessage.getCloudProviders().get(sla.getCloudProviderId());
-      if (cp == null) {
-        cp = new CloudProvider(sla.getCloudProviderId());
-        rankCloudProvidersMessage.getCloudProviders().put(sla.getCloudProviderId(), cp);
-      }
+    rankCloudProvidersMessage
+        .getSlamPreferences()
+        .getSla()
+        .forEach(sla -> {
+          // Create Cloud Provider, add to the list
+          CloudProvider cp = rankCloudProvidersMessage
+              .getCloudProviders()
+              .computeIfAbsent(sla.getCloudProviderId(),
+                  cloudProviderId -> new CloudProvider(cloudProviderId));
 
-      // Get provider's services
-      for (Service service : sla.getServices()) {
-        cp.getCmdbProviderServices().put(service.getServiceId(), null);
-      }
-    }
+          // Get provider's services
+          sla.getServices().forEach(
+              service -> cp
+                  .getCmdbProviderServices()
+                  .put(service.getServiceId(), null));
+        });
 
     return rankCloudProvidersMessage;
   }

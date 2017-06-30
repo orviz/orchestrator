@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PollUndeploy extends BaseDeployCommand {
+public class PollUndeploy extends BaseDeployCommand<PollUndeploy> {
 
   @Autowired
   private DeploymentProviderServiceRegistry deploymentProviderServiceRegistry;
@@ -74,7 +74,7 @@ public class PollUndeploy extends BaseDeployCommand {
 
   private static ExternallyControlledPoller<DeploymentMessage, Boolean> getPoller() {
 
-    long timeoutTime = 30 * 60 * 1000L;
+    long timeoutTime = 3 * 60 * 60 * 1000L;
 
     PollingBehaviour<DeploymentMessage, Boolean> pollBehavior =
         new AbstractPollingBehaviour<DeploymentMessage, Boolean>(timeoutTime) {

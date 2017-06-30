@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package it.reply.orchestrator.enums;
+package it.reply.orchestrator.utils;
 
-public enum DeploymentProvider {
+import lombok.experimental.UtilityClass;
 
-  IM,
-  HEAT,
-  CHRONOS,
-  MARATHON;
-
+@UtilityClass
+public class ToscaConstants {
+  @UtilityClass
+  public static class Nodes {
+    private static final String BASE_INDIGO_NAME = "tosca.nodes.indigo.";
+    public static final String CHRONOS = BASE_INDIGO_NAME + "Container.Application.Docker.Chronos";
+    public static final String MARATHON =
+        BASE_INDIGO_NAME + "Container.Application.Docker.Marathon";
+    public static final String COMPUTE = BASE_INDIGO_NAME + "Compute";
+    public static final String ELASTIC_CLUSTER = BASE_INDIGO_NAME + "ElasticCluster";
+  }
 }

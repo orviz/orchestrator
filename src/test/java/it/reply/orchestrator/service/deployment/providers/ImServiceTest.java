@@ -59,6 +59,9 @@ import it.reply.orchestrator.service.ToscaServiceImpl;
 import it.reply.orchestrator.service.security.OAuth2TokenService;
 import it.reply.orchestrator.util.TestUtil;
 
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
+import org.assertj.core.internal.Conditions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -149,7 +152,7 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenReturn(infrastructureUri);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
 
     boolean returnValue = imService.doDeploy(dm);
 
@@ -158,8 +161,7 @@ public class ImServiceTest {
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), infrastructureId);
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.CREATING);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.CREATING);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.CREATING::equals);
     Assert.assertTrue(dm.isCreateComplete());
     Assert.assertTrue(returnValue);
   }
@@ -181,15 +183,14 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenReturn(infrastructureUri);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.any(CloudProviderEndpoint.class), Mockito.any());
 
     boolean returnValue = imService.doDeploy(dm);
 
     Assert.assertEquals(dm.getDeployment().getTask(), Task.NONE);
     Assert.assertEquals(dm.getDeployment().getStatus(), Status.CREATE_FAILED);
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.ERROR);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.ERROR);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.ERROR::equals);
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), null);
     Assert.assertFalse(dm.isCreateComplete());
@@ -214,7 +215,7 @@ public class ImServiceTest {
     Mockito.doReturn(ar).when(toscaService).prepareTemplate(dm.getDeployment().getTemplate(),
         dm.getDeployment().getParameters());
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenThrow(imException);
 
@@ -222,8 +223,7 @@ public class ImServiceTest {
 
     Assert.assertEquals(dm.getDeployment().getTask(), Task.NONE);
     Assert.assertEquals(dm.getDeployment().getStatus(), Status.CREATE_FAILED);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.ERROR);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.ERROR);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.ERROR::equals);
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), null);
@@ -253,8 +253,7 @@ public class ImServiceTest {
 
     Assert.assertEquals(dm.getDeployment().getTask(), Task.NONE);
     Assert.assertEquals(dm.getDeployment().getStatus(), Status.CREATE_FAILED);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.ERROR);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.ERROR);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.ERROR::equals);
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), null);
@@ -270,7 +269,7 @@ public class ImServiceTest {
     InfrastructureState infrastructureState = generateInfrastructureState(States.CONFIGURED, 2);
 
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.when(infrastructureManager.getInfrastructureState(dm.getDeployment().getEndpoint()))
         .thenReturn(infrastructureState);
 
@@ -281,8 +280,7 @@ public class ImServiceTest {
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), dm.getDeployment().getEndpoint());
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.CREATING);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.CREATING);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.CREATING::equals);
     Assert.assertTrue(dm.isPollComplete());
     Assert.assertTrue(returnValue);
   }
@@ -294,7 +292,7 @@ public class ImServiceTest {
     Mockito.when(deploymentRepository.findOne(dm.getDeploymentId())).thenReturn(dm.getDeployment());
 
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.doThrow(new ImClientException()).when(infrastructureManager)
         .getInfrastructureState(Mockito.anyString());
 
@@ -308,7 +306,7 @@ public class ImServiceTest {
     Mockito.when(deploymentRepository.findOne(dm.getDeploymentId())).thenReturn(dm.getDeployment());
 
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.any(CloudProviderEndpoint.class), Mockito.any());
     Mockito.doThrow(new ImClientErrorException(new ResponseError("Not Found", 404)))
         .when(infrastructureManager).getInfrastructureOutputs(Mockito.anyString());
 
@@ -322,7 +320,7 @@ public class ImServiceTest {
     Mockito.when(deploymentRepository.findOne(dm.getDeploymentId())).thenReturn(dm.getDeployment());
 
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.any(CloudProviderEndpoint.class), Mockito.any());
     Mockito.doThrow(new ImClientException()).when(infrastructureManager)
         .getInfrastructureOutputs(Mockito.anyString());
 
@@ -344,7 +342,7 @@ public class ImServiceTest {
     InfrastructureState infrastructureState = generateInfrastructureState(States.RUNNING, 2);
 
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.when(infrastructureManager.getInfrastructureState(dm.getDeployment().getEndpoint()))
         .thenReturn(infrastructureState);
 
@@ -355,8 +353,7 @@ public class ImServiceTest {
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), dm.getDeployment().getEndpoint());
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.CREATING);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.CREATING);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.CREATING::equals);
     Assert.assertFalse(dm.isPollComplete());
     Assert.assertFalse(returnValue);
   }
@@ -370,7 +367,7 @@ public class ImServiceTest {
     Mockito.when(deploymentRepository.findOne(dm.getDeployment().getId()))
         .thenReturn(dm.getDeployment());
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
 
     Mockito.when(infrastructureManager.getInfrastructureState(dm.getDeployment().getEndpoint()))
         .thenReturn(infrastructureState);
@@ -393,8 +390,7 @@ public class ImServiceTest {
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), dm.getDeployment().getEndpoint());
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.ERROR);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.ERROR);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.ERROR::equals);
     Assert.assertFalse(dm.isPollComplete());
   }
 
@@ -407,7 +403,7 @@ public class ImServiceTest {
     Mockito.when(deploymentRepository.findOne(dm.getDeployment().getId()))
         .thenReturn(dm.getDeployment());
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
 
     Mockito.when(infrastructureManager.getInfrastructureState(dm.getDeployment().getEndpoint()))
         .thenReturn(infrastructureState);
@@ -429,8 +425,7 @@ public class ImServiceTest {
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), dm.getDeployment().getEndpoint());
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.ERROR);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.ERROR);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.ERROR::equals);
     Assert.assertFalse(dm.isPollComplete());
   }
 
@@ -450,21 +445,22 @@ public class ImServiceTest {
     vmUrls.getUris().add(new InfrastructureUri(
         "http://localhost/infrastructures/" + dm.getDeployment().getEndpoint() + "/" + 1));
 
+    List<Resource> resources = new ArrayList<>(dm.getDeployment().getResources());
     VirtualMachineInfo vmInfo0 = new VirtualMachineInfo(Lists.newArrayList());
     vmInfo0.getVmProperties().add(Maps.newHashMap());
     vmInfo0.getVmProperties().get(0).put("id",
-        dm.getDeployment().getResources().get(0).getToscaNodeName());
+        resources.get(0).getToscaNodeName());
     VirtualMachineInfo vmInfo1 = new VirtualMachineInfo(Lists.newArrayList());
     vmInfo0.getVmProperties().get(0).put("id",
-        dm.getDeployment().getResources().get(1).getToscaNodeName());
+        resources.get(1).getToscaNodeName());
 
     Mockito.when(deploymentRepository.findOne(dm.getDeployment().getId()))
         .thenReturn(dm.getDeployment());
     Mockito.when(deploymentRepository.save(dm.getDeployment())).thenReturn(dm.getDeployment());
-    Mockito.when(resourceRepository.findByDeployment_id(dm.getDeployment().getId(), null))
-        .thenReturn(new PageImpl<Resource>(dm.getDeployment().getResources()));
+    Mockito.when(resourceRepository.findByDeployment_id(dm.getDeployment().getId()))
+        .thenReturn(resources);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
 
     Mockito.when(infrastructureManager.getInfrastructureOutputs(dm.getDeployment().getEndpoint()))
         .thenReturn(outputValues);
@@ -484,8 +480,7 @@ public class ImServiceTest {
     Assert.assertEquals(dm.getDeployment().getDeploymentProvider(), DeploymentProvider.IM);
     Assert.assertEquals(dm.getDeployment().getEndpoint(), dm.getDeployment().getEndpoint());
     Assert.assertEquals(dm.getDeployment().getResources().size(), 2);
-    Assert.assertEquals(dm.getDeployment().getResources().get(0).getState(), NodeStates.STARTED);
-    Assert.assertEquals(dm.getDeployment().getResources().get(1).getState(), NodeStates.STARTED);
+    Assertions.assertThat(dm.getDeployment().getResources()).extracting(Resource::getState).allMatch(NodeStates.STARTED::equals);
     Assert.assertFalse(dm.isPollComplete());
   }
 
@@ -558,19 +553,16 @@ public class ImServiceTest {
 
   @Test
   public void testGetClientOpenStack() throws Exception {
-    DeploymentMessage dm = generateDeployDm();
     CloudProviderEndpoint cloudProviderEndpoint = new CloudProviderEndpoint();
     cloudProviderEndpoint.setIaasType(IaaSType.OPENSTACK);
     cloudProviderEndpoint.setCpEndpoint("https://recas.ba.infn/");
     cloudProviderEndpoint.setCpComputeServiceId(UUID.randomUUID().toString());
-    dm.setChosenCloudProviderEndpoint(cloudProviderEndpoint);
 
     Mockito.when(oidcProperties.isEnabled()).thenReturn(true);
     OidcTokenId id = new OidcTokenId();
-    dm.setRequestedWithToken(id);
     Mockito.when(oauth2TokenService.getAccessToken(id, OAuth2TokenService.REQUIRED_SCOPES))
         .thenReturn("J1qK1c18UUGJFAzz9xnH56584l4");
-    InfrastructureManager client = imService.getClient(dm);
+    InfrastructureManager client = imService.getClient(cloudProviderEndpoint, id);
     
     // result
     OpenStackCredentials cred = OpenStackCredentials.buildCredentials()
@@ -580,34 +572,30 @@ public class ImServiceTest {
          .withHost("https://recas.ba.infn");
     
     String imAuthHeader = ImCredentials.buildCredentials().withToken("J1qK1c18UUGJFAzz9xnH56584l4").serialize();
-    String imUrl = Optional.ofNullable(dm.getChosenCloudProviderEndpoint().getImEndpoint())
-        .orElse(imProperties.getUrl());
+    String imUrl = imProperties.getUrl();
     
     InfrastructureManager result = new InfrastructureManager(imUrl, String.format("%s\\n%s", imAuthHeader, cred.serialize()));
     // TO-DO: Assert equals both result and client (How?)
 
     cloudProviderEndpoint.setCpEndpoint("https://www.openstack.org/");
-    dm.setChosenCloudProviderEndpoint(cloudProviderEndpoint);
-    imService.getClient(dm);
+    imService.getClient(cloudProviderEndpoint, id);
     // TO-DO: Assert equals both result and client
 
   }
   
   @Test
   public void testGetClientOpenNebula() throws Exception {
-    DeploymentMessage dm = generateDeployDm();
     CloudProviderEndpoint cloudProviderEndpoint = new CloudProviderEndpoint();
     cloudProviderEndpoint.setIaasType(IaaSType.OPENNEBULA);
     cloudProviderEndpoint.setCpEndpoint("https://recas.ba.infn/");
     cloudProviderEndpoint.setCpComputeServiceId(UUID.randomUUID().toString());
-    dm.setChosenCloudProviderEndpoint(cloudProviderEndpoint);
 
     Mockito.when(oidcProperties.isEnabled()).thenReturn(true);
     OidcTokenId id = new OidcTokenId();
-    dm.setRequestedWithToken(id);
+
     Mockito.when(oauth2TokenService.getAccessToken(id, OAuth2TokenService.REQUIRED_SCOPES))
         .thenReturn("J1qK1c18UUGJFAzz9xnH56584l4");
-    InfrastructureManager client = imService.getClient(dm);
+    InfrastructureManager client = imService.getClient(cloudProviderEndpoint, id);
 
     // TO-DO: Assert equals both result and client
 
@@ -615,29 +603,25 @@ public class ImServiceTest {
     cloudProviderEndpoint.setIaasType(IaaSType.AWS);
     cloudProviderEndpoint.setUsername("username");
     cloudProviderEndpoint.setPassword("password");
-    dm.setChosenCloudProviderEndpoint(cloudProviderEndpoint);
-    imService.getClient(dm);
+    imService.getClient(cloudProviderEndpoint, id);
     // TO-DO: Assert equals both result and client
   }
   
   
   @Test
   public void testGetClientAWS() throws Exception {
-    DeploymentMessage dm = generateDeployDm();
     CloudProviderEndpoint cloudProviderEndpoint = new CloudProviderEndpoint();
     cloudProviderEndpoint.setIaasType(IaaSType.AWS);
     cloudProviderEndpoint.setUsername("username");
     cloudProviderEndpoint.setPassword("password");
     cloudProviderEndpoint.setCpEndpoint("https://recas.ba.infn/");
     cloudProviderEndpoint.setCpComputeServiceId(UUID.randomUUID().toString());
-    dm.setChosenCloudProviderEndpoint(cloudProviderEndpoint);
 
     Mockito.when(oidcProperties.isEnabled()).thenReturn(true);
     OidcTokenId id = new OidcTokenId();
-    dm.setRequestedWithToken(id);
     Mockito.when(oauth2TokenService.getAccessToken(id, OAuth2TokenService.REQUIRED_SCOPES))
         .thenReturn("J1qK1c18UUGJFAzz9xnH56584l4");
-    InfrastructureManager client = imService.getClient(dm);
+    InfrastructureManager client = imService.getClient(cloudProviderEndpoint, id);
 
     // TO-DO: Assert equals both result and client
   }
@@ -646,20 +630,17 @@ public class ImServiceTest {
   
   @Test(expected = DeploymentException.class)
   public void testGetClientFailDeployment() throws Exception {
-    DeploymentMessage dm = generateDeployDm();
     CloudProviderEndpoint cloudProviderEndpoint = new CloudProviderEndpoint();
     cloudProviderEndpoint.setIaasType(IaaSType.OPENSTACK);
     cloudProviderEndpoint.setCpComputeServiceId(UUID.randomUUID().toString());
     cloudProviderEndpoint.setCpEndpoint("lorem.ipsum");
-    dm.setChosenCloudProviderEndpoint(cloudProviderEndpoint);
 
     Mockito.when(oidcProperties.isEnabled()).thenReturn(true);
     OidcTokenId id = new OidcTokenId();
-    dm.setRequestedWithToken(id);
     Mockito.when(oauth2TokenService.getAccessToken(id, OAuth2TokenService.REQUIRED_SCOPES))
         .thenReturn("J1qK1c18UUGJFAzz9xnH56584l4");
 
-    imService.getClient(dm);
+    imService.getClient(cloudProviderEndpoint, id);
   }
 
   @Test
@@ -675,7 +656,7 @@ public class ImServiceTest {
     dm.getDeployment().setEndpoint("endpoint");
     Mockito.when(deploymentRepository.save(dm.getDeployment())).thenReturn(dm.getDeployment());
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Assert.assertTrue(imService.doUndeploy(dm));
   }
 
@@ -686,7 +667,7 @@ public class ImServiceTest {
     dm.getDeployment().setEndpoint("endpoint");
     Mockito.when(deploymentRepository.save(dm.getDeployment())).thenReturn(dm.getDeployment());
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.any(CloudProviderEndpoint.class), Mockito.any());
     ResponseError responseError = new ResponseError(null, 405);
     Mockito.doThrow(new ImClientErrorException(responseError)).when(infrastructureManager)
         .destroyInfrastructure(Mockito.any(String.class));
@@ -700,7 +681,7 @@ public class ImServiceTest {
     dm.getDeployment().setEndpoint("endpoint");
     Mockito.when(deploymentRepository.save(dm.getDeployment())).thenReturn(dm.getDeployment());
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.any(CloudProviderEndpoint.class), Mockito.any());
     ResponseError responseError = new ResponseError(null, 405);
     Mockito.doThrow(new ImClientErrorException(responseError)).when(infrastructureManager)
         .destroyInfrastructure(Mockito.any(String.class));
@@ -728,7 +709,7 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenReturn(infrastructureUri);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.any(CloudProviderEndpoint.class), Mockito.any());
 
     Assert.assertTrue(imService.isUndeployed(dm));
 
@@ -751,7 +732,7 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenReturn(infrastructureUri);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
 
     Mockito.doThrow(new ImClientErrorException(new ResponseError(null, 500)))
         .when(infrastructureManager).getInfrastructureState(Mockito.any(String.class));
@@ -775,7 +756,7 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenReturn(infrastructureUri);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
 
 
     Assert.assertFalse(imService.isUndeployed(dm));
@@ -799,7 +780,7 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenReturn(infrastructureUri);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
 
     Mockito.doThrow(new ImClientException()).when(infrastructureManager)
         .getInfrastructureState(Mockito.any(String.class));
@@ -828,7 +809,7 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.createInfrastructure(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenReturn(infrastructureUri);
     Mockito.doReturn(infrastructureManager).when(imService)
-        .getClient(Mockito.any(DeploymentMessage.class));
+        .getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
   }
 
 
@@ -1021,7 +1002,7 @@ public class ImServiceTest {
     Mockito.when(resourceRepository.findOne(id)).thenReturn(resource);
     Mockito.doReturn(resource).when(resourceRepository).save(resource);
     InfrastructureManager im = Mockito.mock(InfrastructureManager.class);
-    Mockito.doReturn(im).when(imService).getClient(Mockito.anyObject());
+    Mockito.doReturn(im).when(imService).getClient(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.doThrow(new ImClientErrorException(new ResponseError("message", 404))).when(im)
         .addResource(Mockito.anyString(), Mockito.anyString(), Mockito.anyObject());
 

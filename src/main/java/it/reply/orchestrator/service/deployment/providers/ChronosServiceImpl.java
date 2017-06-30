@@ -53,6 +53,7 @@ import it.reply.orchestrator.exception.OrchestratorException;
 import it.reply.orchestrator.exception.service.DeploymentException;
 import it.reply.orchestrator.service.ToscaService;
 import it.reply.orchestrator.utils.CommonUtils;
+import it.reply.orchestrator.utils.ToscaConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -658,7 +659,9 @@ public class ChronosServiceImpl extends AbstractDeploymentProviderService
     private static final long serialVersionUID = -1037947811308004122L;
 
     public enum JobDependencyType {
-      START, INTERMEDIATE, END
+      START,
+      INTERMEDIATE,
+      END
     }
 
     private Job chronosJob;
@@ -832,12 +835,12 @@ public class ChronosServiceImpl extends AbstractDeploymentProviderService
         throw new DeploymentException("No OneData Providers available for service space");
       }
       // Replace OneData properties
-      customizedTemplate = customizedTemplate
-          .replace("TOKEN_TO_BE_SET_BY_THE_ORCHESTRATOR", od.getToken())
-          .replace("DATA_SPACE_TO_BE_SET_BY_THE_ORCHESTRATOR", od.getSpace())
-          .replace("PATH_TO_BE_SET_BY_THE_ORCHESTRATOR", od.getPath())
-          .replace("ONEDATA_PROVIDERS_TO_BE_SET_BY_THE_ORCHESTRATOR",
-              od.getProviders().get(0).getEndpoint());
+      customizedTemplate =
+          customizedTemplate.replace("TOKEN_TO_BE_SET_BY_THE_ORCHESTRATOR", od.getToken())
+              .replace("DATA_SPACE_TO_BE_SET_BY_THE_ORCHESTRATOR", od.getSpace())
+              .replace("PATH_TO_BE_SET_BY_THE_ORCHESTRATOR", od.getPath())
+              .replace("ONEDATA_PROVIDERS_TO_BE_SET_BY_THE_ORCHESTRATOR",
+                  od.getProviders().get(0).getEndpoint());
       LOG.debug("Replaced {} OneData parameters with: {}", "service", od);
     }
 
@@ -854,7 +857,7 @@ public class ChronosServiceImpl extends AbstractDeploymentProviderService
   }
 
   protected boolean isChronosNode(NodeTemplate nodeTemplate) {
-    return "tosca.nodes.indigo.Container.Application.Docker.Chronos".equals(nodeTemplate.getType());
+    return toscaService.isOfToscaType(nodeTemplate, ToscaConstants.Nodes.CHRONOS);
   }
 
   protected List<String> getJobParents(NodeTemplate nodeTemplate, String nodeName,
@@ -1012,7 +1015,9 @@ public class ChronosServiceImpl extends AbstractDeploymentProviderService
   }
 
   public enum JobState {
-    FRESH, FAILURE, SUCCESS;
+    FRESH,
+    FAILURE,
+    SUCCESS;
   }
 
   /**

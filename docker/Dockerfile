@@ -19,15 +19,16 @@ FROM jboss/wildfly:9.0.2.Final
 MAINTAINER Alberto Brigandì <a.brigandi@reply.it>
 
 USER root
-RUN yum install -y libaio && yum clean all
+RUN yum install -y libaio nc && yum clean all
 USER jboss
 
 ENV MYSQL_CONNECTOR_VERSION=5.1.38 \
 	JBOSS_CONF_FILE=standalone-full-ha.xml
-COPY add_mysql_driver_module.sh add_json_log_formatter_module.sh otherConfigs.xsl datasourcesConfig.xsl launch.sh /
+COPY add_mysql_driver_module.sh add_json_log_formatter_module.sh update_hibernate_module.sh otherConfigs.xsl datasourcesConfig.xsl launch.sh /
 
 RUN /add_mysql_driver_module.sh \
 	&& /add_json_log_formatter_module.sh \
+	&& /update_hibernate_module.sh \
 	&& java -jar /usr/share/java/saxon.jar -o:$JBOSS_HOME/standalone/configuration/$JBOSS_CONF_FILE \
 		-s:$JBOSS_HOME/standalone/configuration/$JBOSS_CONF_FILE -xsl:/otherConfigs.xsl
 

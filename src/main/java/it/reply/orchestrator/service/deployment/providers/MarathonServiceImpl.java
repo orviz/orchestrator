@@ -45,6 +45,7 @@ import it.reply.orchestrator.exception.service.ToscaException;
 import it.reply.orchestrator.service.ToscaService;
 import it.reply.orchestrator.utils.CommonUtils;
 import it.reply.orchestrator.utils.EnumUtils;
+import it.reply.orchestrator.utils.ToscaConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,6 +77,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -121,12 +123,13 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
         new TopologicalOrderIterator<>(graph);
 
     List<NodeTemplate> orderedMarathonApps = CommonUtils.iteratorToStream(orderIterator)
-        .filter(node -> MarathonApp.TOSCA_NODE_NAME.equals(node.getType()))
+        .filter(node -> toscaService.isOfToscaType(node, ToscaConstants.Nodes.MARATHON))
         .collect(Collectors.toList());
 
     Map<String, Resource> resources = deployment.getResources()
         .stream()
-        .filter(resource -> MarathonApp.TOSCA_NODE_NAME.equals(resource.getToscaNodeType()))
+        .filter(resource -> toscaService.isOfToscaType(resource,
+            ToscaConstants.Nodes.MARATHON))
         .collect(Collectors.toMap(Resource::getToscaNodeName, Function.identity()));
 
     Group group = new Group();
@@ -180,7 +183,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
       // TMP TODO remove it and use an use an update marathon version
       Group group = this.getPolulatedGroup(groupId);
       ///////////////////////////////////////////////////////////////
-      Collection<App> apps = Optional.ofNullable(group.getApps()).orElse(new ArrayList<>());
+      Collection<App> apps = Optional.ofNullable(group.getApps()).orElseGet(ArrayList::new);
       LOG.debug("Marathon App Group for deployment {} current status:\n{}", deployment.getId(),
           group);
 
@@ -202,7 +205,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
     Group group = client.getGroup(groupId);
     // LOG.debug("Marathon App Group for deployment {} current status:\n{}", deployment.getId(),
     // group);
-    Collection<App> apps = Optional.ofNullable(group.getApps()).orElse(Collections.emptyList());
+    Collection<App> apps = Optional.ofNullable(group.getApps()).orElseGet(Collections::emptyList);
 
     List<App> completeInfoApps = new ArrayList<>();
     for (App app : apps) {
@@ -218,7 +221,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
     boolean noDeploymentsLeft = CollectionUtils.isEmpty(app.getDeployments());
     boolean allTasksReady;
     List<HealthCheck> healtchecks =
-        Optional.ofNullable(app.getHealthChecks()).orElse(Collections.emptyList());
+        Optional.ofNullable(app.getHealthChecks()).orElseGet(Collections::emptyList);
     if (healtchecks.isEmpty()) {
       // if no health-checks are defined -> we're good if they are running
       allTasksReady = ObjectUtils.compare(app.getInstances(), app.getTasksRunning(), false) <= 0;
@@ -247,7 +250,8 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
         String prefix = String.format("/%s/", deployment.getEndpoint());
         Map<String, Resource> resources = deployment.getResources()
             .stream()
-            .filter(resource -> MarathonApp.TOSCA_NODE_NAME.equals(resource.getToscaNodeType()))
+            .filter(resource -> toscaService.isOfToscaType(resource,
+                ToscaConstants.Nodes.MARATHON))
             .collect(
                 Collectors.toMap(resource -> prefix + resource.getIaasId(), Function.identity()));
 
@@ -255,7 +259,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
         Group group = this.getPolulatedGroup(groupId);
 
         List<App> failedApps = Optional.ofNullable(group.getApps())
-            .orElse(Collections.emptyList())
+            .orElseGet(Collections::emptyList)
             .stream()
             .filter(app -> !this.isAppDeployed(app))
             .collect(Collectors.toList());
@@ -397,6 +401,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
     app.setMem(marathonTask.getMemSize());
     app.setUris(marathonTask.getUris());
     app.setLabels(marathonTask.getLabels());
+    app.setEnv(new HashMap<>(marathonTask.getEnv()));
     marathonTask.getContainer()
         .ifPresent(mesosContainer -> app.setContainer(generateContainer(mesosContainer)));
     //// HARDCODED BITS //////

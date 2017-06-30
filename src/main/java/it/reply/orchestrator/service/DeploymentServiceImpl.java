@@ -16,9 +16,6 @@
 
 package it.reply.orchestrator.service;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
 import alien4cloud.model.topology.NodeTemplate;
 import alien4cloud.model.topology.RelationshipTemplate;
 import alien4cloud.tosca.model.ArchiveRoot;
@@ -52,6 +49,7 @@ import it.reply.orchestrator.exception.http.NotFoundException;
 import it.reply.orchestrator.exception.service.ToscaException;
 import it.reply.orchestrator.service.security.OAuth2TokenService;
 import it.reply.orchestrator.utils.CommonUtils;
+import it.reply.orchestrator.utils.ToscaConstants;
 import it.reply.orchestrator.utils.WorkflowConstants;
 import it.reply.workflowmanager.exceptions.WorkflowException;
 import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager;
@@ -76,10 +74,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class DeploymentServiceImpl implements DeploymentService {
+
+  private static final Pattern OWNER_PATTERN = Pattern.compile("([^@]+)@([^@]+)");
 
   @Autowired
   private DeploymentRepository deploymentRepository;
@@ -104,8 +107,25 @@ public class DeploymentServiceImpl implements DeploymentService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<Deployment> getDeployments(Pageable pageable) {
-    return deploymentRepository.findAll(pageable);
+  public Page<Deployment> getDeployments(Pageable pageable, String owner) {
+    if (owner == null) {
+      return deploymentRepository.findAll(pageable);
+    } else {
+      OidcEntityId ownerId;
+      if ("me".equals(owner)) {
+        ownerId = oauth2TokenService.generateOidcEntityIdFromCurrentAuth();
+      } else {
+        Matcher matcher = OWNER_PATTERN.matcher(owner);
+        if (matcher.matches()) {
+          ownerId = new OidcEntityId();
+          ownerId.setSubject(matcher.group(0));
+          ownerId.setIssuer(matcher.group(1));
+        } else {
+          throw new BadRequestException("Value " + owner + " for param createdBy is illegal");
+        }
+      }
+      return deploymentRepository.findByOwner_oidcEntityId(ownerId, pageable);
+    }
   }
 
   @Override
@@ -124,7 +144,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     if (oidcProperties.isEnabled()) {
       OidcEntityId requesterId = oauth2TokenService.generateOidcEntityIdFromCurrentAuth();
 
-      OidcEntity requester = oidcEntityRepository.findByOidcEntityId(requesterId)
+      OidcEntity requester = oidcEntityRepository
+          .findByOidcEntityId(requesterId)
           .orElseGet(oauth2TokenService::generateOidcEntityFromCurrentAuth);
       // exchange token if a refresh token is not yet associated with the user
       if (requester.getRefreshToken() == null) {
@@ -238,11 +259,11 @@ public class DeploymentServiceImpl implements DeploymentService {
 
   }
 
-  private static DeploymentType inferDeploymentType(Map<String, NodeTemplate> nodes) {
-    for (Map.Entry<String, NodeTemplate> node : nodes.entrySet()) {
-      if (node.getValue().getType().contains("Chronos")) {
+  private DeploymentType inferDeploymentType(Map<String, NodeTemplate> nodes) {
+    for (NodeTemplate node : nodes.values()) {
+      if (toscaService.isOfToscaType(node, ToscaConstants.Nodes.CHRONOS)) {
         return DeploymentType.CHRONOS;
-      } else if (node.getValue().getType().contains("Marathon")) {
+      } else if (toscaService.isOfToscaType(node, ToscaConstants.Nodes.MARATHON)) {
         return DeploymentType.MARATHON;
       }
     }
@@ -400,10 +421,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         new TopologicalOrderIterator<>(graph);
 
     // Map with all the resources created for each node
-    Map<NodeTemplate, Set<Resource>> resourcesMap = Maps.newHashMap();
+    Map<NodeTemplate, Set<Resource>> resourcesMap = new HashMap<>();
 
-    while (nodeIterator.hasNext()) {
-      NodeTemplate node = nodeIterator.next();
+    CommonUtils.iteratorToStream(nodeIterator).forEachOrdered(node -> {
       Set<RelationshipTemplate> relationships = graph.incomingEdgesOf(node);
 
       // Get all the parents
@@ -411,26 +431,26 @@ public class DeploymentServiceImpl implements DeploymentService {
           relationships.stream().map(graph::getEdgeSource).collect(Collectors.toList());
 
       int nodeCount = toscaService.getCount(node).orElse(1);
-      Set<Resource> resources = Sets.newHashSet();
-      for (int i = 0; i < nodeCount; ++i) {
+      Set<Resource> resources = IntStream
+          .range(0, nodeCount)
+          .mapToObj(i -> {
 
-        Resource tmpResource = new Resource();
-        tmpResource.setDeployment(deployment);
-        tmpResource.setState(NodeStates.INITIAL);
-        tmpResource.setToscaNodeName(node.getName());
-        tmpResource.setToscaNodeType(node.getType());
+            Resource tmpResource = new Resource();
+            tmpResource.setDeployment(deployment);
+            tmpResource.setState(NodeStates.INITIAL);
+            tmpResource.setToscaNodeName(node.getName());
+            tmpResource.setToscaNodeType(node.getType());
 
-        final Resource resource = resourceRepository.save(tmpResource);
-        resources.add(resource);
+            Resource resource = resourceRepository.save(tmpResource);
 
-        // bind parents resources with child resource
-        parentNodes.forEach(parentNode -> resourcesMap.get(parentNode).forEach(parentResource -> {
-          parentResource.getRequiredBy().add(resource.getId());
-          resource.getRequires().add(parentResource.getId());
-        }));
-      }
+            // bind parents resources with child resource
+            parentNodes.forEach(
+                parentNode -> resourcesMap.get(parentNode).forEach(resource::addRequiredResource));
+            return resource;
+          })
+          .collect(Collectors.toSet());
       // add all the resources created for this node
       resourcesMap.put(node, resources);
-    }
+    });
   }
 }
