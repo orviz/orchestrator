@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,16 @@ package it.reply.orchestrator.service.deployment.providers;
 
 import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.repository.DeploymentRepository;
+import it.reply.orchestrator.dto.deployment.DeploymentMessage;
 import it.reply.orchestrator.enums.Status;
+
+import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public abstract class AbstractDeploymentProviderService implements DeploymentProviderService {
 
   @Autowired
@@ -30,16 +36,16 @@ public abstract class AbstractDeploymentProviderService implements DeploymentPro
   @Autowired
   private DeploymentStatusHelper deploymentStatusHelper;
 
-  protected DeploymentRepository getDeploymentRepository() {
-    return deploymentRepository;
-  }
-
-  public void updateOnError(String deploymentUuid) {
-    updateOnError(deploymentUuid, (String) null);
+  protected Deployment getDeployment(DeploymentMessage deploymentMessage) {
+    return deploymentRepository.findOne(deploymentMessage.getDeploymentId());
   }
 
   public void updateOnError(String deploymentUuid, Throwable throwable) {
-    updateOnError(deploymentUuid, throwable.getMessage());
+    deploymentStatusHelper.updateOnError(deploymentUuid, throwable);
+  }
+
+  public void updateOnError(String deploymentUuid, String message, Throwable throwable) {
+    deploymentStatusHelper.updateOnError(deploymentUuid, message, throwable);
   }
 
   /**
@@ -64,4 +70,28 @@ public abstract class AbstractDeploymentProviderService implements DeploymentPro
   protected void updateResources(Deployment deployment, Status status) {
     deploymentStatusHelper.updateResources(deployment, status);
   }
+
+  @Override
+  public void finalizeDeploy(DeploymentMessage deploymentMessage) {
+    updateOnSuccess(deploymentMessage.getDeploymentId());
+  }
+
+  @Override
+  public void finalizeUndeploy(DeploymentMessage deploymentMessage) {
+    updateOnSuccess(deploymentMessage.getDeploymentId());
+  }
+
+  @Override
+  public Optional<String> getAdditionalErrorInfo(DeploymentMessage deploymentMessage) {
+    try {
+      return getAdditionalErrorInfoInternal(deploymentMessage);
+    } catch (RuntimeException ex) {
+      LOG.error("Error while retrieving additional error info for deployment {}",
+          deploymentMessage.getDeploymentId(), ex);
+      return Optional.empty();
+    }
+  }
+
+  protected abstract Optional<String>
+      getAdditionalErrorInfoInternal(DeploymentMessage deploymentMessage);
 }

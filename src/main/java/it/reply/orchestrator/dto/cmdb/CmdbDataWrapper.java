@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,47 +16,30 @@
 
 package it.reply.orchestrator.dto.cmdb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import it.reply.orchestrator.dto.AdditionalPropertiesAwareDto;
+import javax.validation.constraints.NotNull;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.io.Serializable;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(callSuper = true)
-public abstract class CmdbDataWrapper<U extends CmdbDataWrapper<U, T>, T extends Serializable>
-    extends AdditionalPropertiesAwareDto implements Serializable {
-
-  private static final long serialVersionUID = -7442528095759086603L;
+public abstract class CmdbDataWrapper<U extends CmdbDataWrapper<U, T>, T> {
 
   @JsonProperty("_id")
-  @Nullable
+  @NonNull
+  @NotNull
   private String id;
 
-  @JsonProperty("_rev")
-  @Nullable
-  private String rev;
-
-  @JsonProperty("type")
-  @Nullable
-  private String type;
-
   @JsonProperty("data")
-  @Nullable
+  @NonNull
+  @NotNull
   private T data;
 
 }

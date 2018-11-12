@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,5 +28,10 @@ public class ToscaConstants {
         BASE_INDIGO_NAME + "Container.Application.Docker.Marathon";
     public static final String COMPUTE = BASE_INDIGO_NAME + "Compute";
     public static final String ELASTIC_CLUSTER = BASE_INDIGO_NAME + "ElasticCluster";
+    public static final String DOCKER_RUNTIME = BASE_INDIGO_NAME + "Container.Runtime.Docker";
+
+    public static final String ONEDATA_SPACE = BASE_INDIGO_NAME + "OnedataSpace";
+    public static final String ONEDATA_SERVICE_SPACE = BASE_INDIGO_NAME + "OnedataServiceSpace";
+    public static final String DYNAFED = BASE_INDIGO_NAME + "Dynafed";
   }
 }

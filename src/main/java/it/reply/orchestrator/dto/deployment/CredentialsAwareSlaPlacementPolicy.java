@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,32 @@ package it.reply.orchestrator.dto.deployment;
 import alien4cloud.model.components.AbstractPropertyValue;
 import alien4cloud.model.components.ScalarPropertyValue;
 
-import org.springframework.util.Assert;
-
 import java.util.List;
 import java.util.Objects;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.springframework.util.Assert;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CredentialsAwareSlaPlacementPolicy extends SlaPlacementPolicy {
 
-  private static final long serialVersionUID = -7100234156400910682L;
+  public static final String TOSCA_TYPE = "tosca.policies.indigo.CredentialsAwareSlaPlacement";
 
   private String username;
   private String password;
 
+  @Nullable
+  private String tenant;
+
   /**
    * Create a CredentialsAwareSlaPlacementPolicy.
-   * 
-   * @param nodes
+   *
+   * @param targets
    *          a lis of nodes
    * @param slaId
    *          the slaId
@@ -42,12 +52,15 @@ public class CredentialsAwareSlaPlacementPolicy extends SlaPlacementPolicy {
    *          the username
    * @param password
    *          the password
+   * @param tenant
+   *          the tenant
    */
-  public CredentialsAwareSlaPlacementPolicy(List<String> nodes, String slaId, String username,
-      String password) {
-    super(nodes, slaId);
+  public CredentialsAwareSlaPlacementPolicy(List<String> targets, String slaId, String username,
+      String password, String tenant) {
+    super(targets, slaId);
     this.setUsername(username);
     this.setPassword(password);
+    this.setTenant(tenant);
   }
 
   /**
@@ -59,20 +72,25 @@ public class CredentialsAwareSlaPlacementPolicy extends SlaPlacementPolicy {
    *          the username
    * @param password
    *          the password
+   * @param tenant
+   *          the tenant
    */
   public CredentialsAwareSlaPlacementPolicy(SlaPlacementPolicy slaPlacementPolicy,
-      AbstractPropertyValue username, AbstractPropertyValue password) {
-    super(slaPlacementPolicy.getNodes(), slaPlacementPolicy.getSlaId());
+      AbstractPropertyValue username, AbstractPropertyValue password,
+      AbstractPropertyValue tenant) {
+    super(slaPlacementPolicy.getTargets(), slaPlacementPolicy.getSlaId());
     this.setUsername(username);
     this.setPassword(password);
+    this.setTenant(tenant);
   }
 
-  public String getUsername() {
-    return username;
+  @Override
+  public String getType() {
+    return TOSCA_TYPE;
   }
 
   public void setUsername(String username) {
-    Objects.requireNonNull(username, "username list must not be null");
+    Objects.requireNonNull(username, PlacementPolicy.USERNAME_PROPERTY_NAME + " must not be null");
     this.username = username;
   }
 
@@ -83,17 +101,14 @@ public class CredentialsAwareSlaPlacementPolicy extends SlaPlacementPolicy {
    *          the username
    */
   public void setUsername(AbstractPropertyValue username) {
-    Objects.requireNonNull(username, "username must not be null");
-    Assert.isInstanceOf(ScalarPropertyValue.class, username, "username must be a scalar value");
+    Objects.requireNonNull(username, PlacementPolicy.USERNAME_PROPERTY_NAME + " must not be null");
+    Assert.isInstanceOf(ScalarPropertyValue.class, username,
+        PlacementPolicy.USERNAME_PROPERTY_NAME + " must be a scalar value");
     this.username = ((ScalarPropertyValue) username).getValue();
   }
 
-  public String getPassword() {
-    return password;
-  }
-
   public void setPassword(String password) {
-    Objects.requireNonNull(password, "password not be null");
+    Objects.requireNonNull(password, PlacementPolicy.PASSWORD_PROPERTY_NAME + " must not be null");
     this.password = password;
   }
 
@@ -104,8 +119,27 @@ public class CredentialsAwareSlaPlacementPolicy extends SlaPlacementPolicy {
    *          the password
    */
   public void setPassword(AbstractPropertyValue password) {
-    Objects.requireNonNull(password, "password must not be null");
-    Assert.isInstanceOf(ScalarPropertyValue.class, password, "password must be a scalar value");
+    Objects.requireNonNull(password, PlacementPolicy.PASSWORD_PROPERTY_NAME + " must not be null");
+    Assert.isInstanceOf(ScalarPropertyValue.class, password,
+        PlacementPolicy.PASSWORD_PROPERTY_NAME + " must be a scalar value");
     this.password = ((ScalarPropertyValue) password).getValue();
+  }
+
+  public void setTenant(String tenant) {
+    this.tenant = tenant;
+  }
+
+  /**
+   * Set the tenant from an {@link AbstractPropertyValue}.
+   * 
+   * @param tenant
+   *          the tenant
+   */
+  public void setTenant(@Nullable AbstractPropertyValue tenant) {
+    if (tenant != null) {
+      Assert.isInstanceOf(ScalarPropertyValue.class, tenant,
+          PlacementPolicy.TENANT_PROPERTY_NAME + " must be a scalar value");
+      this.tenant = ((ScalarPropertyValue) tenant).getValue();
+    }
   }
 }

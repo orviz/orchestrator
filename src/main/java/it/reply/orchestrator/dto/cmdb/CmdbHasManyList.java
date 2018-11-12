@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,34 @@
 
 package it.reply.orchestrator.dto.cmdb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import it.reply.orchestrator.dto.AdditionalPropertiesAwareDto;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+import javax.validation.constraints.NotNull;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class CmdbHasManyList<R extends Serializable> extends AdditionalPropertiesAwareDto
-    implements Serializable {
-
-  private static final long serialVersionUID = -7214527741922419947L;
-
-  @JsonProperty("total_rows")
-  @Nullable
-  private Long totalRows;
-
-  @JsonProperty("offset")
-  @Nullable
-  private Long offset;
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class CmdbHasManyList<R> {
 
   @JsonProperty("rows")
   @NonNull
+  @NotNull
+  @Builder.Default
   private List<R> rows = new ArrayList<>();
+
+  @Deprecated
+  protected CmdbHasManyList() {
+    rows = new ArrayList<>();
+  }
 
 }

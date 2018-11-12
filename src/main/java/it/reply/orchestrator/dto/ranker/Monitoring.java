@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,39 @@
 
 package it.reply.orchestrator.dto.ranker;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import it.reply.monitoringpillar.domain.dsl.monitoring.pillar.wrapper.paas.PaaSMetric;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.validation.constraints.NotNull;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Monitoring implements Serializable {
-
-  private static final long serialVersionUID = 6559999818418491070L;
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class Monitoring {
 
   @JsonProperty("provider")
+  @NonNull
+  @NotNull
   private String provider;
 
   @JsonProperty("metrics")
   @Builder.Default
   private List<PaaSMetric> metrics = new ArrayList<>();
 
+  @SuppressWarnings("null")
+  @Deprecated
+  protected Monitoring() {
+    metrics = new ArrayList<>();
+  }
 }

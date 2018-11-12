@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.at
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
@@ -37,103 +36,79 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import it.reply.orchestrator.config.filters.CustomRequestLoggingFilter;
-import it.reply.orchestrator.dal.entity.AbstractResourceEntity;
 import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.entity.OidcEntity;
 import it.reply.orchestrator.dal.entity.OidcEntityId;
 import it.reply.orchestrator.dto.request.DeploymentRequest;
 import it.reply.orchestrator.enums.Status;
-import it.reply.orchestrator.exception.GlobalControllerExceptionHandler;
 import it.reply.orchestrator.exception.http.ConflictException;
 import it.reply.orchestrator.exception.http.NotFoundException;
 import it.reply.orchestrator.resource.DeploymentResourceAssembler;
 import it.reply.orchestrator.service.DeploymentService;
-import it.reply.orchestrator.util.TestUtil;
+import it.reply.orchestrator.utils.JsonUtils;
 
-import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
-import org.springframework.data.web.PagedResourcesAssemblerArgumentResolver;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.RestDocumentation;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
+import java.sql.SQLTransientException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import jersey.repackaged.com.google.common.collect.Maps;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 
-@RunWith(MockitoJUnitRunner.class)
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.flowable.engine.common.api.FlowableOptimisticLockingException;
+import org.hamcrest.Matchers;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.config.HateoasAwareSpringDataWebConfiguration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.test.context.junit4.rules.SpringClassRule;
+import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(controllers = DeploymentController.class, secure = false)
+@RunWith(JUnitParamsRunner.class)
+@AutoConfigureRestDocs("target/generated-snippets")
+@Import(HateoasAwareSpringDataWebConfiguration.class)
 public class DeploymentControllerTest {
 
-  private MockMvc mockMvc;
-
-  @InjectMocks
-  private DeploymentController deploymentController = new DeploymentController();
-
-  @Mock
-  private DeploymentService deploymentService;
-
-  @Spy
-  private HateoasPageableHandlerMethodArgumentResolver pageableArgumentResolver;
-
-  @Spy
-  private DeploymentResourceAssembler deploymentResourceAssembler;
-
-  @Spy
-  private PagedResourcesAssemblerArgumentResolver pagedResourcesAssemblerArgumentResolver =
-      new PagedResourcesAssemblerArgumentResolver(pageableArgumentResolver, null);
-
-  @Spy
-  private GlobalControllerExceptionHandler globalControllerExceptionHandler;
-
-  @Spy
-  private CustomRequestLoggingFilter customRequestLoggingFilter = new CustomRequestLoggingFilter();
+  @ClassRule
+  public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
 
   @Rule
-  public RestDocumentation restDocumentation = new RestDocumentation("target/generated-snippets");
+  public final SpringMethodRule springMethodRule = new SpringMethodRule();
+  
+  @Autowired
+  private MockMvc mockMvc;
 
-  /**
-   * Set up test context.
-   */
-  @Before
-  public void setup() {
-    customRequestLoggingFilter.setMaxPayloadLength(Integer.MAX_VALUE);
-    Mockito.when(customRequestLoggingFilter.shouldLog(Mockito.any())).thenReturn(true);
-    MockitoAnnotations.initMocks(this);
-    mockMvc = MockMvcBuilders.standaloneSetup(deploymentController)
-        .addFilters(customRequestLoggingFilter)
-        .setControllerAdvice(globalControllerExceptionHandler)
-        .setCustomArgumentResolvers(pageableArgumentResolver,
-            pagedResourcesAssemblerArgumentResolver)
-        .apply(documentationConfiguration(this.restDocumentation))
-        .dispatchOptions(true)
-        .build();
-  }
+  @MockBean
+  private DeploymentService deploymentService;
 
+  @SpyBean
+  private DeploymentResourceAssembler deploymentResourceAssembler;
+  
   @Test
   public void getDeployments() throws Exception {
 
@@ -143,20 +118,20 @@ public class DeploymentControllerTest {
     String ownerIdString = ownerId.getSubject()+"@"+ownerId.getIssuer();
     OidcEntity owner = new OidcEntity();
     owner.setOidcEntityId(ownerId);
-    List<Deployment> deployments = ControllerTestUtils.createDeployments(2, true);
+    List<Deployment> deployments = ControllerTestUtils.createDeployments(2);
     deployments.forEach(deployment -> deployment.setOwner(owner));
     deployments.get(0).setStatus(Status.CREATE_FAILED);
     deployments.get(0).setStatusReason("Some reason");
     deployments.get(1).setStatus(Status.CREATE_COMPLETE);
     Pageable pageable = ControllerTestUtils.createDefaultPageable();
     Mockito.when(deploymentService.getDeployments(pageable, ownerIdString))
-        .thenReturn(new PageImpl<Deployment>(deployments));
+        .thenReturn(new PageImpl<Deployment>(deployments, pageable, deployments.size()));
 
     mockMvc
         .perform(get("/deployments?createdBy=" + ownerIdString).accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andDo(document("authentication", requestHeaders(
             headerWithName(HttpHeaders.AUTHORIZATION).description("OAuth2 bearer token"))))
         .andDo(document("deployments", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
@@ -186,9 +161,9 @@ public class DeploymentControllerTest {
   @Test
   public void getPagedDeployments() throws Exception {
 
-    List<Deployment> deployments = ControllerTestUtils.createDeployments(5, true);
+    List<Deployment> deployments = ControllerTestUtils.createDeployments(5);
     Pageable pageable =
-        new PageRequest(1, 2, new Sort(Direction.DESC, AbstractResourceEntity.CREATED_COLUMN_NAME));
+        new PageRequest(1, 2, new Sort(Direction.DESC, "createdAt"));
     Mockito.when(deploymentService.getDeployments(pageable, null))
         .thenReturn(new PageImpl<Deployment>(deployments, pageable, deployments.size()));
 
@@ -196,7 +171,7 @@ public class DeploymentControllerTest {
         .perform(get("/deployments?page=1&size=2").accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andDo(document("deployment-paged", preprocessResponse(prettyPrint()),
             links(atomLinks(), linkWithRel("first").description("Hyperlink to the first page"),
                 linkWithRel("prev").description("Hyperlink to the previous page"),
@@ -212,16 +187,16 @@ public class DeploymentControllerTest {
   @Test
   public void deploymentsPagination() throws Exception {
 
-    List<Deployment> deployments = ControllerTestUtils.createDeployments(5, true);
+    List<Deployment> deployments = ControllerTestUtils.createDeployments(5);
     Pageable pageable = ControllerTestUtils.createDefaultPageable();
     Mockito.when(deploymentService.getDeployments(pageable, null))
-        .thenReturn(new PageImpl<Deployment>(deployments));
+        .thenReturn(new PageImpl<Deployment>(deployments, pageable, deployments.size()));
 
     mockMvc
         .perform(get("/deployments").header(HttpHeaders.AUTHORIZATION,
             OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andDo(document("deployment-pagination", preprocessResponse(prettyPrint()), responseFields(
             fieldWithPath("links[]").ignored(), fieldWithPath("content[].links[]").ignored(),
 
@@ -252,7 +227,7 @@ public class DeploymentControllerTest {
 
     mockMvc.perform(get("/deployments/" + deploymentId))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.uuid", is(deploymentId)));
   }
 
@@ -267,7 +242,7 @@ public class DeploymentControllerTest {
         .perform(get("/deployments/" + deploymentId).header(HttpHeaders.AUTHORIZATION,
             OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andDo(document("deployment-hypermedia", preprocessResponse(prettyPrint()),
             links(atomLinks(), linkWithRel("self").description("Self-referencing hyperlink"),
                 linkWithRel("template").description("Template reference hyperlink"),
@@ -289,7 +264,7 @@ public class DeploymentControllerTest {
 
     String deploymentId = "mmd34483-d937-4578-bfdb-ebe196bf82dd";
     Deployment deployment = ControllerTestUtils.createDeployment(deploymentId);
-    Map<String, Object> outputs = Maps.newHashMap();
+    Map<String, Object> outputs = new HashMap<>();
     String key = "server_ip";
     String value = "10.0.0.1";
     outputs.put(key, value);
@@ -302,7 +277,7 @@ public class DeploymentControllerTest {
         .perform(get("/deployments/" + deploymentId).header(HttpHeaders.AUTHORIZATION,
             OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.outputs", Matchers.hasEntry(key, value)))
 
         .andDo(document("deployment", preprocessResponse(prettyPrint()),
@@ -336,7 +311,7 @@ public class DeploymentControllerTest {
         .perform(get("/deployments/" + deploymentId).header(HttpHeaders.AUTHORIZATION,
             OAuth2AccessToken.BEARER_TYPE + " <access token>"))
         .andExpect(status().isNotFound())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.code", is(404)))
         .andDo(document("deployment-not-found", preprocessResponse(prettyPrint()), responseFields(
             fieldWithPath("code").description("The HTTP status code"),
@@ -348,28 +323,33 @@ public class DeploymentControllerTest {
 
   @Test
   public void createDeploymentUnsupportedMediaType() throws Exception {
-    DeploymentRequest request = new DeploymentRequest();
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("cpus", 1);
-    request.setParameters(parameters);
-    request.setTemplate("template");
-    request.setCallback("http://localhost:8080/callback");
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .parameters(parameters)
+        .template("template")
+        .callback("http://localhost:8080/callback")
+        .build();
     mockMvc
         .perform(post("/deployments").contentType(MediaType.TEXT_PLAIN)
-            .content(TestUtil.convertObjectToJsonBytes(request)))
+            .content(JsonUtils.serialize(request)))
         .andExpect(status().isUnsupportedMediaType());
 
   }
 
   @Test
   public void createDeploymentSuccessfully() throws Exception {
-
-    DeploymentRequest request = new DeploymentRequest();
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("cpus", 1);
-    request.setParameters(parameters);
-    request.setTemplate("template");
-    request.setCallback("http://localhost:8080/callback");
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .parameters(parameters)
+        .template("template")
+        .callback("http://localhost:8080/callback")
+        .keepLastAttempt(false)
+        .maxProvidersRetry(1)
+        .build();
 
     Deployment deployment = ControllerTestUtils.createDeployment();
     deployment.setCallback(request.getCallback());
@@ -377,7 +357,7 @@ public class DeploymentControllerTest {
     Mockito.when(deploymentService.createDeployment(request)).thenReturn(deployment);
 
     mockMvc.perform(post("/deployments").contentType(MediaType.APPLICATION_JSON)
-        .content(TestUtil.convertObjectToJsonBytes(request))
+        .content(JsonUtils.serialize(request))
         .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
 
         .andDo(document("create-deployment", preprocessRequest(prettyPrint()),
@@ -387,7 +367,11 @@ public class DeploymentControllerTest {
                     .description("A string containing a TOSCA YAML-formatted template"),
                 fieldWithPath("parameters").optional()
                     .description("The input parameters of the deployment(Map of String, Object)"),
-                fieldWithPath("callback").description("The deployment callback URL (optional)")),
+                fieldWithPath("callback").description("The deployment callback URL (optional)"),
+                fieldWithPath("maxProvidersRetry").description(
+                    "The maximum number Cloud providers on which attempt to create the deployment (Optional, default unbounded)"),
+                fieldWithPath("keepLastAttempt").description(
+                    "Whether the Orchestrator, in case of failure, will keep the resources of the last deploy attempt or not (Optional, default false)")),
             responseFields(fieldWithPath("links[]").ignored(),
                 fieldWithPath("uuid").description("The unique identifier of a resource"),
                 fieldWithPath("creationTime").description(
@@ -407,12 +391,14 @@ public class DeploymentControllerTest {
 
   @Test
   public void updateDeploymentNotExists() throws Exception {
-    DeploymentRequest request = new DeploymentRequest();
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("cpus", 1);
-    request.setParameters(parameters);
-    request.setTemplate("template");
-    request.setCallback("http://localhost:8080/callback");
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .parameters(parameters)
+        .template("template")
+        .callback("http://localhost:8080/callback")
+        .build();
 
     String deploymentId = "mmd34483-d937-4578-bfdb-ebe196bf82dd";
     Mockito.doThrow(new NotFoundException("Message"))
@@ -421,7 +407,7 @@ public class DeploymentControllerTest {
 
     mockMvc
         .perform(put("/deployments/" + deploymentId).contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(request)))
+            .content(JsonUtils.serialize(request)))
         .andExpect(jsonPath("$.code", is(404)))
         .andExpect(jsonPath("$.title", is("Not Found")))
         .andExpect(jsonPath("$.message", is("Message")));
@@ -429,8 +415,10 @@ public class DeploymentControllerTest {
 
   @Test
   public void updateDeploymentDeleteInProgress() throws Exception {
-    DeploymentRequest request = new DeploymentRequest();
-    request.setTemplate("template");
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .template("template")
+        .build();
 
     String deploymentId = "mmd34483-d937-4578-bfdb-ebe196bf82dd";
     Mockito.doThrow(new ConflictException("Cannot update a deployment in DELETE_IN_PROGRESS state"))
@@ -439,28 +427,85 @@ public class DeploymentControllerTest {
 
     mockMvc
         .perform(put("/deployments/" + deploymentId).contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(request)))
+            .content(JsonUtils.serialize(request)))
         .andExpect(jsonPath("$.code", is(409)))
         .andExpect(jsonPath("$.title", is("Conflict")))
         .andExpect(
             jsonPath("$.message", is("Cannot update a deployment in DELETE_IN_PROGRESS state")));
   }
 
+  public Object[] generateTransientPersistenceExceptions() {
+    return new Object[]{
+        Mockito.mock(TransientDataAccessException.class),
+        new FlowableOptimisticLockingException(""),
+        new PersistenceException(new SQLTransientException(""))
+    };
+  }
+
+  @Test
+  @Parameters(method = "generateTransientPersistenceExceptions")
+  public void updateDeploymentConcurrentTransientException(Exception ex)
+      throws Exception {
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .template("template")
+        .build();
+
+    String deploymentId = "mmd34483-d937-4578-bfdb-ebe196bf82dd";
+    Mockito.doThrow(ex)
+        .when(deploymentService)
+        .updateDeployment(deploymentId, request);
+
+    mockMvc
+        .perform(put("/deployments/" + deploymentId).contentType(MediaType.APPLICATION_JSON)
+            .content(JsonUtils.serialize(request)))
+        .andExpect(header().string(HttpHeaders.RETRY_AFTER, "0"))
+        .andExpect(jsonPath("$.code", is(409)))
+        .andExpect(jsonPath("$.title", is("Conflict")))
+        .andExpect(
+            jsonPath("$.message",
+                is("The request couldn't be fulfilled because of a concurrent update. Please retry later")));
+  }
+
+  @Test
+  @Parameters(method = "generateTransientPersistenceExceptions")
+  public void deleteDeploymentConcurrentTransientException(Exception ex)
+      throws Exception {
+
+    String deploymentId = "mmd34483-d937-4578-bfdb-ebe196bf82dd";
+    Mockito.doThrow(ex)
+        .when(deploymentService)
+        .deleteDeployment(deploymentId);
+
+    mockMvc
+        .perform(delete("/deployments/" + deploymentId))
+        .andExpect(header().string(HttpHeaders.RETRY_AFTER, "0"))
+        .andExpect(jsonPath("$.code", is(409)))
+        .andExpect(jsonPath("$.title", is("Conflict")))
+        .andExpect(
+            jsonPath("$.message",
+                is("The request couldn't be fulfilled because of a concurrent update. Please retry later")));
+  }
+
   @Test
   public void updateDeploymentSuccessfully() throws Exception {
 
-    DeploymentRequest request = new DeploymentRequest();
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("cpus", 1);
-    request.setParameters(parameters);
-    request.setTemplate("template");
-    request.setCallback("http://localhost:8080/callback");
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .parameters(parameters)
+        .template("template")
+        .callback("http://localhost:8080/callback")
+        .keepLastAttempt(false)
+        .maxProvidersRetry(1)
+        .build();
 
     String deploymentId = "mmd34483-d937-4578-bfdb-ebe196bf82dd";
     Mockito.doNothing().when(deploymentService).updateDeployment(deploymentId, request);
 
     mockMvc.perform(put("/deployments/" + deploymentId).contentType(MediaType.APPLICATION_JSON)
-        .content(TestUtil.convertObjectToJsonBytes(request))
+        .content(JsonUtils.serialize(request))
         .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
 
         .andDo(document("update-deployment", preprocessRequest(prettyPrint()),
@@ -470,36 +515,43 @@ public class DeploymentControllerTest {
                     .description("A string containing a TOSCA YAML-formatted template"),
                 fieldWithPath("parameters").optional()
                     .description("The input parameters of the deployment (Map of String, Object)"),
-                fieldWithPath("callback").description("The deployment callback URL (optional)"))));
+                fieldWithPath("callback").description("The deployment callback URL (optional)"),
+                fieldWithPath("maxProvidersRetry").description(
+                    "The maximum number Cloud providers on which attempt to update the hybrid deployment update (Optional, default unbounded)"),
+                fieldWithPath("keepLastAttempt").description(
+                    "Whether the Orchestrator, in case of failure, will keep the resources of the last update attempt or not (Optional, default false)"))));
 
   }
 
   @Test
   public void createDeploymentWithoutCallbackSuccessfully() throws Exception {
 
-    DeploymentRequest request = new DeploymentRequest();
-    request.setTemplate("template");
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .template("template")
+        .build();
 
     Mockito.when(deploymentService.createDeployment(request))
         .thenReturn(ControllerTestUtils.createDeployment());
 
     mockMvc
         .perform(post("/deployments").contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(request)))
+            .content(JsonUtils.serialize(request)))
         .andExpect(status().isCreated())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.links[0].rel", is("self")));
   }
 
   @Test
   public void createDeploymentWithCallbackUnsuccessfully() throws Exception {
-    DeploymentRequest request = new DeploymentRequest();
-    String callback = "httptest.com";
-    request.setCallback(callback);
-    request.setTemplate("template");
+    DeploymentRequest request = DeploymentRequest
+        .builder()
+        .callback("httptest.com")
+        .template("template")
+        .build();
     mockMvc
         .perform(post("/deployments").contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(request)))
+            .content(JsonUtils.serialize(request)))
         .andExpect(status().isBadRequest());
   }
 
@@ -545,7 +597,7 @@ public class DeploymentControllerTest {
         .deleteDeployment(deploymentId);
 
     mockMvc.perform(delete("/deployments/" + deploymentId))
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.code", is(404)))
         .andExpect(jsonPath("$.title", is("Not Found")))
         .andExpect(jsonPath("$.message", is("The deployment <not-found> doesn't exist")));

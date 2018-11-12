@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,47 +19,55 @@ package it.reply.orchestrator.dto.deployment;
 import alien4cloud.model.components.AbstractPropertyValue;
 import alien4cloud.model.components.ScalarPropertyValue;
 
-import org.springframework.util.Assert;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import org.springframework.util.Assert;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SlaPlacementPolicy implements PlacementPolicy {
 
-  private static final long serialVersionUID = 2712997001319905444L;
+  public static final String TOSCA_TYPE = "tosca.policies.indigo.SlaPlacement";
 
-  private List<String> nodes = new ArrayList<>();
+  private List<String> targets = new ArrayList<>();
 
+  @JsonProperty("sla_id")
   private String slaId;
 
-  public SlaPlacementPolicy(List<String> nodes, String slaId) {
-    this.setNodes(nodes);
+  @JsonProperty("services_id")
+  private List<String> servicesId = new ArrayList<>();
+
+  public SlaPlacementPolicy(List<String> targets, String slaId) {
+    this.setTargets(targets);
     this.setSlaId(slaId);
   }
 
-  public SlaPlacementPolicy(List<String> nodes, AbstractPropertyValue slaId) {
-    this.setNodes(nodes);
+  public SlaPlacementPolicy(List<String> targets, AbstractPropertyValue slaId) {
+    this.setTargets(targets);
     this.setSlaId(slaId);
   }
 
   @Override
-  public List<String> getNodes() {
-    return nodes;
+  public void setTargets(List<String> targets) {
+    Objects.requireNonNull(targets, "targets list must not be null");
+    this.targets = targets;
   }
 
   @Override
-  public void setNodes(List<String> nodes) {
-    Objects.requireNonNull(nodes, "nodes list must not be null");
-    this.nodes = nodes;
-  }
-
-  public String getSlaId() {
-    return slaId;
+  public String getType() {
+    return TOSCA_TYPE;
   }
 
   public void setSlaId(String slaId) {
-    Objects.requireNonNull(slaId, "slaId must not be null");
+    Objects.requireNonNull(slaId, PlacementPolicy.PLACEMENT_ID_PROPERTY_NAME + " must not be null");
     this.slaId = slaId;
   }
 
@@ -70,9 +78,15 @@ public class SlaPlacementPolicy implements PlacementPolicy {
    *          the SLA id
    */
   public void setSlaId(AbstractPropertyValue slaId) {
-    Objects.requireNonNull(slaId, "slaId must not be null");
-    Assert.isInstanceOf(ScalarPropertyValue.class, slaId, "slaId must be a scalar value");
+    Objects.requireNonNull(slaId, PlacementPolicy.PLACEMENT_ID_PROPERTY_NAME + " must not be null");
+    Assert.isInstanceOf(ScalarPropertyValue.class, slaId,
+        PlacementPolicy.PLACEMENT_ID_PROPERTY_NAME + " must be a scalar value");
     this.slaId = ((ScalarPropertyValue) slaId).getValue();
+  }
+
+  public void setServiceIds(List<String> servicesId) {
+    Objects.requireNonNull(servicesId, "services ID list must not be null");
+    this.servicesId = servicesId;
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,28 @@
 
 package it.reply.orchestrator.config.filters;
 
-import com.google.common.base.Strings;
-import com.google.common.net.HttpHeaders;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
-import it.reply.utils.json.JsonUtility;
+import it.reply.orchestrator.utils.JsonUtils;
+import it.reply.orchestrator.utils.MdcUtils;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,34 +48,23 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.slf4j.MDC;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.util.StopWatch;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.WebUtils;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 @Slf4j
 public class CustomRequestLoggingFilter extends OncePerRequestFilter {
 
   public static final String X_REQUEST_ID = "X-Request-ID";
-  public static final String REQUEST_ID_MDC_KEY = "request_id";
+
+  public static final String ATTRIBUTE_REQUEST_ID = CustomRequestLoggingFilter.class.getName()
+      + ".RequestId";
+
+  private static final String ATTRIBUTE_STOP_WATCH = CustomRequestLoggingFilter.class.getName()
+      + ".StopWatch";
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   @Data
@@ -70,8 +74,9 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
 
     private String type = "request";
 
-    public RequestWrapper(HttpServletRequest request, int maxPayloadLength) {
-      super(request, maxPayloadLength);
+    public RequestWrapper(HttpServletRequest request, int maxPayloadLength,
+        Set<String> headersToOmit) {
+      super(request, maxPayloadLength, headersToOmit);
     }
 
     @Override
@@ -108,8 +113,8 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
      *          the response time
      */
     public ResponseWrapper(HttpServletRequest request, HttpServletResponse response,
-        int maxPayloadLength, double responseTime) {
-      super(request, maxPayloadLength);
+        int maxPayloadLength, Set<String> headersToOmit, double responseTime) {
+      super(request, maxPayloadLength, headersToOmit);
       this.responseStatus = response.getStatus();
       this.responseTime = responseTime;
     }
@@ -164,7 +169,7 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
      *          the request
      */
     public void setClientIpFromRequest(HttpServletRequest request) {
-      safeTrimmedString(getRemoteAddr(request)).ifPresent(this::setClientIp);
+      safeTrimmedString(request.getRemoteAddr()).ifPresent(this::setClientIp);
     }
 
     /**
@@ -195,13 +200,16 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
      * @param request
      *          the request
      */
-    public void setHeadersFromRequest(HttpServletRequest request) {
-      setHeaders(new ServletServerHttpRequest(request).getHeaders().toSingleValueMap());
-      // for (String headerKey : getHeadersToOmitt()) {
-      // if (headers.containsKey(headerKey)) {
-      // headers.put(headerKey, "<omitted>");
-      // }
-      // }
+    public void setHeadersFromRequest(HttpServletRequest request,
+        @NonNull Set<String> headersToOmit) {
+      HttpHeaders httpHeaders = new ServletServerHttpRequest(request)
+          .getHeaders();
+      if (!headersToOmit.isEmpty()) {
+        httpHeaders.replaceAll((key, value) -> {
+          return headersToOmit.contains(key) ? Lists.newArrayList("<omitted>") : value;
+        });
+      }
+      setHeaders(httpHeaders.toSingleValueMap());
     }
 
     /**
@@ -241,14 +249,15 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
      * @param maxPayloadLength
      *          the max payload request to parse
      */
-    public AbstractWrapper(HttpServletRequest request, int maxPayloadLength) {
+    public AbstractWrapper(HttpServletRequest request, int maxPayloadLength,
+        Set<String> headersToOmit) {
       setHttpMethod(request.getMethod());
 
       setUriFromRequest(request.getRequestURI(), request.getQueryString());
       setClientIpFromRequest(request);
       setSessionFromRequest(request);
       setUserFromRequest(request);
-      setHeadersFromRequest(request);
+      setHeadersFromRequest(request, headersToOmit);
       setPayloadFromRequest(request, maxPayloadLength);
     }
   }
@@ -260,7 +269,7 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
   @Getter
   @Setter
   @NonNull
-  private List<String> headersToOmitt = new ArrayList<>();
+  private Set<String> headersToOmit = new HashSet<>();
 
   public boolean isIncludePayload() {
     return isIncludePayload(getMaxPayloadLength());
@@ -274,35 +283,79 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
 
-    Instant startingInstant = Instant.now();
+    StopWatch stopWatch = createStopWatchIfNecessary(request);
+    String requestId = createRequestIdIfNecessary(request);
+
     boolean isFirstRequest = !isAsyncDispatch(request);
     HttpServletRequest requestToUse = request;
 
-    String requestId = "req-" + UUID.randomUUID().toString();
-
     try {
-      MDC.put(REQUEST_ID_MDC_KEY, requestId);
-      response.addHeader(X_REQUEST_ID, requestId);
-
-      if (isIncludePayload() && isFirstRequest
-          && !(request instanceof ContentCachingRequestWrapper)) {
-        requestToUse = new ContentCachingRequestWrapper(request);
+      if (isFirstRequest) {
+        MdcUtils.setRequestId(requestId);
+        response.addHeader(X_REQUEST_ID, requestId);
       }
 
       boolean shouldLog = shouldLog(requestToUse);
+
       if (shouldLog && isFirstRequest) {
+        if (isIncludePayload() && !(request instanceof ContentCachingRequestWrapper)) {
+          requestToUse = new ContentCachingRequestWrapper(request);
+        }
         beforeRequest(requestToUse);
       }
+
       try {
         filterChain.doFilter(requestToUse, response);
       } finally {
-        if (shouldLog && !isAsyncStarted(requestToUse)) {
-          afterRequest(requestToUse, response, getElapsedMillisec(startingInstant));
+        if (!isAsyncStarted(requestToUse)) {
+          stopWatch.stop();
+          request.removeAttribute(ATTRIBUTE_STOP_WATCH);
+          request.removeAttribute(ATTRIBUTE_REQUEST_ID);
+          if (shouldLog) {
+            afterRequest(requestToUse, response, stopWatch.getTotalTimeMillis());
+          }
         }
       }
     } finally {
-      MDC.remove(REQUEST_ID_MDC_KEY);
+      if (isFirstRequest) {
+        MdcUtils.clean();
+      }
     }
+  }
+
+  private StopWatch createStopWatchIfNecessary(HttpServletRequest request) {
+    return Optional
+        .ofNullable(request.getAttribute(ATTRIBUTE_STOP_WATCH))
+        .filter(StopWatch.class::isInstance)
+        .map(StopWatch.class::cast)
+        .orElseGet(() -> {
+          StopWatch stopWatch = new StopWatch();
+          stopWatch.start();
+          request.setAttribute(ATTRIBUTE_STOP_WATCH, stopWatch);
+          return stopWatch;
+        });
+  }
+
+  private String createRequestIdIfNecessary(HttpServletRequest request) {
+    return Optional
+        .ofNullable(request.getAttribute(ATTRIBUTE_REQUEST_ID))
+        .filter(String.class::isInstance)
+        .map(String.class::cast)
+        .orElseGet(() -> {
+          String requestId = "req-" + UUID.randomUUID().toString();
+          request.setAttribute(ATTRIBUTE_REQUEST_ID, requestId);
+          return requestId;
+        });
+  }
+
+  /**
+   * The default value is "false" so that the filter may log a "before" message at the start of
+   * request processing and an "after" message at the end from when the last asynchronously
+   * dispatched thread is exiting.
+   */
+  @Override
+  protected boolean shouldNotFilterAsyncDispatch() {
+    return false;
   }
 
   public static Optional<String> safeTrimmedString(@Nullable String input) {
@@ -318,9 +371,9 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
    */
   protected void beforeRequest(HttpServletRequest request) {
     try {
-      LOG.debug(JsonUtility.serializeJson(new RequestWrapper(request, getMaxPayloadLength())));
-    } catch (IOException ex) {
-      // shouldn't happen
+      LOG.debug(JsonUtils
+          .serialize(new RequestWrapper(request, getMaxPayloadLength(), getHeadersToOmit())));
+    } catch (JsonProcessingException ex) {
       LOG.error("Error logging request {}", request, ex);
     }
   }
@@ -331,28 +384,12 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
   protected void afterRequest(HttpServletRequest request, HttpServletResponse response,
       double responseTime) {
     try {
-      LOG.debug(JsonUtility.serializeJson(
-          new ResponseWrapper(request, response, getMaxPayloadLength(), responseTime)));
-    } catch (IOException ex) {
-      // shouldn't happen
-      LOG.error("Error logging response {} for request ", response, request, ex);
+      LOG.debug(JsonUtils.serialize(
+          new ResponseWrapper(request, response, getMaxPayloadLength(), getHeadersToOmit(),
+              responseTime)));
+    } catch (JsonProcessingException ex) {
+      LOG.error("Error logging response {} for request {}", response, request, ex);
     }
-  }
-
-  private double getElapsedMillisec(Instant startingInstant) {
-    return Duration.between(startingInstant, Instant.now()).toMillis();
-  }
-
-  private static String getRemoteAddr(HttpServletRequest request) {
-    return safeTrimmedString(request.getHeader(HttpHeaders.X_FORWARDED_FOR))
-        .map(header -> header.split(", ?"))
-        .map(Stream::of)
-        .orElseGet(Stream::empty)
-        .map(CustomRequestLoggingFilter::safeTrimmedString)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findFirst()
-        .orElseGet(request::getRemoteAddr);
   }
 
 }

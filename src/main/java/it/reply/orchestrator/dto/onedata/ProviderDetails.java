@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,44 @@
 
 package it.reply.orchestrator.dto.onedata;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Data;
+import javax.validation.constraints.NotNull;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProviderDetails implements Serializable {
-
-  private static final long serialVersionUID = -368387049626457198L;
-
-  @JsonProperty("csr")
-  private String csr;
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class ProviderDetails {
 
   @JsonProperty("providerId")
+  @NonNull
+  @NotNull
   private String providerId;
 
-  @JsonProperty("clientName")
-  private String clientName;
+  @JsonProperty("name")
+  @Nullable
+  private String name;
 
-  @JsonProperty("redirectionPoint")
-  private String redirectionPoint;
-
-  @JsonProperty("urls")
-  private List<String> urls = new ArrayList<>();
+  @JsonProperty("domain")
+  @Nullable
+  private String domain;
 
   @JsonProperty("latitude")
+  @Nullable
   private Double latitude;
 
   @JsonProperty("longitude")
+  @Nullable
   private Double longitude;
 
 }

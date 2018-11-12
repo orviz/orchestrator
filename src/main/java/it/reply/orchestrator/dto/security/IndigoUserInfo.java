@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,13 @@ import com.google.gson.JsonPrimitive;
 
 import it.reply.orchestrator.utils.CommonUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.validation.constraints.NotNull;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,19 +38,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.UserInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class IndigoUserInfo extends DefaultUserInfo {
 
-  private static final long serialVersionUID = -6165120150633146681L;
+  private static final long serialVersionUID = 1L;
 
   private static final String GROUPS_KEY = "groups";
   private static final String ORGANIZATION_NAME_KEY = "organisation_name";

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,24 @@ package it.reply.orchestrator.service.deployment.providers;
 
 import it.reply.orchestrator.annotation.DeploymentProviderQualifier;
 import it.reply.orchestrator.dal.entity.Deployment;
+import it.reply.orchestrator.dal.repository.DeploymentRepository;
 import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.exception.OrchestratorException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import java.util.EnumMap;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
 @Service
 public class DeploymentProviderServiceRegistry {
 
-  private EnumMap<DeploymentProvider, DeploymentProviderService> providers =
-      new EnumMap<>(DeploymentProvider.class);
+  private final DeploymentRepository deploymentRepository;
+
+  private final EnumMap<DeploymentProvider, DeploymentProviderService> providers;
 
   /**
    * Creates the DeploymentProviderServiceRegistry from all the DeploymentProviderServices
@@ -43,10 +44,11 @@ public class DeploymentProviderServiceRegistry {
    * @param services
    *          the registered DeploymentProviderServices
    */
-  @Autowired
-  public DeploymentProviderServiceRegistry(DeploymentProviderService[] services) {
+  public DeploymentProviderServiceRegistry(DeploymentRepository deploymentRepository,
+      DeploymentProviderService[] services) {
+    this.deploymentRepository = deploymentRepository;
+    this.providers = new EnumMap<>(DeploymentProvider.class);
     Stream.of(services).forEach(service -> {
-
       DeploymentProviderQualifier annotation =
           service.getClass().getAnnotation(DeploymentProviderQualifier.class);
       Assert.notNull(annotation,
@@ -54,10 +56,14 @@ public class DeploymentProviderServiceRegistry {
               service.getClass(), DeploymentProviderQualifier.class));
 
       DeploymentProvider deploymentProvider = annotation.value();
-      Assert.notNull(deploymentProvider);
+      Assert.notNull(deploymentProvider, "DeploymentProvider value must not be null");
 
       providers.put(deploymentProvider, service);
     });
+  }
+
+  public DeploymentProviderService getDeploymentProviderService(String deploymentId) {
+    return getDeploymentProviderService(deploymentRepository.findOne(deploymentId));
   }
 
   public DeploymentProviderService getDeploymentProviderService(Deployment deployment) {
@@ -73,7 +79,8 @@ public class DeploymentProviderServiceRegistry {
    */
   public DeploymentProviderService getDeploymentProviderService(
       DeploymentProvider deploymentProvider) {
-    return Optional.ofNullable(providers.get(deploymentProvider))
+    return Optional
+        .ofNullable(providers.get(deploymentProvider))
         .orElseThrow(() -> new OrchestratorException(
             "No DeploymentProviderService found for deployment provider: " + deploymentProvider));
   }

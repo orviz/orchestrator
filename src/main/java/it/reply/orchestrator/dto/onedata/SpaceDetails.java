@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,45 @@
 
 package it.reply.orchestrator.dto.onedata;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Data;
-
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class SpaceDetails implements Serializable {
+import javax.validation.constraints.NotNull;
 
-  private static final long serialVersionUID = -368387049626457198L;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+@Data
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class SpaceDetails {
 
   @JsonProperty("spaceId")
+  @NonNull
+  @NotNull
   private String spaceId;
 
   @JsonProperty("name")
+  @Nullable
   private String name;
 
-  @JsonProperty("canonicalName")
-  private String canonicalName;
+  @JsonProperty("providers")
+  @NonNull
+  @NotNull
+  @Builder.Default
+  private Map<String, Long> providers = new HashMap<>();
 
-  @JsonProperty("providersSupports")
-  private Map<String, Long> providersSupports = new HashMap<>();
+  @SuppressWarnings("null")
+  @Deprecated
+  protected SpaceDetails() {
+    providers = new HashMap<>();
+  }
 
 }

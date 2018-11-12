@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  */
 
 package it.reply.orchestrator.service;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.io.ByteStreams;
 
 import alien4cloud.component.repository.exception.CSARVersionAlreadyExistsException;
 import alien4cloud.exception.InvalidArgumentException;
@@ -37,7 +33,9 @@ import alien4cloud.security.model.Role;
 import alien4cloud.tosca.ArchiveParser;
 import alien4cloud.tosca.ArchiveUploadService;
 import alien4cloud.tosca.model.ArchiveRoot;
+import alien4cloud.tosca.normative.BooleanType;
 import alien4cloud.tosca.normative.IPropertyType;
+import alien4cloud.tosca.normative.IntegerType;
 import alien4cloud.tosca.normative.InvalidPropertyValueException;
 import alien4cloud.tosca.parser.ParsingContext;
 import alien4cloud.tosca.parser.ParsingError;
@@ -47,37 +45,33 @@ import alien4cloud.tosca.parser.ParsingResult;
 import alien4cloud.tosca.serializer.VelocityUtil;
 import alien4cloud.utils.FileUtil;
 
-import es.upv.i3m.grycap.im.auth.credentials.ServiceProvider;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 
 import it.reply.orchestrator.config.properties.OidcProperties.OidcClientProperties;
+import it.reply.orchestrator.config.properties.OrchestratorProperties;
 import it.reply.orchestrator.dal.entity.Resource;
 import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.cmdb.CloudService;
 import it.reply.orchestrator.dto.cmdb.ImageData;
+import it.reply.orchestrator.dto.cmdb.ImageData.ImageDataBuilder;
 import it.reply.orchestrator.dto.cmdb.Type;
 import it.reply.orchestrator.dto.deployment.PlacementPolicy;
+import it.reply.orchestrator.dto.dynafed.Dynafed;
+import it.reply.orchestrator.dto.dynafed.Dynafed.DynafedBuilder;
 import it.reply.orchestrator.dto.onedata.OneData;
+import it.reply.orchestrator.dto.onedata.OneData.OneDataBuilder;
+import it.reply.orchestrator.dto.onedata.OneData.OneDataProviderInfo;
 import it.reply.orchestrator.enums.DeploymentProvider;
+import it.reply.orchestrator.exception.OrchestratorException;
 import it.reply.orchestrator.exception.service.DeploymentException;
 import it.reply.orchestrator.exception.service.ToscaException;
 import it.reply.orchestrator.service.security.OAuth2TokenService;
 import it.reply.orchestrator.utils.CommonUtils;
 import it.reply.orchestrator.utils.ToscaConstants;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.jgrapht.alg.CycleDetector;
-import org.jgrapht.graph.DirectedMultigraph;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Service;
+import it.reply.orchestrator.utils.ToscaConstants.Nodes;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -85,6 +79,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -103,11 +99,29 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.annotation.PostConstruct;
 import javax.validation.ValidationException;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jgrapht.alg.CycleDetector;
+import org.jgrapht.graph.DirectedMultigraph;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -143,8 +157,8 @@ public class ToscaServiceImpl implements ToscaService {
   @Value("${tosca.definitions.indigo}")
   private String indigoLocalName;
 
-  @Value("${orchestrator.url}")
-  private String orchestratorUrl;
+  @Autowired
+  private OrchestratorProperties orchestratorProperties;
 
   /**
    * Load normative and non-normative types.
@@ -201,23 +215,29 @@ public class ToscaServiceImpl implements ToscaService {
 
   @Override
   public ParsingResult<ArchiveRoot> getArchiveRootFromTemplate(String toscaTemplate)
-      throws IOException, ParsingException {
-    Path zipPath = Files.createTempFile("csar", ".zip");
-    try (InputStream is = new ByteArrayInputStream(toscaTemplate.getBytes());) {
+      throws ParsingException {
+    try (ByteArrayInputStream is = new ByteArrayInputStream(toscaTemplate.getBytes());) {
+      Path zipPath = Files.createTempFile("csar", ".zip");
       zip(is, zipPath);
-    }
-    try {
-      return parser.parse(zipPath);
+      ParsingResult<ArchiveRoot> result = parser.parse(zipPath);
+      try {
+        Files.delete(zipPath);
+      } catch (IOException ioe) {
+        LOG.warn("Error deleting tmp csar {} from FS", zipPath, ioe);
+      }
+      return result;
     } catch (InvalidArgumentException iae) {
       // FIXME NOTE that InvalidArgumentException should not be thrown by the parse method, but it
       // is...
       // throw new ParsingException("DUMMY", new ParsingError(ErrorCode.INVALID_YAML, ));
       throw iae;
+    } catch (IOException ex) {
+      throw new OrchestratorException("Error Parsing TOSCA Template", ex);
     }
   }
 
   @Override
-  public String getTemplateFromTopology(ArchiveRoot archiveRoot) throws IOException {
+  public String getTemplateFromTopology(ArchiveRoot archiveRoot) {
     Map<String, Object> velocityCtx = new HashMap<>();
     velocityCtx.put("tosca_definitions_version",
         archiveRoot.getArchive().getToscaDefinitionsVersion());
@@ -228,36 +248,35 @@ public class ToscaServiceImpl implements ToscaService {
     velocityCtx.put("repositories", archiveRoot.getArchive().getRepositories());
     velocityCtx.put("topology", archiveRoot.getTopology());
     StringWriter writer = new StringWriter();
-    VelocityUtil.generate("templates/topology-1_0_0_INDIGO.yml.vm", writer, velocityCtx);
+    try {
+      VelocityUtil.generate("templates/topology-1_0_0_INDIGO.yml.vm", writer, velocityCtx);
+    } catch (IOException ex) {
+      throw new OrchestratorException("Error serializing TOSCA template", ex);
+    }
     String template = writer.toString();
 
-    // Log the warning because Alien4Cloud uses an hard-coded Velocity template to encode the string
-    // and some information might be missing!!
-    LOG.warn("TOSCA template conversion from in-memory: "
-        + "WARNING: Some nodes or properties might be missing!! Use at your own risk!");
     LOG.debug(template);
 
     return template;
   }
 
   @Override
-  public void replaceInputFunctions(ArchiveRoot archiveRoot, Map<String, Object> inputs)
-      throws ToscaException {
+  public void replaceInputFunctions(ArchiveRoot archiveRoot, Map<String, Object> inputs) {
     indigoInputsPreProcessorService.processGetInput(archiveRoot, inputs);
   }
 
   @Override
-  public ArchiveRoot parseAndValidateTemplate(String toscaTemplate, Map<String, Object> inputs)
-      throws IOException, ParsingException, ToscaException {
+  public ArchiveRoot parseAndValidateTemplate(String toscaTemplate, Map<String, Object> inputs) {
     ArchiveRoot ar = parseTemplate(toscaTemplate);
-    Optional.ofNullable(ar.getTopology()).map(topology -> topology.getInputs()).ifPresent(
-        topologyInputs -> validateUserInputs(topologyInputs, inputs));
+    Optional
+      .ofNullable(ar.getTopology())
+      .map(Topology::getInputs)
+      .ifPresent(topologyInputs -> validateUserInputs(topologyInputs, inputs));
     return ar;
   }
 
   @Override
-  public ArchiveRoot prepareTemplate(String toscaTemplate, Map<String, Object> inputs)
-      throws IOException, ParsingException, ToscaException {
+  public ArchiveRoot prepareTemplate(String toscaTemplate, Map<String, Object> inputs) {
     ArchiveRoot ar = parseAndValidateTemplate(toscaTemplate, inputs);
     replaceInputFunctions(ar, inputs);
     return ar;
@@ -265,7 +284,7 @@ public class ToscaServiceImpl implements ToscaService {
 
   @Override
   public void validateUserInputs(Map<String, PropertyDefinition> templateInputs,
-      Map<String, Object> inputs) throws ToscaException {
+      Map<String, Object> inputs) {
 
     // Check if every required input has been given by the user or has a default value
     templateInputs.forEach((inputName, inputDefinition) -> {
@@ -285,7 +304,7 @@ public class ToscaServiceImpl implements ToscaService {
   }
 
   @Override
-  public ArchiveRoot parseTemplate(String toscaTemplate) throws IOException, ToscaException {
+  public ArchiveRoot parseTemplate(String toscaTemplate) {
 
     try {
       ParsingResult<ArchiveRoot> result = getArchiveRootFromTemplate(toscaTemplate);
@@ -301,13 +320,13 @@ public class ToscaServiceImpl implements ToscaService {
       if (exception.isPresent()) {
         throw exception.get();
       } else {
-        throw new ToscaException("Failed to parse template, ex");
+        throw new ToscaException("Failed to parse template", ex);
       }
     }
   }
 
   @Override
-  public String updateTemplate(String template) throws IOException {
+  public String updateTemplate(String template) {
     ArchiveRoot parsedTempalte = parseTemplate(template);
     removeRemovalList(parsedTempalte);
     return getTemplateFromTopology(parsedTempalte);
@@ -333,36 +352,60 @@ public class ToscaServiceImpl implements ToscaService {
     Map<Boolean, Map<NodeTemplate, ImageData>> contextualizedImages =
         contextualizeImages(parsingResult, cloudProvider, cloudServiceId);
     Preconditions.checkState(contextualizedImages.get(Boolean.FALSE).isEmpty(),
-        "Error contextualizing images");
+        "Error contextualizing images; images for nodes %s couldn't be contextualized",
+        contextualizedImages
+            .get(Boolean.FALSE)
+            .keySet()
+            .stream()
+            .map(NodeTemplate::getName)
+            .collect(Collectors.toList()));
     replaceImage(contextualizedImages.get(Boolean.TRUE), cloudProvider, deploymentProvider);
   }
 
   @Override
   public Map<NodeTemplate, ImageData> extractImageRequirements(ArchiveRoot parsingResult) {
+
+    Map<String, Function<ImageDataBuilder, Function<String, ImageDataBuilder>>> 
+        capabilityPropertiesMapping = new HashMap<>();
+
+    capabilityPropertiesMapping.put("image",
+        imageMetadataBuilder -> imageMetadataBuilder::imageName);
+
+    capabilityPropertiesMapping.put("architecture",
+        imageMetadataBuilder -> imageMetadataBuilder::architecture);
+
+    capabilityPropertiesMapping.put("type",
+        imageMetadataBuilder -> imageMetadataBuilder::type);
+
+    capabilityPropertiesMapping.put("distribution",
+        imageMetadataBuilder -> imageMetadataBuilder::distribution);
+
+    capabilityPropertiesMapping.put("version",
+        imageMetadataBuilder -> imageMetadataBuilder::version);
+
     // Only indigo.Compute nodes are relevant
-    return getNodesOfType(parsingResult, ToscaConstants.Nodes.COMPUTE).stream().map(node -> {
-      ImageData imageMetadata = new ImageData();
-      Optional.ofNullable(node.getCapabilities())
-          .map(capabilities -> capabilities.get(OS_CAPABILITY_NAME))
-          .ifPresent(osCapability -> {
-            // We've got an OS capability -> Check the attributes to find best match for the image
-            this.<ScalarPropertyValue>getTypedCapabilityPropertyByName(osCapability, "image")
-                .ifPresent(property -> imageMetadata.setImageName(property.getValue()));
-
-            this.<ScalarPropertyValue>getTypedCapabilityPropertyByName(osCapability, "architecture")
-                .ifPresent(property -> imageMetadata.setArchitecture(property.getValue()));
-
-            this.<ScalarPropertyValue>getTypedCapabilityPropertyByName(osCapability, "type")
-                .ifPresent(property -> imageMetadata.setType(property.getValue()));
-
-            this.<ScalarPropertyValue>getTypedCapabilityPropertyByName(osCapability, "distribution")
-                .ifPresent(property -> imageMetadata.setDistribution(property.getValue()));
-
-            this.<ScalarPropertyValue>getTypedCapabilityPropertyByName(osCapability, "version")
-                .ifPresent(property -> imageMetadata.setVersion(property.getValue()));
-          });
-      return new SimpleEntry<>(node, imageMetadata);
-    }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    return getNodesOfType(parsingResult, ToscaConstants.Nodes.COMPUTE)
+        .stream()
+        .map(node -> {
+          ImageDataBuilder imageMetadataBuilder = ImageData.builder();
+          Optional
+              .ofNullable(node.getCapabilities())
+              .map(capabilities -> capabilities.get(OS_CAPABILITY_NAME))
+              .ifPresent(osCapability -> {
+                // We've got an OS capability -> Check the attributes to find best match for the
+                // image
+                capabilityPropertiesMapping.forEach((capabilityPropertyName, mappingFunction) -> {
+                  this
+                      .<ScalarPropertyValue>getTypedCapabilityPropertyByName(osCapability,
+                          capabilityPropertyName)
+                      .map(ScalarPropertyValue::getValue)
+                      .ifPresent(
+                          property -> mappingFunction.apply(imageMetadataBuilder).apply(property));
+                });
+              });
+          return new SimpleEntry<>(node, imageMetadataBuilder.build());
+        })
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
   }
 
   @Override
@@ -399,7 +442,7 @@ public class ToscaServiceImpl implements ToscaService {
           // do not use the Collectors.toMap() because it doesn't play nice with null values
           // https://bugs.openjdk.java.net/browse/JDK-8148463
           CommonUtils.toMap(Entry::getKey, entry -> entry.getValue().orElse(null))));
-    } catch (Exception ex) {
+    } catch (RuntimeException ex) {
       throw new RuntimeException("Failed to contextualize images", ex);
     }
   }
@@ -440,7 +483,7 @@ public class ToscaServiceImpl implements ToscaService {
         scalarPropertyValue = createScalarPropertyValue(image.getUserName());
         credential.put("user", scalarPropertyValue);
 
-        scalarPropertyValue = createScalarPropertyValue("\"\"");
+        scalarPropertyValue = createScalarPropertyValue("");
         credential.put("token", scalarPropertyValue);
       }
     });
@@ -448,18 +491,12 @@ public class ToscaServiceImpl implements ToscaService {
 
   @Deprecated
   private boolean isImImageUri(String imageName) {
-    // TODO use IM image constants
-    String regex = new StringBuilder().append("(")
-        .append(ServiceProvider.OPENSTACK.getId())
-        .append("|")
-        .append(ServiceProvider.OPENNEBULA.getId())
-        .append("|")
-        .append(ServiceProvider.OCCI.getId())
-        .append("|")
-        .append("aws")
-        .append(")://.+")
-        .toString();
-    return Strings.nullToEmpty(imageName).trim().matches(regex);
+    try {
+      List<String> schemes = ImmutableList.of("ost", "one", "aws", "azr");
+      return schemes.contains(URI.create(imageName).getScheme().trim());
+    } catch (RuntimeException ex) {
+      return false;
+    }
   }
 
   @Deprecated
@@ -477,34 +514,37 @@ public class ToscaServiceImpl implements ToscaService {
           cs = cloudProvider.getCmbdProviderServicesByType(Type.COMPUTE).get(0);
         }
       }
-      // TODO use IM image constants instead
-      ServiceProvider imServiceProvider;
+      StringBuilder sb = new StringBuilder();
 
-      if (cs.isOpenStackComputeProviderService()) {
-        imServiceProvider = ServiceProvider.OPENSTACK;
-      } else if (cs.isOpenNebulaComputeProviderService()) {
-        imServiceProvider = ServiceProvider.OPENNEBULA;
+      if (cs.isOpenStackComputeProviderService() || cs.isOtcComputeProviderService()) {
+        sb
+            .append("ost")
+            .append("://")
+            .append(new URL(cs.getData().getEndpoint()).getHost())
+            .append("/");
+      } else if (cs.isOpenNebulaComputeProviderService() || cs.isOpenNebulaToscaProviderService()) {
+        sb
+            .append("one")
+            .append("://")
+            .append(new URL(cs.getData().getEndpoint()).getHost())
+            .append("/");
       } else if (cs.isOcciComputeProviderService()) {
-        imServiceProvider = ServiceProvider.OCCI;
+        // DO NOTHING ??
       } else if (cs.isAwsComputeProviderService()) {
-        imServiceProvider = ServiceProvider.EC2;
+        sb
+            .append("aws")
+            .append("://");
+      } else if (cs.isAzureComputeProviderService()) {
+        sb
+            .append("azr")
+            .append("://");
       } else {
         throw new DeploymentException("Unknown IaaSType of cloud provider " + cloudProvider);
       }
-      StringBuilder sb = new StringBuilder();
-      sb.append(imServiceProvider.getId()).append("://");
-      if (imServiceProvider != ServiceProvider.EC2) {
-        // NO endopoint info needed for EC2, already contained in auth info
-        URL endpoint = new URL(cs.getData().getEndpoint());
-        sb.append(endpoint.getHost()).append("/");
-      } else {
-        // TODO remove it and use a constant
-        sb = new StringBuilder();
-        sb.append("aws").append("://");
-      }
+
       sb.append(image.getImageId());
       return sb.toString();
-    } catch (Exception ex) {
+    } catch (RuntimeException | MalformedURLException ex) {
       LOG.error("Cannot retrieve Compute service host for IM image id generation", ex);
       return image.getImageId();
     }
@@ -517,66 +557,38 @@ public class ToscaServiceImpl implements ToscaService {
     // specified name it means that a base image + Ansible configuration have to be used -> the
     // base image will be chosen with the other filters and image metadata - architecture, type,
     // distro, version)
-    if (imageMetadata.getImageName() != null) {
-      Optional<ImageData> imageWithName =
-          findImageWithNameOnCloudProvider(imageMetadata.getImageName(), images);
+    Optional<ImageData> imageFoundByName = findImageByName(imageMetadata, images);
+    if (imageFoundByName.isPresent()) {
+      return imageFoundByName;
+    } else {
+      return findImageByFallbackFields(imageMetadata, images);
+    }
+  }
+
+  protected Optional<ImageData> findImageByName(ImageData requiredImageMetadata,
+      Collection<ImageData> cloudProviderServiceImages) {
+    String requiredImageName = requiredImageMetadata.getImageName();
+    if (requiredImageName != null) {
+      LOG.debug("Looking up images by name <{}>", requiredImageName);
+      Optional<ImageData> imageWithName = cloudProviderServiceImages
+          .stream()
+          .filter(image -> requiredImageMetadata(requiredImageName, image.getImageName()))
+          .findFirst();
 
       if (imageWithName.isPresent()) {
         LOG.debug("Image <{}> found with name <{}>", imageWithName.get().getImageId(),
-            imageMetadata.getImageName());
+            requiredImageName);
         return imageWithName;
-      } else {
-        if (imageMetadata.getType() == null && imageMetadata.getArchitecture() == null
-            && imageMetadata.getDistribution() == null && imageMetadata.getVersion() == null) {
-          return Optional.empty();
-        }
-        LOG.debug("Image not found with name <{}>, trying with other fields: <{}>",
-            imageMetadata.getImageName(), imageMetadata);
       }
-    }
-
-    for (ImageData image : images) {
-      // Match or skip image based on each additional optional attribute
-      if (imageMetadata.getType() != null) {
-        if (!imageMetadata.getType().equalsIgnoreCase(image.getType())) {
-          continue;
-        }
-      }
-
-      if (imageMetadata.getArchitecture() != null) {
-        if (!imageMetadata.getArchitecture().equalsIgnoreCase(image.getArchitecture())) {
-          continue;
-        }
-      }
-
-      if (imageMetadata.getDistribution() != null) {
-        if (!imageMetadata.getDistribution().equalsIgnoreCase(image.getDistribution())) {
-          continue;
-        }
-      }
-
-      if (imageMetadata.getVersion() != null) {
-        if (!imageMetadata.getVersion().equalsIgnoreCase(image.getVersion())) {
-          continue;
-        }
-      }
-
-      LOG.debug("Image <{}> found with fields: <{}>", imageMetadata.getImageId(), imageMetadata);
-      return Optional.of(image);
     }
     return Optional.empty();
-
   }
 
-  protected Optional<ImageData> findImageWithNameOnCloudProvider(String requiredImageName,
-      Collection<ImageData> images) {
-    return images.stream()
-        .filter(image -> matchImageNameAndTag(requiredImageName, image.getImageName()))
-        .findFirst();
-
-  }
-
-  protected boolean matchImageNameAndTag(String requiredImageName, String availableImageName) {
+  protected boolean requiredImageMetadata(@NonNull String requiredImageName,
+      @Nullable String availableImageName) {
+    if (availableImageName == null) {
+      return false;
+    }
     // Extract Docker tag if available
     String[] requiredImageNameSplit = requiredImageName.split(":");
     String requiredImageBaseName = requiredImageNameSplit[0];
@@ -595,6 +607,37 @@ public class ToscaServiceImpl implements ToscaService {
         (requiredImageTag != null ? requiredImageTag.equals(availableImageTag) : true);
 
     return nameMatch && tagMatch;
+  }
+
+  protected Optional<ImageData> findImageByFallbackFields(ImageData requiredImageMetadata,
+      Collection<ImageData> cloudProviderServiceImages) {
+    LOG.debug("Looking up images by fallback metatada");
+    List<Function<ImageData, String>> fallbackFieldExtractors = Lists.newArrayList(
+        ImageData::getType,
+        ImageData::getArchitecture,
+        ImageData::getDistribution,
+        ImageData::getVersion);
+
+    Stream<ImageData> imageStream = cloudProviderServiceImages.stream();
+
+    boolean filteredOnSomeField = false;
+    for (Function<ImageData, String> fieldExtractor : fallbackFieldExtractors) {
+      String metadataField = fieldExtractor.apply(requiredImageMetadata);
+      if (metadataField != null) {
+        filteredOnSomeField = true;
+        // if the field is populated for requiredImageMetadata, filter on it
+        imageStream = imageStream
+            .filter(image -> metadataField.equalsIgnoreCase(fieldExtractor.apply(image)));
+      }
+    }
+
+    boolean imageNameIsPresent = requiredImageMetadata.getImageName() != null;
+    if (!filteredOnSomeField && imageNameIsPresent) {
+      return Optional.empty();
+    } else {
+      return imageStream.findFirst();
+    }
+    
   }
 
   private Collection<NodeTemplate> getNodesFromArchiveRoot(ArchiveRoot archiveRoot) {
@@ -639,6 +682,30 @@ public class ToscaServiceImpl implements ToscaService {
   }
 
   @Override
+  public boolean isHybridDeployment(ArchiveRoot archiveRoot) {
+    // check if there is a "hybrid" ScalarPropertyValue with "true" as value
+    return getNodesOfType(archiveRoot, ToscaConstants.Nodes.ELASTIC_CLUSTER).stream()
+        .anyMatch(node -> getNodePropertyByName(node, "hybrid")
+            .filter(ScalarPropertyValue.class::isInstance)
+            .map(ScalarPropertyValue.class::cast)
+            .map(ScalarPropertyValue::getValue)
+            .filter(Boolean::valueOf)
+            .isPresent());
+  }
+
+  @Override
+  public boolean isMesosGpuRequired(ArchiveRoot archiveRoot) {
+    return this.getNodesOfType(archiveRoot, Nodes.DOCKER_RUNTIME)
+        .stream()
+        .anyMatch(node -> getNodeCapabilityByName(node, "host")
+            .flatMap(capability -> this
+                .<ScalarPropertyValue>getTypedCapabilityPropertyByName(capability, "num_gpus"))
+            .map(value -> parseScalarPropertyValue(value, IntegerType.class))
+            .filter(value -> value > 0)
+            .isPresent());
+  }
+
+  @Override
   public void addElasticClusterParameters(ArchiveRoot archiveRoot, String deploymentId,
       @Nullable String oauthToken) {
     getNodesOfType(archiveRoot, ToscaConstants.Nodes.ELASTIC_CLUSTER).forEach(node -> {
@@ -653,7 +720,8 @@ public class ToscaServiceImpl implements ToscaService {
       properties.put("deployment_id", createScalarPropertyValue(deploymentId));
 
       // Create new property with the orchestrator_url and set as printable
-      properties.put("orchestrator_url", createScalarPropertyValue(orchestratorUrl));
+      properties.put("orchestrator_url",
+          createScalarPropertyValue(orchestratorProperties.getUrl().toString()));
 
       if (oauthToken != null) {
         // Create new property with the iam_access_token and set as printable
@@ -678,15 +746,17 @@ public class ToscaServiceImpl implements ToscaService {
     return scalarPropertyValue;
   }
 
-  private void removeRemovalList(ArchiveRoot archiveRoot) {
 
-    Collection<NodeTemplate> nodes = getNodesFromArchiveRoot(archiveRoot);
+  public void removeRemovalList(ArchiveRoot archiveRoot) {
+    getNodesFromArchiveRoot(archiveRoot)
+        .forEach(this::removeRemovalList);
+  }
 
-    for (NodeTemplate node : nodes) {
-      getNodeCapabilityByName(node, SCALABLE_CAPABILITY_NAME).ifPresent(scalable -> CommonUtils
-          .removeFromOptionalMap(scalable.getProperties(), REMOVAL_LIST_PROPERTY_NAME));
-    }
-
+  @Override
+  public void removeRemovalList(NodeTemplate node) {
+    getNodeCapabilityByName(node, SCALABLE_CAPABILITY_NAME)
+        .ifPresent(scalable -> CommonUtils
+            .removeFromOptionalMap(scalable.getProperties(), REMOVAL_LIST_PROPERTY_NAME));
   }
 
   private static Optional<Authentication> setAutenticationForToscaImport() {
@@ -763,42 +833,34 @@ public class ToscaServiceImpl implements ToscaService {
   }
 
   @Override
-  public Collection<NodeTemplate> getScalableNodes(ArchiveRoot archiveRoot) {
-    List<NodeTemplate> scalableNodes = new ArrayList<>();
-    Collection<NodeTemplate> allNodes = getNodesFromArchiveRoot(archiveRoot);
-
-    for (NodeTemplate node : allNodes) {
-      getNodeCapabilityByName(node, SCALABLE_CAPABILITY_NAME)
-          .flatMap(capability -> getCapabilityPropertyByName(capability, "count"))
-          // Check if this value is read from the template and is not a default value
-          .filter(countProperty -> countProperty.isPrintable())
-          .ifPresent(countProperty -> scalableNodes.add(node));
-    }
-
-    return scalableNodes;
-  }
-
-  @Override
   public Optional<Integer> getCount(NodeTemplate nodeTemplate) {
-
-    // FIXME we should look it up by capability type, not name
     return getNodeCapabilityByName(nodeTemplate, SCALABLE_CAPABILITY_NAME)
         .flatMap(capability -> this
             .<ScalarPropertyValue>getTypedCapabilityPropertyByName(capability, "count"))
-        // Check if this value is read from the template and is not a default value
-        // FIXME Do we really need this?
-        .filter(property -> property.isPrintable())
         .map(property -> property.getValue())
         .map(value -> Integer.parseInt(value));
-
+  }
+  
+  @Override
+  public boolean isScalable(NodeTemplate nodeTemplate) {
+    return getCount(nodeTemplate).isPresent();
+  }
+  
+  @Override
+  public Collection<NodeTemplate> getScalableNodes(ArchiveRoot archiveRoot) {
+    return getNodesFromArchiveRoot(archiveRoot)
+        .stream()
+        .filter(this::isScalable)
+        .collect(Collectors.toList());
   }
 
   @Override
   public List<String> getRemovalList(NodeTemplate nodeTemplate) {
 
     Optional<ListPropertyValue> listPropertyValue =
-        getNodeCapabilityByName(nodeTemplate, SCALABLE_CAPABILITY_NAME).flatMap(
-            capability -> getTypedCapabilityPropertyByName(capability, REMOVAL_LIST_PROPERTY_NAME));
+        getNodeCapabilityByName(nodeTemplate, SCALABLE_CAPABILITY_NAME)
+            .flatMap(capability -> getTypedCapabilityPropertyByName(capability,
+                REMOVAL_LIST_PROPERTY_NAME));
 
     List<Object> items =
         listPropertyValue.map(property -> property.getValue()).orElseGet(Collections::emptyList);
@@ -820,64 +882,90 @@ public class ToscaServiceImpl implements ToscaService {
   @Override
   public Map<String, OneData> extractOneDataRequirements(ArchiveRoot archiveRoot,
       Map<String, Object> inputs) {
-    try {
 
-      // FIXME: Remove hard-coded input extraction and search on OneData nodes instead
+    Map<String, OneData> result = new HashMap<>();
 
-      /*
-       * By now, OneData requirements are in user's input fields: input_onedata_space,
-       * output_onedata_space, [input_onedata_providers, output_onedata_providers]
-       */
-      Map<String, OneData> result = new HashMap<>();
-      OneData oneDataInput = null;
-      if (inputs.get("input_onedata_space") != null) {
-        oneDataInput = OneData.builder()
-            .token((String) inputs.get("input_onedata_token"))
-            .space((String) inputs.get("input_onedata_space"))
-            .path((String) inputs.get("input_path"))
-            .providers((String) inputs.get("input_onedata_providers"))
-            .zone((String) inputs.get("input_onedata_zone"))
-            .build();
-        if (oneDataInput.getProviders().isEmpty()) {
-          oneDataInput.setSmartScheduling(true);
-        }
-        result.put("input", oneDataInput);
-        LOG.debug("Extracted OneData requirement for node <{}>: <{}>", "input", oneDataInput);
-      }
+    archiveRoot
+        .getTopology()
+        .getNodeTemplates()
+        .forEach((name, node) -> {
+          if (isOfToscaType(node, Nodes.ONEDATA_SPACE)) {
+            Map<String, AbstractPropertyValue> properties = node.getProperties();
 
-      if (inputs.get("output_onedata_space") != null) {
-        OneData oneDataOutput = OneData.builder()
-            .token((String) inputs.get("output_onedata_token"))
-            .space((String) inputs.get("output_onedata_space"))
-            .path((String) inputs.get("output_path"))
-            .providers((String) inputs.get("output_onedata_providers"))
-            .zone((String) inputs.get("output_onedata_zone"))
-            .build();
-        if (oneDataOutput.getProviders().isEmpty()) {
-          if (oneDataInput != null) {
-            oneDataOutput.setProviders(oneDataInput.getProviders());
-            oneDataOutput.setSmartScheduling(oneDataInput.isSmartScheduling());
-          } else {
-            oneDataOutput.setSmartScheduling(true);
+            String space = CommonUtils.<ScalarPropertyValue>optionalCast(
+                CommonUtils.getFromOptionalMap(properties, "space"))
+                .map(ScalarPropertyValue::getValue).orElseThrow(() -> new ToscaException(
+                    "Space name for node " + node.getName() + " must be provided"));
+            OneDataBuilder oneDataBuilder = OneData
+                .builder()
+                .serviceSpace(false)
+                .space(space);
+            CommonUtils.<ScalarPropertyValue>optionalCast(
+                CommonUtils.getFromOptionalMap(properties, "token"))
+                .map(ScalarPropertyValue::getValue)
+                .ifPresent(oneDataBuilder::token);
+            CommonUtils.<ListPropertyValue>optionalCast(
+                CommonUtils.getFromOptionalMap(properties, "oneproviders"))
+                .map(list -> parseListPropertyValue(list, value -> {
+                  return OneDataProviderInfo
+                      .builder()
+                      .endpoint(((ScalarPropertyValue) value).getValue())
+                      .build();
+                }))
+                .ifPresent(oneDataBuilder::oneproviders);
+            CommonUtils.<ScalarPropertyValue>optionalCast(
+                CommonUtils.getFromOptionalMap(properties, "onezone"))
+                .map(ScalarPropertyValue::getValue)
+                .ifPresent(oneDataBuilder::onezone);
+            CommonUtils.<ScalarPropertyValue>optionalCast(
+                CommonUtils.getFromOptionalMap(properties, "smartScheduling"))
+                .map(value -> parseScalarPropertyValue(value, BooleanType.class))
+                .ifPresent(oneDataBuilder::smartScheduling);
+            result.put(node.getName(), oneDataBuilder.build());
+          } else if (isOfToscaType(node, Nodes.ONEDATA_SERVICE_SPACE)) {
+            Map<String, AbstractPropertyValue> properties = node.getProperties();
+            OneDataBuilder oneDataBuilder = OneData
+                .builder()
+                .serviceSpace(true);
+            CommonUtils.<ScalarPropertyValue>optionalCast(
+                CommonUtils.getFromOptionalMap(properties, "smartScheduling"))
+                .map(value -> parseScalarPropertyValue(value, BooleanType.class))
+                .ifPresent(oneDataBuilder::smartScheduling);
+            result.put(node.getName(), oneDataBuilder.build());
           }
-        }
-        result.put("output", oneDataOutput);
-        LOG.debug("Extracted OneData requirement for node <{}>: <{}>", "output", oneDataOutput);
-      }
-
-      if (result.size() == 0) {
-        LOG.debug("No OneData requirements to extract");
-      }
-
-      return result;
-    } catch (Exception ex) {
-      throw new RuntimeException("Failed to extract OneData requirements: " + ex.getMessage(), ex);
-    }
+        });
+    return result;
   }
 
   @Override
-  public List<PlacementPolicy> extractPlacementPolicies(ArchiveRoot archiveRoot) {
-    List<PlacementPolicy> placementPolicies = new ArrayList<>();
+  public Map<String, Dynafed> extractDyanfedRequirements(ArchiveRoot archiveRoot,
+      Map<String, Object> inputs) {
+
+    Map<String, Dynafed> result = new HashMap<>();
+    getNodesOfType(archiveRoot, Nodes.DYNAFED)
+        .forEach(node -> {
+          if (isOfToscaType(node, Nodes.DYNAFED)) {
+            Map<String, AbstractPropertyValue> properties = node.getProperties();
+            DynafedBuilder dynafedBuilder = Dynafed.builder();
+            CommonUtils.<ListPropertyValue>optionalCast(
+                CommonUtils.getFromOptionalMap(properties, "files"))
+                .map(list -> this.parseListPropertyValue(list, value -> {
+                  return Dynafed.File
+                      .builder()
+                      .endpoint(((ScalarPropertyValue) value).getValue())
+                      .build();
+                }))
+                .ifPresent(dynafedBuilder::files);
+            result.put(node.getName(), dynafedBuilder.build());
+          }
+        });
+    return result;
+  }
+
+  @Override
+  @NonNull
+  public Map<String, PlacementPolicy> extractPlacementPolicies(ArchiveRoot archiveRoot) {
+    Map<String, PlacementPolicy> placementPolicies = new HashMap<>();
     Optional.ofNullable(archiveRoot.getTopology())
         .map(topology -> topology.getPolicies())
         .orElseGet(Collections::emptyList)
@@ -885,7 +973,7 @@ public class ToscaServiceImpl implements ToscaService {
           if (policy instanceof alien4cloud.model.topology.PlacementPolicy) {
             PlacementPolicy placementPolicy =
                 PlacementPolicy.fromToscaType((alien4cloud.model.topology.PlacementPolicy) policy);
-            placementPolicies.add(placementPolicy);
+            placementPolicies.put(policy.getName(), placementPolicy);
           } else {
             LOG.warn("Skipping unsupported Policy {}", policy);
           }
@@ -929,13 +1017,13 @@ public class ToscaServiceImpl implements ToscaService {
 
   @Override
   public <T extends IPropertyType<V>, V> V parseScalarPropertyValue(ScalarPropertyValue value,
-      Class<T> clazz) throws InvalidPropertyValueException {
+      Class<T> clazz) {
+    T propertyParser = BeanUtils.instantiate(clazz);
     try {
-      return clazz.newInstance().parse(value.getValue());
-    } catch (InstantiationException | IllegalAccessException ex) {
-      // shouldn't happen
-      LOG.error("Error parsing scalar value <{}> as <{}>", value, clazz, ex);
-      throw new RuntimeException(ex);
+      return propertyParser.parse(value.getValue());
+    } catch (InvalidPropertyValueException ex) {
+      throw new ToscaException(String.format("Error parsing scalar value <%s> as <%s>",
+          value.getValue(), propertyParser.getTypeName()), ex);
     }
   }
 

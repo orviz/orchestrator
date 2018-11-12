@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@
 
 package it.reply.orchestrator.dal.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Preconditions;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import it.reply.utils.json.JsonUtility;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.util.Optional;
+import it.reply.orchestrator.utils.JsonUtils;
 
 import javax.persistence.AttributeConverter;
 
-public abstract class AbstractToJsonConverter<T>
-    implements AttributeConverter<@Nullable T, String> {
+import lombok.extern.slf4j.Slf4j;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+@Slf4j
+public abstract class AbstractToJsonConverter<@Nullable T>
+    implements AttributeConverter<T, @Nullable String> {
 
   private final TypeReference<T> typeReference;
 
@@ -39,30 +40,38 @@ public abstract class AbstractToJsonConverter<T>
 
   @Override
   public String convertToDatabaseColumn(T optionalAttribute) {
-    return Optional.ofNullable(optionalAttribute).map(attribute -> {
+    final String convertedValue;
+    if (optionalAttribute == null) {
+      convertedValue = null;
+    } else {
       try {
-        return JsonUtility.serializeJson(attribute);
-      } catch (Exception ex) {
-        throw new IllegalArgumentException(
-            String.format("Error serializing attribute <%s> of type %s to JSON String",
-                optionalAttribute, typeReference),
-            ex);
+        convertedValue = JsonUtils.serialize(optionalAttribute);
+      } catch (JsonProcessingException ex) {
+        throw new IllegalArgumentException("Error serializing attribute <" + optionalAttribute
+            + "> of type " + typeReference + " to JSON DB value", ex);
       }
-    }).orElse(null);
+    }
+    LOG.trace("Converted attribute {} of type {} to JSON DB value <{}>", optionalAttribute,
+        typeReference, convertedValue);
+    return convertedValue;
   }
 
   @Override
   public T convertToEntityAttribute(String optionalDbData) {
-    return Optional.ofNullable(optionalDbData).<@Nullable T>map(dbData -> {
+    final T convertedValue;
+    if (optionalDbData == null) {
+      convertedValue = null;
+    } else {
       try {
-        return JsonUtility.deserializeJson(dbData, typeReference);
-      } catch (Exception ex) {
-        throw new IllegalArgumentException(
-            String.format("Error de-serializing DB data with value <%s> to object of type %s",
-                optionalDbData, typeReference),
-            ex);
+        convertedValue = JsonUtils.deserialize(optionalDbData, typeReference);
+      } catch (JsonProcessingException ex) {
+        throw new IllegalArgumentException("Error de-serializing DB data with value <"
+            + optionalDbData + "> to object of type " + typeReference, ex);
       }
-    }).orElse(null);
+    }
+    LOG.trace("Converted JSON DB value <{}> to attribute {} of type {}", optionalDbData,
+        convertedValue, typeReference);
+    return convertedValue;
   }
 
 }

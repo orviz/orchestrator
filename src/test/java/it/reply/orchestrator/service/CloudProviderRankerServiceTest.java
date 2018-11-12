@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,80 +16,102 @@
 
 package it.reply.orchestrator.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 import com.google.common.collect.Lists;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import it.reply.orchestrator.config.properties.CprProperties;
 import it.reply.orchestrator.dto.ranker.CloudProviderRankerRequest;
 import it.reply.orchestrator.dto.ranker.RankedCloudProvider;
 import it.reply.orchestrator.exception.service.DeploymentException;
-import it.reply.orchestrator.utils.CommonUtils;
+import it.reply.orchestrator.utils.JsonUtils;
 
-import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.rules.SpringClassRule;
+import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.test.web.client.response.DefaultResponseCreator;
+import org.springframework.web.client.HttpStatusCodeException;
 
-import java.net.URI;
 import java.util.List;
 
+@RestClientTest(CloudProviderRankerService.class)
 public class CloudProviderRankerServiceTest {
 
-  @Mock
-  private RestTemplate restTemplate;
+  @ClassRule
+  public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
 
-  private CprProperties cprProperties;
+  @Rule
+  public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
+  @Autowired
   private CloudProviderRankerService cloudProviderRankerService;
 
-  @Before
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-    cprProperties = new CprProperties(CommonUtils.checkNotNull(URI.create("http://test.com")));
-    cloudProviderRankerService = new CloudProviderRankerServiceImpl(cprProperties, restTemplate);
-  }
+  @Autowired
+  private CprProperties cprProperties;
 
-  private void mockTemplate(CloudProviderRankerRequest cprr,
-      ResponseEntity<List<RankedCloudProvider>> response) {
-    HttpEntity<CloudProviderRankerRequest> entity = new HttpEntity<>(cprr);
-    Mockito.when(restTemplate.exchange(eq(cprProperties.getUrl()), eq(HttpMethod.POST), eq(entity),
-        eq(new ParameterizedTypeReference<List<RankedCloudProvider>>() {
-        }))).thenReturn(response);
+  @Autowired
+  private MockRestServiceServer mockServer;
+
+  private void mockRequest(CloudProviderRankerRequest cprr, DefaultResponseCreator response)
+      throws JsonProcessingException {
+    mockServer
+        .expect(requestTo(cprProperties.getUrl() + cprProperties.getRankPath()))
+        .andExpect(method(HttpMethod.POST))
+        .andExpect(content().string(JsonUtils.serialize(cprr)))
+        .andRespond(response);
   }
 
   public static List<RankedCloudProvider> generateMockedRankedProviders() {
-    return Lists.newArrayList(new RankedCloudProvider("provider-RECAS-BARI", 2.0f, true, ""),
-        new RankedCloudProvider("provider-UPV-GRyCAP", 1.0f, false, "Some error reason"));
+    return Lists.newArrayList(
+        RankedCloudProvider
+            .builder()
+            .name("provider-RECAS-BARI")
+            .rank(2.0f)
+            .ranked(true)
+            .build(),
+        RankedCloudProvider
+            .builder()
+            .name("provider-UPV-GRyCAP")
+            .rank(1.0f)
+            .ranked(false)
+            .errorReason("Some error reason")
+            .build());
   }
 
   @Test
-  public void doRankRequestSuccessfully() {
+  public void doRankRequestSuccessfully() throws JsonProcessingException {
     CloudProviderRankerRequest cprr = CloudProviderRankerRequest.builder().build();
     List<RankedCloudProvider> providers = generateMockedRankedProviders();
-    ResponseEntity<List<RankedCloudProvider>> response =
-        new ResponseEntity<List<RankedCloudProvider>>(providers, HttpStatus.OK);
-    mockTemplate(cprr, response);
+    mockRequest(cprr, withSuccess(JsonUtils.serialize(providers), MediaType.APPLICATION_JSON));
+
     List<RankedCloudProvider> result = cloudProviderRankerService.getProviderRanking(cprr);
-    assertEquals(providers, result);
+
+    assertThat(result).isEqualTo(providers);
+    mockServer.verify();
   }
 
-  @Test(expected = DeploymentException.class)
-  public void doRankRequestWithError() {
+  @Test
+  public void doRankRequestWithError() throws JsonProcessingException {
     CloudProviderRankerRequest cprr = CloudProviderRankerRequest.builder().build();
-    List<RankedCloudProvider> providers = generateMockedRankedProviders();
-    ResponseEntity<List<RankedCloudProvider>> response =
-        new ResponseEntity<List<RankedCloudProvider>>(providers, HttpStatus.INTERNAL_SERVER_ERROR);
-    mockTemplate(cprr, response);
-    cloudProviderRankerService.getProviderRanking(cprr);
+    mockRequest(cprr, withServerError());
+
+    assertThatCode(() -> cloudProviderRankerService.getProviderRanking(cprr))
+        .isInstanceOf(DeploymentException.class)
+        .hasCauseInstanceOf(HttpStatusCodeException.class)
+        .hasMessage("Error retrieving cloud provider ranking data; nested exception is "
+            + "org.springframework.web.client.HttpServerErrorException: 500 Internal Server Error");
+    mockServer.verify();
   }
 
 }

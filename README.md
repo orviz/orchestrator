@@ -7,11 +7,13 @@ It was born as a complement to the outcomes of VizGrimoireR project (now Grimoir
 whose main focus is to parse information from any of the tools found in Metrics Grimoire 
 project.
 
-## Q. What libraries are used by this front-end?
+[![GitHub license](https://img.shields.io/github/license/indigo-dc/orchestrator.svg?maxAge=2592000&style=flat-square)](https://github.com/indigo-dc/orchestrator/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/indigo-dc/orchestrator.svg?maxAge=3600&style=flat-square)](https://github.com/indigo-dc/orchestrator/releases/latest)
 
-[![Jenkins](https://img.shields.io/jenkins/s/https/ci.cloud.reply.eu/jenkins/job/INDIGO/job/orchestrator-publish.svg?maxAge=2592000&style=flat-square)](https://ci.cloud.reply.eu/jenkins/job/INDIGO/job/orchestrator-publish/)
-[![Jenkins tests](https://img.shields.io/jenkins/t/https/ci.cloud.reply.eu/jenkins/job/INDIGO/job/orchestrator-publish.svg?maxAge=2592000&style=flat-square)](https://ci.cloud.reply.eu/jenkins/job/INDIGO/job/orchestrator-publish/)
-[![Jenkins coverage](https://img.shields.io/jenkins/c/https/ci.cloud.reply.eu/jenkins/job/INDIGO/job/orchestrator-publish.svg?maxAge=2592000&style=flat-square)](https://ci.cloud.reply.eu/jenkins/job/INDIGO/job/orchestrator-publish/)
+[![Travis](https://img.shields.io/travis/indigo-dc/orchestrator/master.svg?maxAge=3600&style=flat-square)](https://travis-ci.org/indigo-dc/orchestrator)
+[![Codecov](https://img.shields.io/codecov/c/github/indigo-dc/orchestrator.svg?maxAge=3600&style=flat-square)](https://codecov.io/gh/indigo-dc/orchestrator)
+[![SonarQube Tech Debt](https://img.shields.io/sonar/https/sonarcloud.io/it.reply%3Aorchestrator/tech_debt.svg?maxAge=3600&style=flat-square)](https://sonarcloud.io/dashboard?id=it.reply%3Aorchestrator)
+[![Known Vulnerabilities](https://snyk.io/test/github/indigo-dc/orchestrator/badge.svg?style=flat-square)](https://snyk.io/test/github/indigo-dc/orchestrator)
 
 ## Q. How do I generate the HTML?
 

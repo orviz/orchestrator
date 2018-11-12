@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,49 @@
 
 package it.reply.orchestrator.service.commands;
 
-import it.reply.orchestrator.dto.CloudProvider;
+import it.reply.monitoringpillar.domain.dsl.monitoring.pillar.wrapper.paas.PaaSMetric;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.dto.cmdb.CloudService;
 import it.reply.orchestrator.dto.cmdb.Type;
 import it.reply.orchestrator.service.MonitoringService;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
+import java.util.List;
+
+import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-
-@Component
-public class GetMonitoringData extends BaseRankCloudProvidersCommand<GetMonitoringData> {
+@Component(WorkflowConstants.Delegate.GET_MONITORING_DATA)
+public class GetMonitoringData extends BaseRankCloudProvidersCommand {
 
   @Autowired
   private MonitoringService monitoringService;
 
   @Override
-  protected RankCloudProvidersMessage customExecute(
+  public void execute(DelegateExecution execution,
       RankCloudProvidersMessage rankCloudProvidersMessage) {
 
     // Get monitoring data for each Cloud Provider
-    for (Map.Entry<String, CloudProvider> providerEntry : rankCloudProvidersMessage
-        .getCloudProviders().entrySet()) {
-      CloudProvider cp = providerEntry.getValue();
-      List<CloudService> computeServices = cp.getCmbdProviderServicesByType(Type.COMPUTE);
-      // TODO use cloudService field
-      boolean isPublicCloud =
-          computeServices.stream().anyMatch(service -> service.getData().isPublicService());
-      if (!isPublicCloud) {
-        // TODO fix ugliness
-        rankCloudProvidersMessage.getCloudProvidersMonitoringData().put(providerEntry.getKey(),
-            monitoringService.getProviderData(cp.getId())
-                .getGroups()
-                .get(0)
-                .getPaasMachines()
-                .get(0)
-                .getServices()
-                .get(0)
-                .getPaasMetrics());
-      }
-    }
-    return rankCloudProvidersMessage;
+    rankCloudProvidersMessage
+        .getCloudProviders()
+        .forEach((cloudProviderId, cloudProvider) -> {
+
+          List<CloudService> computeServices =
+              cloudProvider.getCmbdProviderServicesByType(Type.COMPUTE);
+          // TODO use cloudService field
+          boolean isPublicCloud = computeServices
+              .stream()
+              .parallel()
+              .unordered()
+              .anyMatch(service -> service.getData().isPublicService());
+          if (!isPublicCloud) {
+            List<PaaSMetric> metrics = monitoringService.getProviderData(cloudProviderId);
+            rankCloudProvidersMessage
+                .getCloudProvidersMonitoringData()
+                .put(cloudProviderId, metrics);
+          }
+        });
   }
 
   @Override

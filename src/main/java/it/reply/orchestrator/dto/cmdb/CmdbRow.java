@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,32 @@
 
 package it.reply.orchestrator.dto.cmdb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import it.reply.orchestrator.dto.AdditionalPropertiesAwareDto;
+import javax.validation.constraints.NotNull;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class CmdbRow<T extends Serializable> extends AdditionalPropertiesAwareDto
-    implements Serializable {
-
-  private static final long serialVersionUID = 559476054523810413L;
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class CmdbRow<T> {
 
   @JsonProperty("id")
-  @Nullable
+  @NonNull
+  @NotNull
   private String id;
 
-  @JsonProperty("key")
-  @NonNull
-  private List<String> key = new ArrayList<>();
-
   @JsonProperty("doc")
-  @Nullable
+  @NonNull
+  @NotNull
   private T doc;
 
 }

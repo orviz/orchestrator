@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,21 @@
 
 package it.reply.orchestrator.dto.monitoring;
 
-import it.reply.domain.dsl.prisma.restprotocol.Meta;
 import it.reply.monitoringpillar.domain.dsl.monitoring.pillar.wrapper.paas.MonitoringWrappedResponsePaas;
-import it.reply.orchestrator.dto.AdditionalPropertiesAwareDto;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.io.Serializable;
-
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class MonitoringResponse extends AdditionalPropertiesAwareDto implements Serializable {
-
-  private static final long serialVersionUID = 6559999818418491070L;
-
-  @Nullable
-  private Meta meta;
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class MonitoringResponse {
 
   @Nullable
   private MonitoringWrappedResponsePaas result;

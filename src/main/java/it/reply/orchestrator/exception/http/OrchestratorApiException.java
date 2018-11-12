@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,11 @@
 package it.reply.orchestrator.exception.http;
 
 import it.reply.orchestrator.exception.OrchestratorException;
+import it.reply.orchestrator.utils.CommonUtils;
+
+import lombok.Getter;
+
+import org.springframework.http.HttpStatus;
 
 /**
  * Base exception used for HTTP errors.
@@ -28,11 +33,36 @@ public class OrchestratorApiException extends OrchestratorException {
 
   private static final long serialVersionUID = 1L;
 
-  public OrchestratorApiException(String message) {
+  @Getter
+  private final HttpStatus httpStatus;
+
+  /**
+   * Creates a OrchestratorApiException.
+   * 
+   * @param httpStatus
+   *          the HTTP status code
+   * @param message
+   *          the message
+   */
+  public OrchestratorApiException(HttpStatus httpStatus, String message) {
     super(message);
+    this.httpStatus =
+        CommonUtils.notNullOrDefaultValue(httpStatus, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  public OrchestratorApiException(String message, Throwable ex) {
+  /**
+   * Creates a OrchestratorApiException.
+   * 
+   * @param httpStatus
+   *          the HTTP status code
+   * @param message
+   *          the message
+   * @param ex
+   *          the cause
+   */
+  public OrchestratorApiException(HttpStatus httpStatus, String message, Throwable ex) {
     super(message, ex);
+    this.httpStatus =
+        CommonUtils.notNullOrDefaultValue(httpStatus, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

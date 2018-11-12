@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,26 @@
 
 package it.reply.orchestrator.config.specific;
 
+import com.github.springtestdbunit.DbUnitTestExecutionListener;
+
 import it.reply.orchestrator.IntegrationTest;
+import it.reply.orchestrator.annotation.SpringTestProfile;
 
 import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestExecutionListeners.MergeMode;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
+@RunWith(SpringRunner.class)
+@ActiveProfiles(SpringTestProfile.PROFILE_QUALIFIER)
+@SpringBootTest(properties = "alien4cloud.elasticSearch.clusterName=es-cluster-it-test")
 @Category(IntegrationTest.class)
-public abstract class WebAppConfigurationAwareIT extends WebAppConfigurationAware {
-
-  /**
-   * The override is not working - enable in the future.
-   */
-  // private static final Logger LOG = LogManager.getLogger(WebAppConfigurationAware.class);
-  //
-  // @Configuration
-  // static class Config {
-  // @Bean
-  // @Primary
-  // public WorkflowConfigProducerBean produceWorkflowConfigProducerBean() {
-  // return new WorkflowConfigProducerBean() {
-  //
-  // @Override
-  // public int getExecutorServiceThreadPoolSize() {
-  // // Enable jBPM Executor Service during Integration Tests
-  // LOG.warn("Enable jBPM Executor Service during Integration Tests");
-  // return 2;
-  // }
-  //
-  // };
-  // }
-  // }
+@Transactional
+@TestExecutionListeners(listeners = { DbUnitTestExecutionListener.class },
+    mergeMode = MergeMode.MERGE_WITH_DEFAULTS)
+public abstract class WebAppConfigurationAwareIT {
 }

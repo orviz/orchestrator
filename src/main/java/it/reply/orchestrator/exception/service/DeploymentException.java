@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,6 @@ package it.reply.orchestrator.exception.service;
 
 import it.reply.orchestrator.exception.OrchestratorException;
 
-/**
- * Exception thrown when error occurred during the process deployment.
- * 
- * @author m.bassi
- *
- */
 public class DeploymentException extends OrchestratorException {
 
   private static final long serialVersionUID = 1L;
@@ -32,8 +26,8 @@ public class DeploymentException extends OrchestratorException {
     super(message);
   }
 
-  public DeploymentException(String message, Exception ex) {
-    super(message, ex);
+  public DeploymentException(String message, Throwable cause) {
+    super(message, cause);
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,16 @@
 package it.reply.orchestrator.config;
 
 import it.reply.orchestrator.config.filters.CustomRequestLoggingFilter;
+import it.reply.orchestrator.config.properties.OrchestratorProperties;
 
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.embedded.FilterRegistrationBean;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class WebAppInitializer extends SpringBootServletInitializer {
-  @Override
-  protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    return application.sources(Application.applicationClass);
-  }
-
-  /**
-   * Generate a WebAppInitializer.
-   */
-  public WebAppInitializer() {
-    super();
-    // The ErrorPageFilter get stuck on response when no body is returned
-    setRegisterErrorPageFilter(false);
-  }
+@EnableConfigurationProperties(OrchestratorProperties.class)
+public class WebAppInitializer {
 
   /**
    * Register the CustomRequestLoggingFilter.
@@ -55,17 +43,9 @@ public class WebAppInitializer extends SpringBootServletInitializer {
     return registration;
   }
 
-  /**
-   * Create the CustomRequestLoggingFilter.
-   * 
-   * @return the CustomRequestLoggingFilter
-   */
   @Bean
   public CustomRequestLoggingFilter customRequestLoggingFilter() {
-    CustomRequestLoggingFilter loggingFilter = new CustomRequestLoggingFilter();
-    loggingFilter.setMaxPayloadLength(-1);// Ints.checkedCast(WebMvcConfig.MAX_UPLOAD_SIZE));
-    // loggingFilter.setHeadersToOmitt(Lists.newArrayList(HttpHeaders.AUTHORIZATION));
-    return loggingFilter;
+    return new CustomRequestLoggingFilter();
   }
 
 }

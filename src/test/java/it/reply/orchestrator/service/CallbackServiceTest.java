@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,76 +16,93 @@
 
 package it.reply.orchestrator.service;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 import it.reply.orchestrator.controller.ControllerTestUtils;
 import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.repository.DeploymentRepository;
-import it.reply.orchestrator.resource.DeploymentResource;
 import it.reply.orchestrator.resource.DeploymentResourceAssembler;
 
-import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.test.context.junit4.rules.SpringClassRule;
+import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.springframework.test.web.client.MockRestServiceServer;
 
+@RestClientTest(CallbackService.class)
 public class CallbackServiceTest {
 
-  @Mock
-  private DeploymentRepository deploymentRepository;
+  private static final String CALLBACK_URL = "http://example.com";
 
-  @Spy
-  private DeploymentResourceAssembler deploymentResourceAssembler =
-      new DeploymentResourceAssembler();
+  @ClassRule
+  public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
 
-  @Mock
-  private RestTemplate restTemplate;
+  @Rule
+  public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
+  @Autowired
   private CallbackService callbackService;
 
-  @Before
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-    callbackService =
-        new CallbackServiceImpl(deploymentRepository, deploymentResourceAssembler, restTemplate);
-  }
+  @Autowired
+  private MockRestServiceServer mockServer;
+
+  @MockBean
+  private DeploymentRepository deploymentRepository;
+
+  @SpyBean
+  private DeploymentResourceAssembler deploymentResourceAssembler;
 
   private boolean doCallback(String url, HttpStatus status) {
     Deployment deployment = ControllerTestUtils.createDeployment();
     deployment.setCallback(url);
-    ResponseEntity<Object> response = new ResponseEntity<>(status);
-    DeploymentResource resource = deploymentResourceAssembler.toResource(deployment);
 
-    Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
-    Mockito.when(deploymentResourceAssembler.toResource(deployment)).thenReturn(resource);
-    Mockito.when(restTemplate.postForEntity(deployment.getCallback(), resource, Object.class))
-        .thenReturn(response);
+    when(deploymentRepository.findOne(deployment.getId()))
+        .thenReturn(deployment);
 
-    return callbackService.doCallback(deployment.getId());
+    if (status != null) {
+      mockServer
+          .expect(requestTo(url))
+          .andExpect(method(HttpMethod.POST))
+          .andRespond(withStatus(status));
+    }
+
+    boolean result = callbackService.doCallback(deployment.getId());
+    mockServer.verify();
+    return result;
   }
 
   @Test
   public void doCallbackSuccessfully() {
-    boolean result = doCallback("http://test.com", HttpStatus.OK);
-    assertEquals(true, result);
+    boolean result = doCallback(CALLBACK_URL, HttpStatus.OK);
+    assertThat(result).isTrue();
   }
 
   @Test
-  public void doCallbackError() {
-    boolean result = doCallback("http://test.com", HttpStatus.INTERNAL_SERVER_ERROR);
-    assertEquals(false, result);
+  public void doCallbackError400() {
+    boolean result = doCallback(CALLBACK_URL, HttpStatus.BAD_REQUEST);
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void doCallbackError500() {
+    boolean result = doCallback(CALLBACK_URL, HttpStatus.INTERNAL_SERVER_ERROR);
+    assertThat(result).isFalse();
   }
 
   @Test
   public void doCallbackWithoutUrlSuccessfully() {
     boolean result = doCallback(null, null);
-    assertEquals(false, result);
-
+    assertThat(result).isFalse();
   }
 
 }

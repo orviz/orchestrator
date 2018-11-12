@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 package it.reply.orchestrator.dal.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.MappedSuperclass;
+import javax.validation.constraints.NotNull;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 @Data
 @NoArgsConstructor
@@ -33,10 +34,11 @@ import javax.persistence.MappedSuperclass;
 @Embeddable
 public abstract class OidcIssuerAwareId implements Serializable {
 
-  private static final long serialVersionUID = -8057514331507625686L;
+  private static final long serialVersionUID = 1L;
 
-  @Nullable
-  @Column(name = "ISSUER")
+  @NonNull
+  @NotNull
+  @Column(nullable = false, updatable = false)
   private String issuer;
 
 }

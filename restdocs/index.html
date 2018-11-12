@@ -627,18 +627,18 @@ that describes the problem. The error object has the following structure:</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">code</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The HTTP status code</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">title</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The HTTP status name</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">message</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A displayable message describing the error</p></td>
 </tr>
 </tbody>
@@ -649,9 +649,8 @@ that describes the problem. The error object has the following structure:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 404 Not Found
-X-Request-ID: req-1c44c9f4-9490-4f16-8e56-327ae79aad8e
-Content-Type: application/json
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 404 Not Found
+Content-Type: application/json;charset=UTF-8
 Content-Length: 68
 
 {
@@ -690,13 +689,13 @@ from an entry or feed to a Web resource.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">links[].rel</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>links[].rel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">means relationship. In this case, it&#8217;s a self-referencing hyperlink.More complex systems might include other relationships.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">links[].href</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>links[].href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Is a complete URL that uniquely defines the resource.</p></td>
 </tr>
 </tbody>
@@ -717,15 +716,15 @@ from an entry or feed to a Web resource.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">self</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>self</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Self-referencing hyperlink</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">template</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>template</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Template reference hyperlink</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">resources</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>resources</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Resources reference hyperlink</p></td>
 </tr>
 </tbody>
@@ -746,23 +745,23 @@ from an entry or feed to a Web resource.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">first</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>first</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Hyperlink to the first page</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">prev</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>prev</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Hyperlink to the previous page</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">self</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>self</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Self-referencing hyperlink</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">next</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>next</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Self-referencing hyperlink</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">last</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>last</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Hyperlink to the last page</p></td>
 </tr>
 </tbody>
@@ -788,23 +787,23 @@ from an entry or feed to a Web resource.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">page.size</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>page.size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The size of the page</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">page.totalElements</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>page.totalElements</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The total number of elements</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">page.totalPages</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>page.totalPages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The total number of the page</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">page.number</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>page.number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The current page</p></td>
 </tr>
 </tbody>
@@ -822,7 +821,7 @@ from an entry or feed to a Web resource.</p>
 <h4 id="_example_request"><a class="link" href="#_example_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments?createdBy=7a6d21bb-154e-48e3-8bad-93fe1da1410f@https://iam-test.indigo-datacloud.eu/' -i -H 'Accept: application/json' -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments?createdBy=9400d547-9e4e-4a5b-8d91-bc611a0a41ad@https://iam-test.indigo-datacloud.eu/' -i -H 'Accept: application/json' -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
 </div>
 </div>
 </div>
@@ -841,7 +840,7 @@ from an entry or feed to a Web resource.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Authorization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Authorization</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">OAuth2 bearer token</p></td>
 </tr>
 </tbody>
@@ -875,7 +874,7 @@ from an entry or feed to a Web resource.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">createdBy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>createdBy</code></p></td>
 <td class="tableblock halign-left valign-top"><div><div class="paragraph">
 <p>Optional parameter to filter the deployments based on who created them. The following values can be used:</p>
 </div>
@@ -897,15 +896,15 @@ from an entry or feed to a Web resource.</p>
 <h4 id="_example_request_2"><a class="link" href="#_example_request_2">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments?createdBy=7a6d21bb-154e-48e3-8bad-93fe1da1410f@https://iam-test.indigo-datacloud.eu/' -i -H 'Accept: application/json' -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments?createdBy=9400d547-9e4e-4a5b-8d91-bc611a0a41ad@https://iam-test.indigo-datacloud.eu/' -i -H 'Accept: application/json' -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">GET /deployments?createdBy=7a6d21bb-154e-48e3-8bad-93fe1da1410f@https://iam-test.indigo-datacloud.eu/ HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">GET /deployments?createdBy=9400d547-9e4e-4a5b-8d91-bc611a0a41ad@https://iam-test.indigo-datacloud.eu/ HTTP/1.1
 Accept: application/json
 Authorization: Bearer &lt;access token&gt;
-Host: localhost</code></pre>
+Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
@@ -926,48 +925,48 @@ Host: localhost</code></pre>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].uuid</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The unique identifier of a resource</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].creationTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].creationTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Creation date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].updateTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].updateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Update date-time</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].status</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The status of the deployment. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Status.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Status.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].statusReason</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].statusReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Verbose explanation of reason that lead to the deployment status (Present only if the deploy is in some error status)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].task</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].task</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The current step of the deployment process. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Task.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Task.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].createdBy</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].createdBy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The OIDC info of the deployment&#8217;s creator.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].callback</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].callback</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The endpoint used by the orchestrator to notify the progress of the deployment process.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].outputs</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].outputs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The outputs of the TOSCA document</p></td>
 </tr>
 </tbody>
@@ -977,20 +976,19 @@ Host: localhost</code></pre>
 <h4 id="_example_response"><a class="link" href="#_example_response">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
-X-Request-ID: req-dc58347b-7d5b-44b7-8ced-c1c0f6143a25
-Content-Type: application/json
-Content-Length: 1943
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Content-Length: 1944
 
 {
   "links" : [ {
     "rel" : "self",
-    "href" : "http://localhost:8080/deployments?createdBy=7a6d21bb-154e-48e3-8bad-93fe1da1410f@https://iam-test.indigo-datacloud.eu/"
+    "href" : "http://localhost:8080/deployments?createdBy=9400d547-9e4e-4a5b-8d91-bc611a0a41ad@https://iam-test.indigo-datacloud.eu/"
   } ],
   "content" : [ {
-    "uuid" : "2fdefb36-2ee5-4ec1-88b0-e9bdca9800ce",
-    "creationTime" : "2017-06-30T23:27+0000",
-    "updateTime" : "2017-06-30T23:27+0000",
+    "uuid" : "42015553-54ad-4521-876d-2fe444609431",
+    "creationTime" : "2018-11-12T17:12+0000",
+    "updateTime" : "2018-11-12T17:12+0000",
     "status" : "CREATE_FAILED",
     "statusReason" : "Some reason",
     "outputs" : { },
@@ -998,43 +996,43 @@ Content-Length: 1943
     "callback" : "http://localhost",
     "createdBy" : {
       "issuer" : "https://iam-test.indigo-datacloud.eu/",
-      "subject" : "7a6d21bb-154e-48e3-8bad-93fe1da1410f"
+      "subject" : "9400d547-9e4e-4a5b-8d91-bc611a0a41ad"
     },
     "links" : [ {
       "rel" : "self",
-      "href" : "http://localhost:8080/deployments/2fdefb36-2ee5-4ec1-88b0-e9bdca9800ce"
+      "href" : "http://localhost:8080/deployments/42015553-54ad-4521-876d-2fe444609431"
     }, {
       "rel" : "resources",
-      "href" : "http://localhost:8080/deployments/2fdefb36-2ee5-4ec1-88b0-e9bdca9800ce/resources"
+      "href" : "http://localhost:8080/deployments/42015553-54ad-4521-876d-2fe444609431/resources"
     }, {
       "rel" : "template",
-      "href" : "http://localhost:8080/deployments/2fdefb36-2ee5-4ec1-88b0-e9bdca9800ce/template"
+      "href" : "http://localhost:8080/deployments/42015553-54ad-4521-876d-2fe444609431/template"
     } ]
   }, {
-    "uuid" : "92a105b9-7f9a-4a31-9de8-458c98d5159a",
-    "creationTime" : "2017-06-30T23:27+0000",
-    "updateTime" : "2017-06-30T23:27+0000",
+    "uuid" : "77c7a2ea-1a75-4639-8b00-0f7acf978aa2",
+    "creationTime" : "2018-11-12T17:12+0000",
+    "updateTime" : "2018-11-12T17:12+0000",
     "status" : "CREATE_COMPLETE",
     "outputs" : { },
     "task" : "NONE",
     "callback" : "http://localhost",
     "createdBy" : {
       "issuer" : "https://iam-test.indigo-datacloud.eu/",
-      "subject" : "7a6d21bb-154e-48e3-8bad-93fe1da1410f"
+      "subject" : "9400d547-9e4e-4a5b-8d91-bc611a0a41ad"
     },
     "links" : [ {
       "rel" : "self",
-      "href" : "http://localhost:8080/deployments/92a105b9-7f9a-4a31-9de8-458c98d5159a"
+      "href" : "http://localhost:8080/deployments/77c7a2ea-1a75-4639-8b00-0f7acf978aa2"
     }, {
       "rel" : "resources",
-      "href" : "http://localhost:8080/deployments/92a105b9-7f9a-4a31-9de8-458c98d5159a/resources"
+      "href" : "http://localhost:8080/deployments/77c7a2ea-1a75-4639-8b00-0f7acf978aa2/resources"
     }, {
       "rel" : "template",
-      "href" : "http://localhost:8080/deployments/92a105b9-7f9a-4a31-9de8-458c98d5159a/template"
+      "href" : "http://localhost:8080/deployments/77c7a2ea-1a75-4639-8b00-0f7acf978aa2/template"
     } ]
   } ],
   "page" : {
-    "size" : 0,
+    "size" : 10,
     "totalElements" : 2,
     "totalPages" : 1,
     "number" : 0
@@ -1066,19 +1064,29 @@ Content-Length: 1943
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">template</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>template</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A string containing a TOSCA YAML-formatted template</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">parameters</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>parameters</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The input parameters of the deployment(Map of String, Object)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">callback</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>callback</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The deployment callback URL (optional)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>maxProvidersRetry</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The maximum number Cloud providers on which attempt to create the deployment (Optional, default unbounded)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>keepLastAttempt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Whether the Orchestrator, in case of failure, will keep the resources of the last deploy attempt or not (Optional, default false)</p></td>
 </tr>
 </tbody>
 </table>
@@ -1092,24 +1100,28 @@ Content-Length: 1943
   "parameters" : {
     "cpus" : 1
   },
-  "callback" : "http://localhost:8080/callback"
+  "callback" : "http://localhost:8080/callback",
+  "maxProvidersRetry" : 1,
+  "keepLastAttempt" : false
 }'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">POST /deployments HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">POST /deployments HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer &lt;access token&gt;
-Host: localhost
-Content-Length: 117
+Host: localhost:8080
+Content-Length: 173
 
 {
   "template" : "template",
   "parameters" : {
     "cpus" : 1
   },
-  "callback" : "http://localhost:8080/callback"
+  "callback" : "http://localhost:8080/callback",
+  "maxProvidersRetry" : 1,
+  "keepLastAttempt" : false
 }</code></pre>
 </div>
 </div>
@@ -1131,38 +1143,38 @@ Content-Length: 117
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">uuid</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The unique identifier of a resource</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">creationTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>creationTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Creation date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">updateTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>updateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Update date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">status</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The status of the deployment. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Status.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Status.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">task</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>task</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The current step of the deployment process. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Task.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Task.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">outputs</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>outputs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The outputs of the TOSCA document</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">callback</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>callback</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The endpoint used by the orchestrator to notify the progress of the deployment process.</p></td>
 </tr>
 </tbody>
@@ -1172,28 +1184,27 @@ Content-Length: 117
 <h4 id="_example_response_2"><a class="link" href="#_example_response_2">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 201 Created
-X-Request-ID: req-24288ad6-eea9-426d-8b80-d046e71e1b1a
-Content-Type: application/json
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 201 Created
+Content-Type: application/json;charset=UTF-8
 Content-Length: 644
 
 {
-  "uuid" : "a9d49a93-ed90-4f8d-833a-2a9726f1e28a",
-  "creationTime" : "2017-06-30T23:27+0000",
-  "updateTime" : "2017-06-30T23:27+0000",
+  "uuid" : "6c76fefd-10a7-471f-b10e-7b85dc8322d9",
+  "creationTime" : "2018-11-12T17:12+0000",
+  "updateTime" : "2018-11-12T17:12+0000",
   "status" : "CREATE_IN_PROGRESS",
   "outputs" : { },
   "task" : "NONE",
   "callback" : "http://localhost:8080/callback",
   "links" : [ {
     "rel" : "self",
-    "href" : "http://localhost:8080/deployments/a9d49a93-ed90-4f8d-833a-2a9726f1e28a"
+    "href" : "http://localhost:8080/deployments/6c76fefd-10a7-471f-b10e-7b85dc8322d9"
   }, {
     "rel" : "resources",
-    "href" : "http://localhost:8080/deployments/a9d49a93-ed90-4f8d-833a-2a9726f1e28a/resources"
+    "href" : "http://localhost:8080/deployments/6c76fefd-10a7-471f-b10e-7b85dc8322d9/resources"
   }, {
     "rel" : "template",
-    "href" : "http://localhost:8080/deployments/a9d49a93-ed90-4f8d-833a-2a9726f1e28a/template"
+    "href" : "http://localhost:8080/deployments/6c76fefd-10a7-471f-b10e-7b85dc8322d9/template"
   } ]
 }</code></pre>
 </div>
@@ -1214,9 +1225,9 @@ Content-Length: 644
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">GET /deployments/mmd34483-d937-4578-bfdb-ebe196bf82dd HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">GET /deployments/mmd34483-d937-4578-bfdb-ebe196bf82dd HTTP/1.1
 Authorization: Bearer &lt;access token&gt;
-Host: localhost</code></pre>
+Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
@@ -1237,43 +1248,43 @@ Host: localhost</code></pre>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">uuid</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The unique identifier of a resource</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">creationTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>creationTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Creation date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">updateTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>updateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Update date-time</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">status</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The status of the deployment. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Status.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Status.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">statusReason</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>statusReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Verbose explanation of reason that lead to the deployment status (Present only if the deploy is in some error status)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">task</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>task</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The current step of the deployment process. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Task.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/Task.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">callback</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>callback</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The endpoint used by the orchestrator to notify the progress of the deployment process.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">outputs</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>outputs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The outputs of the TOSCA document</p></td>
 </tr>
 </tbody>
@@ -1283,15 +1294,14 @@ Host: localhost</code></pre>
 <h4 id="_example_response_3"><a class="link" href="#_example_response_3">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
-X-Request-ID: req-a5815621-31cb-4088-b500-6fd91abda427
-Content-Type: application/json
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
 Content-Length: 690
 
 {
   "uuid" : "mmd34483-d937-4578-bfdb-ebe196bf82dd",
-  "creationTime" : "2017-06-30T23:27+0000",
-  "updateTime" : "2017-06-30T23:27+0000",
+  "creationTime" : "2018-11-12T17:12+0000",
+  "updateTime" : "2018-11-12T17:12+0000",
   "status" : "CREATE_FAILED",
   "statusReason" : "Some reason",
   "outputs" : {
@@ -1328,24 +1338,28 @@ Content-Length: 690
   "parameters" : {
     "cpus" : 1
   },
-  "callback" : "http://localhost:8080/callback"
+  "callback" : "http://localhost:8080/callback",
+  "maxProvidersRetry" : 1,
+  "keepLastAttempt" : false
 }'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">PUT /deployments/mmd34483-d937-4578-bfdb-ebe196bf82dd HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">PUT /deployments/mmd34483-d937-4578-bfdb-ebe196bf82dd HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer &lt;access token&gt;
-Host: localhost
-Content-Length: 117
+Host: localhost:8080
+Content-Length: 173
 
 {
   "template" : "template",
   "parameters" : {
     "cpus" : 1
   },
-  "callback" : "http://localhost:8080/callback"
+  "callback" : "http://localhost:8080/callback",
+  "maxProvidersRetry" : 1,
+  "keepLastAttempt" : false
 }</code></pre>
 </div>
 </div>
@@ -1354,8 +1368,7 @@ Content-Length: 117
 <h4 id="_example_response_4"><a class="link" href="#_example_response_4">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 202 Accepted
-X-Request-ID: req-dbbdac31-0b13-47d9-9d01-69e17c89152f</code></pre>
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 202 Accepted</code></pre>
 </div>
 </div>
 </div>
@@ -1374,9 +1387,9 @@ X-Request-ID: req-dbbdac31-0b13-47d9-9d01-69e17c89152f</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">DELETE /deployments/mmd34483-d937-4578-bfdb-ebe196bf82dd HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">DELETE /deployments/mmd34483-d937-4578-bfdb-ebe196bf82dd HTTP/1.1
 Authorization: Bearer &lt;access token&gt;
-Host: localhost</code></pre>
+Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
@@ -1384,8 +1397,7 @@ Host: localhost</code></pre>
 <h4 id="_example_response_5"><a class="link" href="#_example_response_5">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 204 No Content
-X-Request-ID: req-8f0b9452-c3ed-466a-8520-4b9a4b2bd61c</code></pre>
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 204 No Content</code></pre>
 </div>
 </div>
 </div>
@@ -1399,14 +1411,14 @@ X-Request-ID: req-8f0b9452-c3ed-466a-8520-4b9a4b2bd61c</code></pre>
 <h4 id="_example_request_7"><a class="link" href="#_example_request_7">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments/30b4f930-89c9-477c-b7f9-418cc7980715/template' -i -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments/79c88a8a-5646-4acd-921c-a68c380a5185/template' -i -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">GET /deployments/30b4f930-89c9-477c-b7f9-418cc7980715/template HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">GET /deployments/79c88a8a-5646-4acd-921c-a68c380a5185/template HTTP/1.1
 Authorization: Bearer &lt;access token&gt;
-Host: localhost</code></pre>
+Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
@@ -1414,8 +1426,8 @@ Host: localhost</code></pre>
 <h4 id="_example_response_6"><a class="link" href="#_example_response_6">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
-Content-Type: text/plain;charset=ISO-8859-1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
+Content-Type: text/plain;charset=UTF-8
 Content-Length: 1266
 
 tosca_definitions_version: tosca_simple_yaml_1_0
@@ -1494,15 +1506,15 @@ topology_template:
 <h4 id="_example_request_8"><a class="link" href="#_example_request_8">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments/c3a9856f-777e-4f13-aa3c-6546b5c00cd6/resources' -i -H 'Accept: application/json' -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments/cd0fe28f-fc21-4bb3-ad19-31d29588aea6/resources' -i -H 'Accept: application/json' -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">GET /deployments/c3a9856f-777e-4f13-aa3c-6546b5c00cd6/resources HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">GET /deployments/cd0fe28f-fc21-4bb3-ad19-31d29588aea6/resources HTTP/1.1
 Accept: application/json
 Authorization: Bearer &lt;access token&gt;
-Host: localhost</code></pre>
+Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
@@ -1523,33 +1535,38 @@ Host: localhost</code></pre>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].uuid</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The unique identifier of a resource</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].creationTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].creationTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Creation date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].state</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].updateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].state</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The status of the resource. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/NodeStates.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/NodeStates.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].toscaNodeType</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].toscaNodeType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The type of the represented TOSCA node</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].toscaNodeName</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].toscaNodeName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The name of the represented TOSCA node</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">content[].requiredBy</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Array</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content[].requiredBy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A list of nodes that require this resource</p></td>
 </tr>
 </tbody>
@@ -1559,46 +1576,48 @@ Host: localhost</code></pre>
 <h4 id="_example_response_7"><a class="link" href="#_example_response_7">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 1407
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Content-Length: 1463
 
 {
   "links" : [ {
     "rel" : "self",
-    "href" : "http://localhost:8080/deployments/c3a9856f-777e-4f13-aa3c-6546b5c00cd6/resources"
+    "href" : "http://localhost:8080/deployments/cd0fe28f-fc21-4bb3-ad19-31d29588aea6/resources?page=0&amp;size=10&amp;sort=createdAt,desc"
   } ],
   "content" : [ {
-    "uuid" : "0127c8bd-1816-475b-8bd5-be75d961d89c",
-    "creationTime" : "2017-06-30T23:27+0000",
-    "state" : "CREATED",
+    "uuid" : "2aefb6c9-50a6-4a7e-a9c3-d80fc437c9c8",
+    "creationTime" : "2018-11-12T17:12+0000",
+    "updateTime" : "2018-11-12T17:12+0000",
+    "state" : "CREATING",
     "toscaNodeType" : "tosca.nodes.Compute",
-    "toscaNodeName" : "node_472f208c-d43d-4497-84e2-fa8aa3e5f62e",
+    "toscaNodeName" : "node_0",
     "requiredBy" : [ ],
     "links" : [ {
       "rel" : "deployment",
-      "href" : "http://localhost:8080/deployments/c3a9856f-777e-4f13-aa3c-6546b5c00cd6"
+      "href" : "http://localhost:8080/deployments/cd0fe28f-fc21-4bb3-ad19-31d29588aea6"
     }, {
       "rel" : "self",
-      "href" : "http://localhost:8080/deployments/c3a9856f-777e-4f13-aa3c-6546b5c00cd6/resources/0127c8bd-1816-475b-8bd5-be75d961d89c"
+      "href" : "http://localhost:8080/deployments/cd0fe28f-fc21-4bb3-ad19-31d29588aea6/resources/2aefb6c9-50a6-4a7e-a9c3-d80fc437c9c8"
     } ]
   }, {
-    "uuid" : "f22dee99-b8bf-4528-a0a8-8d5dcb4d71d0",
-    "creationTime" : "2017-06-30T23:27+0000",
-    "state" : "CREATED",
+    "uuid" : "d39ce6c6-aef3-4eb1-b478-b0d6111dcb21",
+    "creationTime" : "2018-11-12T17:12+0000",
+    "updateTime" : "2018-11-12T17:12+0000",
+    "state" : "CREATING",
     "toscaNodeType" : "tosca.nodes.Compute",
-    "toscaNodeName" : "node_8b4e475b-112a-4283-9df1-5bf5e2074fe6",
+    "toscaNodeName" : "node_1",
     "requiredBy" : [ ],
     "links" : [ {
       "rel" : "deployment",
-      "href" : "http://localhost:8080/deployments/c3a9856f-777e-4f13-aa3c-6546b5c00cd6"
+      "href" : "http://localhost:8080/deployments/cd0fe28f-fc21-4bb3-ad19-31d29588aea6"
     }, {
       "rel" : "self",
-      "href" : "http://localhost:8080/deployments/c3a9856f-777e-4f13-aa3c-6546b5c00cd6/resources/f22dee99-b8bf-4528-a0a8-8d5dcb4d71d0"
+      "href" : "http://localhost:8080/deployments/cd0fe28f-fc21-4bb3-ad19-31d29588aea6/resources/d39ce6c6-aef3-4eb1-b478-b0d6111dcb21"
     } ]
   } ],
   "page" : {
-    "size" : 0,
+    "size" : 10,
     "totalElements" : 2,
     "totalPages" : 1,
     "number" : 0
@@ -1617,14 +1636,14 @@ Content-Length: 1407
 <h4 id="_example_request_9"><a class="link" href="#_example_request_9">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments/eb16976a-9b27-4f83-affd-4363216bbe46/resources/3dd6d90b-dcef-44f5-b961-9cb5583ab4cd' -i -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">$ curl 'http://localhost:8080/deployments/c268fe35-fdc6-4f8a-9d64-ec6593c36455/resources/6b9bc678-b472-4399-8cfa-fe9d2a1f10dc' -i -H 'Authorization: Bearer &lt;access token&gt;'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">GET /deployments/eb16976a-9b27-4f83-affd-4363216bbe46/resources/3dd6d90b-dcef-44f5-b961-9cb5583ab4cd HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">GET /deployments/c268fe35-fdc6-4f8a-9d64-ec6593c36455/resources/6b9bc678-b472-4399-8cfa-fe9d2a1f10dc HTTP/1.1
 Authorization: Bearer &lt;access token&gt;
-Host: localhost</code></pre>
+Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
@@ -1645,33 +1664,38 @@ Host: localhost</code></pre>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">uuid</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The unique identifier of a resource</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">creationTime</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>creationTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Creation date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">state</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>updateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update date-time (<a href="http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14" class="bare">http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14</a>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>state</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The status of the resource. (<a href="http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/NodeStates.html" class="bare">http://indigo-dc.github.io/orchestrator/apidocs/it/reply/orchestrator/enums/NodeStates.html</a>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">toscaNodeType</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>toscaNodeType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The type of the represented TOSCA node</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">toscaNodeName</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>toscaNodeName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The name of the represented TOSCA node</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">requiredBy</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Array</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requiredBy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A list of nodes that require this resource</p></td>
 </tr>
 </tbody>
@@ -1681,23 +1705,24 @@ Host: localhost</code></pre>
 <h4 id="_example_response_8"><a class="link" href="#_example_response_8">Example response</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 545
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Content-Length: 588
 
 {
-  "uuid" : "3dd6d90b-dcef-44f5-b961-9cb5583ab4cd",
-  "creationTime" : "2017-06-30T23:27+0000",
-  "state" : "CREATED",
+  "uuid" : "6b9bc678-b472-4399-8cfa-fe9d2a1f10dc",
+  "creationTime" : "2018-11-12T17:12+0000",
+  "updateTime" : "2018-11-12T17:12+0000",
+  "state" : "CREATING",
   "toscaNodeType" : "tosca.nodes.Compute",
-  "toscaNodeName" : "node_9fe563e3-ddd2-4fa4-b256-93189e4c597c",
+  "toscaNodeName" : "node_58348998-a157-4be2-abf5-f766f0307717",
   "requiredBy" : [ ],
   "links" : [ {
     "rel" : "deployment",
-    "href" : "http://localhost:8080/deployments/eb16976a-9b27-4f83-affd-4363216bbe46"
+    "href" : "http://localhost:8080/deployments/c268fe35-fdc6-4f8a-9d64-ec6593c36455"
   }, {
     "rel" : "self",
-    "href" : "http://localhost:8080/deployments/eb16976a-9b27-4f83-affd-4363216bbe46/resources/3dd6d90b-dcef-44f5-b961-9cb5583ab4cd"
+    "href" : "http://localhost:8080/deployments/c268fe35-fdc6-4f8a-9d64-ec6593c36455/resources/6b9bc678-b472-4399-8cfa-fe9d2a1f10dc"
   } ]
 }</code></pre>
 </div>
@@ -1709,7 +1734,7 @@ Content-Length: 545
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-06-30 17:17:20 +02:00
+Last updated 2018-11-12 18:07:44 +01:00
 </div>
 </div>
 </body>

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,59 +16,49 @@
 
 package it.reply.orchestrator.dal.entity;
 
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Version;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.hateoas.Identifiable;
-
-import java.io.Serializable;
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Version;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @MappedSuperclass
 @Getter
 @Setter
 @NoArgsConstructor
 @ToString
-public abstract class AbstractResourceEntity implements Identifiable<String>, Serializable {
+public abstract class AbstractResourceEntity extends UuidIdentifiable {
 
-  private static final long serialVersionUID = 3797345592958668261L;
+  @Column(nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date createdAt;
 
-  public static final String ID_COLUMN_NAME = "uuid";
-  public static final String CREATED_COLUMN_NAME = "created";
-
-  @Id
-  @GeneratedValue(generator = "uuid")
-  @GenericGenerator(name = "uuid", strategy = "uuid2")
-  @Column(name = ID_COLUMN_NAME, unique = true)
-  private String id;
-
-  @Column(name = CREATED_COLUMN_NAME)
-  private Date created;
-
-  @Column(name = "updated")
-  private Date updated;
+  @Nullable
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date updatedAt;
 
   @Version
+  @Column(nullable = false)
   private Long version;
 
   @PrePersist
   protected void onCreate() {
-    this.created = new Date();
+    this.createdAt = new Date();
   }
 
   @PreUpdate
   protected void onUpdate() {
-    this.updated = new Date();
+    this.updatedAt = new Date();
   }
 }

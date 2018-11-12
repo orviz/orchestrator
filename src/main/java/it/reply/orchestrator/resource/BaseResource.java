@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,12 @@ import it.reply.orchestrator.enums.NodeStates;
 import it.reply.orchestrator.resource.common.AbstractResource;
 import it.reply.orchestrator.utils.CommonUtils;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.validation.constraints.NotNull;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
@@ -28,10 +34,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -39,21 +42,29 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BaseResource extends AbstractResource {
 
+  @Nullable
   private NodeStates state;
+
+  @Nullable
   private String toscaNodeType;
+
+  @Nullable
   private String toscaNodeName;
 
+  @NotNull
   @NonNull
   private List<String> requiredBy = new ArrayList<>();
 
   @Builder
-  protected BaseResource(String uuid, Date creationTime, Date updateTime, NodeStates state,
-      String toscaNodeType, String toscaNodeName, List<String> requiredBy) {
-    super(uuid, creationTime, updateTime);
+  protected BaseResource(@NonNull String uuid, @Nullable Date creationTime,
+      @Nullable Date updateTime, @Nullable String physicalId,
+      @Nullable NodeStates state, @Nullable String toscaNodeType, @Nullable String toscaNodeName,
+      @Nullable List<String> requiredBy) {
+    super(uuid, creationTime, updateTime, physicalId);
     this.state = state;
     this.toscaNodeType = toscaNodeType;
     this.toscaNodeName = toscaNodeName;
-    this.requiredBy = CommonUtils.notNullOrDefaultValue(requiredBy, new ArrayList<>());
+    this.requiredBy = CommonUtils.notNullOrDefaultValue(requiredBy, ArrayList::new);
   }
 
 }

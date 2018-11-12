@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,63 +16,43 @@
 
 package it.reply.orchestrator.service.commands;
 
-import org.drools.core.process.instance.impl.WorkItemImpl;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ExecutionResults;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
-import it.reply.orchestrator.service.deployment.providers.DeploymentProviderService;
-import it.reply.orchestrator.service.deployment.providers.DeploymentProviderServiceRegistry;
-import it.reply.orchestrator.util.TestUtil;
 import it.reply.orchestrator.utils.WorkflowConstants;
-import it.reply.workflowmanager.utils.Constants;
 
-public class UpdateTest {
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 
-  @InjectMocks
-  Update update = new Update();
+import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-  @Mock
-  private DeploymentProviderService deploymentProviderService;
+@RunWith(JUnitParamsRunner.class)
+public class UpdateTest extends BaseDeployCommandTest<Update> {
 
-  @Mock
-  private DeploymentProviderServiceRegistry deploymentProviderServiceRegistry;
-
-  @Before
-  public void setup() {
-    MockitoAnnotations.initMocks(this);
+  public UpdateTest() {
+    super(new Update());
   }
 
   @Test
-  public void testCustomExecute() throws Exception {
-    DeploymentMessage dm = TestUtil.generateDeployDm();
-    CommandContext commandContext = new CommandContext();
+  @Parameters({"true", "false"})
+  public void testUpdate(boolean complete) throws Exception {
+    DeploymentMessage dm = new DeploymentMessage();
+    String updateTemplate = "template";
+    ExecutionEntity execution = new ExecutionEntityBuilder()
+        .withMockedVariable(WorkflowConstants.Param.TOSCA_TEMPLATE, updateTemplate)
+        .withMockedVariable(WorkflowConstants.Param.DEPLOYMENT_MESSAGE, dm)
+        .build();
 
-    WorkItemImpl workItem = new WorkItemImpl();
-    workItem.setParameter(WorkflowConstants.WF_PARAM_TOSCA_TEMPLATE, "template");
-    commandContext.setData(Constants.WORKITEM, workItem);
-    Mockito.when(deploymentProviderServiceRegistry
-        .getDeploymentProviderService(dm.getDeployment())).thenReturn(deploymentProviderService);
-    Mockito.when(deploymentProviderService.doUpdate(dm, "template")).thenReturn(true);
+    when(deploymentProviderService.doUpdate(dm, updateTemplate))
+        .thenReturn(complete);
 
-    ExecutionResults expectedResult = new ExecutionResults();
-    expectedResult.setData(Constants.RESULT_STATUS, "OK");
-    expectedResult.setData(Constants.OK_RESULT, true);
+    command.execute(execution);
 
-    ExecutionResults customExecute = update.customExecute(commandContext, dm);
-
-    Assert.assertEquals(expectedResult.getData(Constants.RESULT_STATUS),
-        customExecute.getData(Constants.RESULT_STATUS));
-    Assert.assertEquals(expectedResult.getData(Constants.OK_RESULT),
-        customExecute.getData(Constants.OK_RESULT));
-    Assert.assertEquals(update.getErrorMessagePrefix(), "Error updating deployment");
+    assertThat(dm.isCreateComplete())
+        .isEqualTo(complete);
   }
 
 }

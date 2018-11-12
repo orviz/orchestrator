@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,29 @@
 
 package it.reply.orchestrator.config.properties;
 
-import lombok.AccessLevel;
+import java.net.URI;
+
+import javax.validation.constraints.NotNull;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-import java.net.URI;
-
-import javax.validation.constraints.NotNull;
-
 @Validated
 @Data
-@ConfigurationProperties(prefix = "cloud-provider-ranker")
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@RequiredArgsConstructor
-
+@ConfigurationProperties(prefix = "cpr")
+@NoArgsConstructor
 public class CprProperties {
 
   @NotNull
   @NonNull
   private URI url;
+
+  @NotNull
+  @NonNull
+  private String rankPath = "/rank";
 
 }

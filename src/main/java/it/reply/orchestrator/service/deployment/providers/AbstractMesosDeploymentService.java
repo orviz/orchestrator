@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package it.reply.orchestrator.service.deployment.providers;
 
-import com.google.common.collect.MoreCollectors;
-
 import alien4cloud.model.components.ComplexPropertyValue;
 import alien4cloud.model.components.DeploymentArtifact;
 import alien4cloud.model.components.ListPropertyValue;
@@ -25,24 +23,34 @@ import alien4cloud.model.components.ScalarPropertyValue;
 import alien4cloud.model.topology.Capability;
 import alien4cloud.model.topology.NodeTemplate;
 import alien4cloud.model.topology.RelationshipTemplate;
+import alien4cloud.tosca.normative.BooleanType;
 import alien4cloud.tosca.normative.FloatType;
+import alien4cloud.tosca.normative.IntegerType;
 import alien4cloud.tosca.normative.InvalidPropertyValueException;
 import alien4cloud.tosca.normative.Size;
 import alien4cloud.tosca.normative.SizeType;
+import alien4cloud.tosca.normative.StringType;
+
+import com.google.common.collect.MoreCollectors;
+import com.google.common.primitives.Ints;
 
 import it.reply.orchestrator.dto.mesos.MesosContainer;
+import it.reply.orchestrator.dto.mesos.MesosPortMapping;
+import it.reply.orchestrator.dto.mesos.MesosPortMapping.Protocol;
 import it.reply.orchestrator.dto.mesos.MesosTask;
+import it.reply.orchestrator.exception.service.ToscaException;
 import it.reply.orchestrator.service.ToscaService;
 import it.reply.orchestrator.utils.CommonUtils;
 import it.reply.orchestrator.utils.EnumUtils;
 
-import org.jgrapht.graph.DirectedMultigraph;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.jgrapht.graph.DirectedMultigraph;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S extends Object>
     extends AbstractDeploymentProviderService {
@@ -70,44 +78,63 @@ public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S e
    *           if some TOSCA properties are not of the right type
    */
   public T buildTask(DirectedMultigraph<NodeTemplate, RelationshipTemplate> graph,
-      NodeTemplate taskNode, String taskId) throws InvalidPropertyValueException {
+      NodeTemplate taskNode, String taskId) {
 
     T task = createInternalTaskRepresentation();
     task.setId(taskId);
 
-    Optional<ScalarPropertyValue> command =
-        toscaService.getTypedNodePropertyByName(taskNode, "command");
-    command.ifPresent(property -> task.setCmd(property.getValue()));
+    toscaService
+        .<ScalarPropertyValue>getTypedNodePropertyByName(taskNode, "command")
+        .map(ScalarPropertyValue::getValue)
+        .map(String::trim)
+        .ifPresent(task::setCmd);
 
-    Optional<ListPropertyValue> uris = toscaService.getTypedNodePropertyByName(taskNode, "uris");
-    if (uris.isPresent()) {
-      // Convert List<Object> to List<String>
-      task.setUris(toscaService.parseListPropertyValue(uris.get(),
-          item -> ((ScalarPropertyValue) item).getValue()));
+    if ("".equals(task.getCmd())) { // it must be either null or not empty
+      throw new ToscaException(String.format(
+          "<command> property of node <%s> must not be an empty string", taskNode.getName()));
     }
 
-    Optional<ComplexPropertyValue> envVars =
-        toscaService.getTypedNodePropertyByName(taskNode, "environment_variables");
+    toscaService
+        .<ListPropertyValue>getTypedNodePropertyByName(taskNode, "uris")
+        .ifPresent(property -> {
+          // Convert List<Object> to List<String>
+          List<String> uris = toscaService.parseListPropertyValue(property,
+              item -> ((ScalarPropertyValue) item).getValue());
+          task.setUris(uris);
+        });
 
-    if (envVars.isPresent()) {
-      // Convert Map<String, Object> to Map<String, String>
-      task.setEnv(toscaService.parseComplexPropertyValue(envVars.get(),
-          value -> ((ScalarPropertyValue) value).getValue()));
-    }
+    toscaService
+        .<ComplexPropertyValue>getTypedNodePropertyByName(taskNode, "environment_variables")
+        .ifPresent(property -> {
+          // Convert Map<String, Object> to Map<String, String>
+          Map<String, String> env = toscaService.parseComplexPropertyValue(property,
+              value -> ((ScalarPropertyValue) value).getValue());
+          task.setEnv(env);
+        });
 
-    Optional<ListPropertyValue> constraintsProperty =
-        toscaService.getTypedNodePropertyByName(taskNode, "constraints");
-    if (constraintsProperty.isPresent()) {
-      List<List<String>> constraints = toscaService
-          .parseListPropertyValue(constraintsProperty.get(), item -> (ListPropertyValue) item)
-          .stream()
-          .map(constraint -> toscaService.parseListPropertyValue(constraint,
-              item -> ((ScalarPropertyValue) item).getValue()))
-          .collect(Collectors.toList());
-      task.setConstraints(constraints);
-    }
+    toscaService
+        .<ListPropertyValue>getTypedNodePropertyByName(taskNode, "constraints")
+        .ifPresent(property -> {
+          List<List<String>> constraints = toscaService
+              .parseListPropertyValue(property, item -> (ListPropertyValue) item)
+              .stream()
+              .map(constraint -> toscaService.parseListPropertyValue(constraint,
+                  item -> ((ScalarPropertyValue) item).getValue()))
+              .collect(Collectors.toList());
+          task.setConstraints(constraints);
+        });
 
-    DeploymentArtifact image = toscaService.getNodeArtifactByName(taskNode, "image")
+    toscaService
+        .<ComplexPropertyValue>getTypedNodePropertyByName(taskNode, "labels")
+        .ifPresent(property -> {
+          // Convert Map<String, Object> to Map<String, String>
+          Map<String, String> labels = toscaService.parseComplexPropertyValue(property,
+              value -> ((ScalarPropertyValue) value).getValue());
+          task.setLabels(labels);
+        });
+
+    DeploymentArtifact image = toscaService
+        .getNodeArtifactByName(taskNode, "image")
         .orElseThrow(() -> new IllegalArgumentException(
             String.format("<image> artifact not found in node <%s> of type <%s>",
                 taskNode.getName(), taskNode.getType())));
@@ -128,46 +155,87 @@ public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S e
 
     task.setContainer(container);
 
-    String imageName = CommonUtils.<ScalarPropertyValue>optionalCast(image.getFile())
+    String imageName = CommonUtils
+        .<ScalarPropertyValue>optionalCast(image.getFile())
         .orElseThrow(() -> new IllegalArgumentException(String.format(
             "<file> field for <image> artifact in node <%s> must be provided", taskNode.getName())))
         .getValue();
 
     container.setImage(imageName);
 
-    Capability dockerCapability = getHostCapability(graph, taskNode);
+    toscaService
+        .<ScalarPropertyValue>getTypedNodePropertyByName(taskNode, "priviliged")
+        .ifPresent(value -> {
+          Boolean priviliged = toscaService.parseScalarPropertyValue(value, BooleanType.class);
+          container.setPriviliged(priviliged);
+        });
 
-    Optional<ScalarPropertyValue> cpusProperty =
-        toscaService.getTypedCapabilityPropertyByName(dockerCapability, "num_cpus");
-    if (cpusProperty.isPresent()) {
-      task.setCpus(toscaService.parseScalarPropertyValue(cpusProperty.get(), FloatType.class));
-    }
+    toscaService
+        .<ScalarPropertyValue>getTypedNodePropertyByName(taskNode, "force_pull_image")
+        .ifPresent(value -> {
+          Boolean forcePullImage = toscaService.parseScalarPropertyValue(value, BooleanType.class);
+          container.setForcePullImage(forcePullImage);
+        });
 
-    Optional<ScalarPropertyValue> memProperty =
-        toscaService.getTypedCapabilityPropertyByName(dockerCapability, "mem_size");
-    if (memProperty.isPresent()) {
-      Size memSize = toscaService.parseScalarPropertyValue(memProperty.get(), SizeType.class);
-      task.setMemSize(memSize.convert("MB")); // Mesos wants MB
-    }
+    Capability containerCapability = getHostCapability(graph, taskNode);
+
+    toscaService
+        .<ScalarPropertyValue>getTypedCapabilityPropertyByName(containerCapability, "num_cpus")
+        .ifPresent(value -> {
+          Double numCpus = toscaService.parseScalarPropertyValue(value, FloatType.class);
+          task.setCpus(numCpus);
+        });
+
+    toscaService
+        .<ScalarPropertyValue>getTypedCapabilityPropertyByName(containerCapability, "num_gpus")
+        .ifPresent(value -> {
+          Long numGpus = toscaService.parseScalarPropertyValue(value, IntegerType.class);
+          task.setGpus(numGpus);
+        });
+
+    toscaService
+        .<ScalarPropertyValue>getTypedCapabilityPropertyByName(containerCapability, "mem_size")
+        .ifPresent(value -> {
+          Size memSize = toscaService.parseScalarPropertyValue(value, SizeType.class);
+          task.setMemSize(memSize.convert("MB")); // Mesos wants MB
+        });
 
     Optional<ListPropertyValue> volumesProperty =
-        toscaService.getTypedCapabilityPropertyByName(dockerCapability, "volumes");
+        toscaService.getTypedCapabilityPropertyByName(containerCapability, "volumes");
 
     List<String> containerVolumes = volumesProperty
-        .map(property -> toscaService.parseListPropertyValue(property,
-            item -> (ScalarPropertyValue) item))
+        .map(property -> toscaService
+            .parseListPropertyValue(property, item -> (ScalarPropertyValue) item))
         .orElseGet(Collections::emptyList)
         .stream()
         .map(ScalarPropertyValue::getValue)
         .collect(Collectors.toList());
     container.setVolumes(containerVolumes);
 
+    Optional<ListPropertyValue> publishPortsProperty =
+        toscaService.getTypedCapabilityPropertyByName(containerCapability, "publish_ports");
+    if (publishPortsProperty.isPresent()) {
+      List<MesosPortMapping> portMapping =
+          toscaService
+              .parseListPropertyValue(publishPortsProperty.get(),
+                  item -> (ComplexPropertyValue) item)
+              .stream()
+              .map(this::generatePortMapping)
+              .collect(Collectors.toList());
+      task
+          .getContainer()
+          .orElseThrow(() -> new RuntimeException(
+              "there are ports to publish but no container is present"))
+          .setPortMappings(portMapping);
+    }
+
     return task;
   }
 
   protected NodeTemplate getHostNode(DirectedMultigraph<NodeTemplate, RelationshipTemplate> graph,
       NodeTemplate taskNode) {
-    return graph.incomingEdgesOf(taskNode)
+    return graph
+        .incomingEdgesOf(taskNode)
         .stream()
         .filter(
             relationship -> HOST_CAPABILITY_NAME.equals(relationship.getTargetedCapabilityName()))
@@ -178,6 +246,18 @@ public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S e
             String.format("No hosting node provided for node <%s>", taskNode.getName())));
   }
 
+  protected List<NodeTemplate> getParentNodes(String parentCapabilityName,
+      DirectedMultigraph<NodeTemplate, RelationshipTemplate> graph,
+      NodeTemplate taskNode) {
+    return graph
+        .incomingEdgesOf(taskNode)
+        .stream()
+        .filter(
+            relationship -> parentCapabilityName.equals(relationship.getTargetedCapabilityName()))
+        .map(graph::getEdgeSource)
+        .collect(Collectors.toList());
+  }
+
   protected Capability getHostCapability(
       DirectedMultigraph<NodeTemplate, RelationshipTemplate> graph, NodeTemplate taskNode) {
 
@@ -185,5 +265,32 @@ public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S e
 
     // at this point we're sure that it exists
     return hostNode.getCapabilities().get(HOST_CAPABILITY_NAME);
+  }
+
+  protected MesosPortMapping generatePortMapping(ComplexPropertyValue portMappingProperties) {
+    Map<String, ScalarPropertyValue> values = toscaService
+        .parseComplexPropertyValue(portMappingProperties, value -> (ScalarPropertyValue) value);
+
+    ScalarPropertyValue sourcePortProperty =
+        CommonUtils
+            .getFromOptionalMap(values, "source")
+            .orElseThrow(() -> new ToscaException(
+                "source port in 'publish_ports' property must be provided"));
+
+    Long sourcePortVaule =
+        toscaService.parseScalarPropertyValue(sourcePortProperty, IntegerType.class);
+    MesosPortMapping portMapping = new MesosPortMapping(Ints.checkedCast(sourcePortVaule));
+
+    CommonUtils.getFromOptionalMap(values, "target").ifPresent(value -> {
+      Long targetPortVaule = toscaService.parseScalarPropertyValue(value, IntegerType.class);
+      portMapping.setServicePort(Ints.checkedCast(targetPortVaule));
+    });
+
+    CommonUtils.getFromOptionalMap(values, "protocol").ifPresent(value -> {
+      String protocolVaule = toscaService.parseScalarPropertyValue(value, StringType.class);
+      Protocol protocol = EnumUtils.fromNameOrThrow(Protocol.class, protocolVaule);
+      portMapping.setProtocol(protocol);
+    });
+    return portMapping;
   }
 }

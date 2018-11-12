@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,37 +17,31 @@
 package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
-import it.reply.orchestrator.dto.onedata.OneData;
 import it.reply.orchestrator.service.OneDataService;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
+import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
-@Component
-public class GetOneDataData extends BaseRankCloudProvidersCommand<GetOneDataData> {
+@Component(WorkflowConstants.Delegate.GET_ONEDATA_DATA)
+public class GetOneDataData extends BaseRankCloudProvidersCommand {
 
   @Autowired
   private OneDataService oneDataService;
 
   @Override
-  protected RankCloudProvidersMessage customExecute(
+  public void execute(DelegateExecution execution,
       RankCloudProvidersMessage rankCloudProvidersMessage) {
 
-    Map<String, OneData> oneDataRequirements = rankCloudProvidersMessage.getOneDataRequirements();
+    rankCloudProvidersMessage.getOneDataRequirements()
+        .values()
+        .forEach(oneDataRequirement -> oneDataService.populateProviderInfo(
+            oneDataRequirement,
+            rankCloudProvidersMessage.getCloudProviders(),
+            rankCloudProvidersMessage.getRequestedWithToken(),
+            rankCloudProvidersMessage.getDeploymentId()));
 
-    OneData inputRequirement = oneDataRequirements.get("input");
-    if (inputRequirement != null) {
-      oneDataService.populateProviderInfo(inputRequirement);
-    }
-
-    OneData outputRequirement = oneDataRequirements.get("output");
-    if (outputRequirement != null) {
-      oneDataService.populateProviderInfo(outputRequirement);
-    }
-
-    return rankCloudProvidersMessage;
   }
 
   @Override

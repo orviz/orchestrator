@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,102 +16,114 @@
 
 package it.reply.orchestrator.service;
 
-import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.CloudProviderEndpoint;
+import it.reply.orchestrator.dto.CloudProviderEndpoint.CloudProviderEndpointBuilder;
 import it.reply.orchestrator.dto.CloudProviderEndpoint.IaaSType;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.dto.cmdb.CloudService;
 import it.reply.orchestrator.dto.cmdb.Type;
-import it.reply.orchestrator.dto.deployment.AwsSlaPlacementPolicy;
 import it.reply.orchestrator.dto.deployment.CredentialsAwareSlaPlacementPolicy;
 import it.reply.orchestrator.dto.deployment.PlacementPolicy;
 import it.reply.orchestrator.dto.ranker.RankedCloudProvider;
+import it.reply.orchestrator.dto.workflow.CloudProvidersOrderedIterator;
 import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.enums.DeploymentType;
-import it.reply.orchestrator.exception.OrchestratorException;
 import it.reply.orchestrator.exception.service.DeploymentException;
+
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
 
 @Service
 @Slf4j
 public class CloudProviderEndpointServiceImpl {
 
   /**
-   * Choose a Cloud Provider.
-   * 
-   * @param deployment
-   *          .
+   * Generates the {@link CloudProvidersOrderedIterator} a Cloud Provider.
+   *
    * @param rankCloudProvidersMessage
-   *          .
-   * @return .
+   *     the rankCloudProvidersMessage
+   * @param maxProvidersRetry
+   *     max num of cloud providers on which iterate
+   * @return the iterator
    */
-  public RankedCloudProvider chooseCloudProvider(Deployment deployment,
-      RankCloudProvidersMessage rankCloudProvidersMessage) {
+  public CloudProvidersOrderedIterator generateCloudProvidersOrderedIterator(
+      RankCloudProvidersMessage rankCloudProvidersMessage, Integer maxProvidersRetry) {
+    Map<String, CloudProvider> cloudProviders = rankCloudProvidersMessage.getCloudProviders();
 
-    final RankedCloudProvider chosenCp =
-        rankCloudProvidersMessage
-            .getRankedCloudProviders()
-            .stream()
-            .filter(Objects::nonNull)
-            // Choose the one ranked
-            .filter(RankedCloudProvider::isRanked)
-            // and with the highest rank
-            .sorted(Comparator.comparing(RankedCloudProvider::getRank).reversed())
-            .findFirst()
-            .orElseThrow(() -> {
-              String errorMsg = "No Cloud Provider suitable for deploy found";
-              LOG.error("{}\n ranked providers list: {}", errorMsg,
-                  rankCloudProvidersMessage.getRankedCloudProviders());
-              return new DeploymentException(errorMsg);
-            });
-
-    LOG.debug("Selected Cloud Provider is: {}", chosenCp);
-    return chosenCp;
-
+    Stream<CloudProvider> orderedCloudProviders;
+    if (DeploymentType.isMesosDeployment(rankCloudProvidersMessage.getDeploymentType())) {
+      orderedCloudProviders = rankCloudProvidersMessage.getCloudProviders().values().stream()
+          .limit(1);
+    } else {
+      orderedCloudProviders =
+          rankCloudProvidersMessage
+              .getRankedCloudProviders()
+              .stream()
+              .filter(Objects::nonNull)
+              // Choose the one ranked
+              .filter(RankedCloudProvider::isRanked)
+              // and with the highest rank
+              .sorted(Comparator.comparing(RankedCloudProvider::getRank).reversed())
+              .map(RankedCloudProvider::getName)
+              .map(cloudProviders::get)
+              .filter(Objects::nonNull);
+      if (maxProvidersRetry != null) {
+        orderedCloudProviders = orderedCloudProviders.limit(maxProvidersRetry);
+      }
+    }
+    return new CloudProvidersOrderedIterator(orderedCloudProviders
+        .collect(Collectors.toList()));
   }
 
   /**
-   * .
-   * 
+   * Generates the {@link CloudProviderEndpoint}.
+   *
    * @param chosenCloudProvider
-   *          .
-   * @return .
+   *     the chosen {@link CloudProvider}
+   * @param placementPolicies
+   *     the placementPolicies
+   * @param isHybrid
+   *     true if the deployment id hybrid
+   * @return the {@link CloudProviderEndpoint}
    */
   public CloudProviderEndpoint getCloudProviderEndpoint(CloudProvider chosenCloudProvider,
-      List<PlacementPolicy> placementPolicies) {
+      Map<String, PlacementPolicy> placementPolicies, boolean isHybrid) {
 
-    if (chosenCloudProvider.getCmbdProviderServicesByType(Type.COMPUTE).isEmpty()) {
-      throw new IllegalArgumentException(
-          "No compute Service Available for Cloud Provider : " + chosenCloudProvider);
-    }
-
-    CloudService computeService =
-        chosenCloudProvider.getCmbdProviderServicesByType(Type.COMPUTE).get(0);
+    CloudService computeService = chosenCloudProvider
+        .getCmbdProviderServicesByType(Type.COMPUTE)
+        .stream()
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "No compute Service Available for Cloud Provider : " + chosenCloudProvider));
 
     String imEndpoint = null;
-    CloudProviderEndpoint cpe = new CloudProviderEndpoint();
+    CloudProviderEndpointBuilder cpe = CloudProviderEndpoint.builder();
 
     ///////////////////////////////
     // TODO Improve and move somewhere else
-    placementPolicies.stream()
+    placementPolicies
+        .values()
+        .stream()
         .filter(CredentialsAwareSlaPlacementPolicy.class::isInstance)
         .map(CredentialsAwareSlaPlacementPolicy.class::cast)
+        .filter(policy -> policy.getServicesId().contains(computeService.getId()))
         .findFirst()
         .ifPresent(policy -> {
-          cpe.setUsername(policy.getUsername());
-          cpe.setPassword(policy.getPassword());
+          cpe.username(policy.getUsername());
+          cpe.password(policy.getPassword());
+          cpe.tenant(policy.getTenant());
         });
     ///////////////////////////////
 
-    IaaSType iaasType;
+    final IaaSType iaasType;
     if (computeService.isOpenStackComputeProviderService()) {
       iaasType = IaaSType.OPENSTACK;
     } else if (computeService.isOpenNebulaComputeProviderService()) {
@@ -123,25 +135,32 @@ public class CloudProviderEndpointServiceImpl {
       iaasType = IaaSType.OCCI;
     } else if (computeService.isAwsComputeProviderService()) {
       iaasType = IaaSType.AWS;
-      // TODO support multiple policies
-      // TODO do a match between sla and service id
-      AwsSlaPlacementPolicy placementPolicy = placementPolicies.stream()
-          .filter(AwsSlaPlacementPolicy.class::isInstance)
-          .map(AwsSlaPlacementPolicy.class::cast)
-          .findFirst()
-          .orElseThrow(() -> new OrchestratorException("No AWS credentials provided"));
-      cpe.setUsername(placementPolicy.getAccessKey());
-      cpe.setPassword(placementPolicy.getSecretKey());
+    } else if (computeService.isOtcComputeProviderService()) {
+      iaasType = IaaSType.OTC;
+    } else if (computeService.isAzureComputeProviderService()) {
+      iaasType = IaaSType.AZURE;
+    } else if (computeService.isChronosComputeProviderService()) {
+      iaasType = IaaSType.CHRONOS;
+    } else if (computeService.isMarathonComputeProviderService()) {
+      iaasType = IaaSType.MARATHON;
     } else {
       throw new IllegalArgumentException("Unknown Cloud Provider type: " + computeService);
     }
 
-    cpe.setCpEndpoint(computeService.getData().getEndpoint());
-    cpe.setCpComputeServiceId(computeService.getId());
-    cpe.setIaasType(iaasType);
-    cpe.setImEndpoint(imEndpoint);
+    cpe.cpEndpoint(computeService.getData().getEndpoint());
+    cpe.cpComputeServiceId(computeService.getId());
+    cpe.region(computeService.getData().getRegion());
+    cpe.iaasType(iaasType);
+    cpe.imEndpoint(imEndpoint);
 
-    return cpe;
+    if (isHybrid) {
+      // generate and set IM iaasHeaderId
+      cpe.iaasHeaderId(computeService.getId());
+      // default to PaaS Level IM
+      cpe.imEndpoint(null);
+    }
+
+    return cpe.build();
   }
 
   /**

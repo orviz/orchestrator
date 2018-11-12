@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 
 package it.reply.orchestrator.controller;
 
-import it.reply.orchestrator.config.properties.OidcProperties;
-import it.reply.orchestrator.dal.entity.AbstractResourceEntity;
 import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dto.request.DeploymentRequest;
 import it.reply.orchestrator.resource.DeploymentResource;
 import it.reply.orchestrator.resource.DeploymentResourceAssembler;
 import it.reply.orchestrator.service.DeploymentService;
-import it.reply.orchestrator.validator.DeploymentRequestValidator;
+import it.reply.orchestrator.utils.MdcUtils;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.validation.Valid;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +38,6 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,27 +46,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-
 @RestController
-@Slf4j
 public class DeploymentController {
 
-  private static final String OFFLINE_AND_PROFILE_REQUIRED_CONDITION =
-      OidcProperties.OIDC_DISABLED_CONDITION + " || "
-          + "#oauth2.throwOnError(#oauth2.hasScope('offline_access') && "
-          + "#oauth2.hasScope('profile'))";
+  private static final String OFFLINE_ACCESS_REQUIRED_CONDITION =
+      "#oauth2.throwOnError(#oauth2.hasScope('offline_access'))";
 
   @Autowired
   private DeploymentService deploymentService;
 
   @Autowired
   private DeploymentResourceAssembler deploymentResourceAssembler;
-
-  @InitBinder
-  protected void initBinder(WebDataBinder binder) {
-    binder.setValidator(new DeploymentRequestValidator());
-  }
 
   /**
    * Get all deployments.
@@ -86,7 +72,7 @@ public class DeploymentController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public PagedResources<DeploymentResource> getDeployments(
       @RequestParam(name = "createdBy", required = false) @Nullable String createdBy,
-      @PageableDefault(sort = AbstractResourceEntity.CREATED_COLUMN_NAME,
+      @PageableDefault(sort = "createdAt",
           direction = Direction.DESC) Pageable pageable,
       PagedResourcesAssembler<Deployment> pagedAssembler) {
 
@@ -112,10 +98,8 @@ public class DeploymentController {
   @ResponseStatus(HttpStatus.CREATED)
   @RequestMapping(value = "/deployments", method = RequestMethod.POST,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  @PreAuthorize(OFFLINE_AND_PROFILE_REQUIRED_CONDITION)
+  @PreAuthorize(OFFLINE_ACCESS_REQUIRED_CONDITION)
   public DeploymentResource createDeployment(@Valid @RequestBody DeploymentRequest request) {
-
-    LOG.info("Creating deployment with template\n{}", request.getTemplate());
     Deployment deployment = deploymentService.createDeployment(request);
     return deploymentResourceAssembler.toResource(deployment);
 
@@ -132,11 +116,9 @@ public class DeploymentController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   @RequestMapping(value = "/deployments/{deploymentId}", method = RequestMethod.PUT,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  @PreAuthorize(OFFLINE_AND_PROFILE_REQUIRED_CONDITION)
+  @PreAuthorize(OFFLINE_ACCESS_REQUIRED_CONDITION)
   public void updateDeployment(@PathVariable("deploymentId") String id,
       @Valid @RequestBody DeploymentRequest request) {
-
-    LOG.info("Updating deployment {} with template\n{}", id, request.getTemplate());
     deploymentService.updateDeployment(id, request);
   }
 
@@ -153,6 +135,7 @@ public class DeploymentController {
   public DeploymentResource getDeployment(@PathVariable("deploymentId") String id) {
 
     Deployment deployment = deploymentService.getDeployment(id);
+    MdcUtils.setDeploymentId(deployment.getId());
     return deploymentResourceAssembler.toResource(deployment);
   }
 
@@ -165,7 +148,7 @@ public class DeploymentController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequestMapping(value = "/deployments/{deploymentId}", method = RequestMethod.DELETE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  @PreAuthorize(OFFLINE_AND_PROFILE_REQUIRED_CONDITION)
+  @PreAuthorize(OFFLINE_ACCESS_REQUIRED_CONDITION)
   public void deleteDeployment(@PathVariable("deploymentId") String id) {
 
     deploymentService.deleteDeployment(id);

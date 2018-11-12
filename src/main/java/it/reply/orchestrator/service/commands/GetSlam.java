@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,20 @@ package it.reply.orchestrator.service.commands;
 import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.service.SlamService;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
+import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
-public class GetSlam extends BaseRankCloudProvidersCommand<GetSlam> {
+@Component(WorkflowConstants.Delegate.GET_SLAM)
+public class GetSlam extends BaseRankCloudProvidersCommand {
 
   @Autowired
   private SlamService slamService;
 
   @Override
-  protected RankCloudProvidersMessage customExecute(
+  public void execute(DelegateExecution execution,
       RankCloudProvidersMessage rankCloudProvidersMessage) {
     rankCloudProvidersMessage.setSlamPreferences(
         slamService.getCustomerPreferences(rankCloudProvidersMessage.getRequestedWithToken()));
@@ -44,16 +46,19 @@ public class GetSlam extends BaseRankCloudProvidersCommand<GetSlam> {
           CloudProvider cp = rankCloudProvidersMessage
               .getCloudProviders()
               .computeIfAbsent(sla.getCloudProviderId(),
-                  cloudProviderId -> new CloudProvider(cloudProviderId));
+                  cloudProviderId -> CloudProvider
+                      .builder()
+                      .id(cloudProviderId)
+                      .build());
 
           // Get provider's services
-          sla.getServices().forEach(
-              service -> cp
-                  .getCmdbProviderServices()
-                  .put(service.getServiceId(), null));
+          sla
+              .getServices()
+              .forEach(
+                  service -> cp
+                      .getCmdbProviderServices()
+                      .put(service.getServiceId(), null));
         });
-
-    return rankCloudProvidersMessage;
   }
 
   @Override

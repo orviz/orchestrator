@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,13 @@
 package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
-import it.reply.orchestrator.service.deployment.providers.DeploymentProviderService;
-import it.reply.orchestrator.service.deployment.providers.DeploymentProviderServiceRegistry;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
-import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ExecutionResults;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.stereotype.Component;
 
-@Component
-public class Undeploy extends BaseDeployCommand<Undeploy> {
-
-  @Autowired
-  private DeploymentProviderServiceRegistry deploymentProviderServiceRegistry;
+@Component(WorkflowConstants.Delegate.UNDEPLOY)
+public class Undeploy extends BaseDeployCommand {
 
   @Override
   protected String getErrorMessagePrefix() {
@@ -37,17 +31,12 @@ public class Undeploy extends BaseDeployCommand<Undeploy> {
   }
 
   @Override
-  protected ExecutionResults customExecute(CommandContext ctx,
-      DeploymentMessage deploymentMessage) {
-    DeploymentProviderService deploymentProviderService = deploymentProviderServiceRegistry
-        .getDeploymentProviderService(deploymentMessage.getDeployment());
+  public void execute(DelegateExecution execution, DeploymentMessage deploymentMessage) {
 
-    boolean result = deploymentProviderService.doUndeploy(deploymentMessage);
-    if (!result || deploymentMessage.isDeleteComplete()) {
-      deploymentProviderService.finalizeUndeploy(deploymentMessage, result);
-      deploymentMessage.setDeployment(null);
-    }
-    return resultOccurred(result);
+    boolean deleteComplete =
+        getDeploymentProviderService(deploymentMessage).doUndeploy(deploymentMessage);
+
+    deploymentMessage.setDeleteComplete(deleteComplete);
   }
 
 }

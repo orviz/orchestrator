@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 
 package it.reply.orchestrator.dal.entity;
 
-import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager;
-import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager.RUNTIME_STRATEGY;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,59 +29,48 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import org.springframework.hateoas.Identifiable;
-
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
-
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "processId" })
-@ToString(of = { "processId", "runtimeStrategy" })
-public class WorkflowReference implements Identifiable<Long>, Serializable {
+@EqualsAndHashCode(of = {"processId", "requestId"}, callSuper = true)
+@ToString(of = {"processId", "requestId"}, callSuper = true)
+public class WorkflowReference extends UuidIdentifiable {
 
-  private static final long serialVersionUID = -610233480056664663L;
+  public enum Action {
+    CREATE,
+    UPDATE,
+    DELETE
+  }
 
-  @Id
-  @Column(name = "process_id", unique = true, nullable = false)
-  private long processId;
+  @Column(name = "process_id", unique = true, nullable = false, updatable = false)
+  private String processId;
+
+  @Column(name = "request_id", unique = true, nullable = false, updatable = false)
+  private String requestId;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "runtime_strategy", length = 100, nullable = false)
-  private BusinessProcessManager.RUNTIME_STRATEGY runtimeStrategy;
+  @Column(nullable = false)
+  private Action action;
 
   @ManyToOne
-  @JoinColumn(name = "deployment_uuid")
+  @JoinColumn(name = "deployment_id", nullable = false, updatable = false)
   private Deployment deployment;
 
   /**
-   * Constructor with fields.
-   * 
+   * Generate a WorkflowReference.
+   *
    * @param processId
-   *          the process id
-   * @param runtimeStrategy
-   *          the strategy {@Link RUNTIME_STRATEGY}
+   *     the processId
+   * @param requestId
+   *     the requestId
+   * @param action
+   *     the action
    */
-  public WorkflowReference(long processId, RUNTIME_STRATEGY runtimeStrategy) {
-    super();
+  public WorkflowReference(String processId, String requestId, Action action) {
     this.processId = processId;
-    this.runtimeStrategy = runtimeStrategy;
-  }
-
-  @Override
-  @Transient
-  public Long getId() {
-    return this.getProcessId();
+    this.requestId = requestId;
+    this.action = action;
   }
 
 }

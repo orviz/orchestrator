@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,109 @@
 
 package it.reply.orchestrator.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.validation.constraints.NotNull;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.io.Serializable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * This class holds information to connect (and authenticate) to a CloudProvider.
- * 
- * @author l.biava
- *
- */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@EqualsAndHashCode(callSuper = false)
-@ToString(exclude = "password", callSuper = false)
-public class CloudProviderEndpoint extends AdditionalPropertiesAwareDto implements Serializable {
-
-  private static final long serialVersionUID = -2585914648218602033L;
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@ToString(exclude = "password")
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class CloudProviderEndpoint {
 
   public enum IaaSType {
     OPENSTACK,
     OPENNEBULA,
     OCCI,
-    AWS
+    AWS,
+    OTC,
+    AZURE,
+    CHRONOS,
+    MARATHON;
   }
 
+  @Nullable
   private String imEndpoint;
+
+  @NonNull
+  @NotNull
   private String cpEndpoint;
+
+  @NonNull
+  @NotNull
   private String cpComputeServiceId;
+
+  @NonNull
+  @NotNull
   private IaaSType iaasType;
 
+  @Nullable
+  @JsonProperty
+  private String region;
+
+  @Nullable
   private String username;
+
+  @Nullable
   private String password;
+
+  @Nullable
+  private String tenant;
+
+  @Nullable
+  @JsonProperty
+  private String iaasHeaderId;
+
+  @NonNull
+  @NotNull
+  @Builder.Default
+  private Map<String, CloudProviderEndpoint> hybridCloudProviderEndpoints = new HashMap<>();
+
+  @SuppressWarnings("null")
+  @Deprecated
+  protected CloudProviderEndpoint() {
+    hybridCloudProviderEndpoints = new HashMap<>();
+  }
+
+  @JsonIgnore
+  public Optional<String> getIaasHeaderId() {
+    return Optional.ofNullable(iaasHeaderId);
+  }
+
+  @JsonIgnore
+  public Optional<String> getRegion() {
+    return Optional.ofNullable(region);
+  }
+
+  /**
+   * Generates a list with all the CloudProviderEndpoint of the deployments.
+   * 
+   * @return the list
+   */
+  @JsonIgnore
+  public List<CloudProviderEndpoint> getAllCloudProviderEndpoint() {
+    List<CloudProviderEndpoint> returnList = new ArrayList<>();
+    returnList.add(this);
+    returnList.addAll(hybridCloudProviderEndpoints.values());
+    return returnList;
+  }
 
 }

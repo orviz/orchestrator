@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,13 @@
 package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
-import it.reply.orchestrator.service.deployment.providers.DeploymentProviderService;
-import it.reply.orchestrator.service.deployment.providers.DeploymentProviderServiceRegistry;
 import it.reply.orchestrator.utils.WorkflowConstants;
 
-import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ExecutionResults;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.stereotype.Component;
 
-@Component
-public class Update extends BaseDeployCommand<Update> {
-
-  @Autowired
-  private DeploymentProviderServiceRegistry deploymentProviderServiceRegistry;
+@Component(WorkflowConstants.Delegate.UPDATE)
+public class Update extends BaseDeployCommand {
 
   @Override
   protected String getErrorMessagePrefix() {
@@ -38,15 +31,15 @@ public class Update extends BaseDeployCommand<Update> {
   }
 
   @Override
-  protected ExecutionResults customExecute(CommandContext ctx,
-      DeploymentMessage deploymentMessage) {
-    String template = getParameter(ctx, WorkflowConstants.WF_PARAM_TOSCA_TEMPLATE);
+  public void execute(DelegateExecution execution, DeploymentMessage deploymentMessage) {
+    String template = getRequiredParameter(execution, WorkflowConstants.Param.TOSCA_TEMPLATE,
+        String.class);
 
-    DeploymentProviderService deploymentProviderService = deploymentProviderServiceRegistry
-        .getDeploymentProviderService(deploymentMessage.getDeployment());
+    boolean updateComplete =
+        getDeploymentProviderService(deploymentMessage).doUpdate(deploymentMessage, template);
 
-    boolean result = deploymentProviderService.doUpdate(deploymentMessage, template);
-    return resultOccurred(result);
+    deploymentMessage.setCreateComplete(updateComplete);
+
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,6 @@
 
 package it.reply.orchestrator.service;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
 import alien4cloud.model.components.AbstractPropertyValue;
 import alien4cloud.model.components.ComplexPropertyValue;
 import alien4cloud.model.components.ListPropertyValue;
@@ -31,35 +26,39 @@ import alien4cloud.model.topology.NodeTemplate;
 import alien4cloud.tosca.model.ArchiveRoot;
 import alien4cloud.tosca.parser.ParsingException;
 
-import es.upv.i3m.grycap.file.NoNullOrEmptyFile;
-import es.upv.i3m.grycap.file.Utf8File;
-import es.upv.i3m.grycap.im.exceptions.FileException;
-
-import it.reply.orchestrator.config.specific.WebAppConfigurationAware;
-import it.reply.orchestrator.dto.onedata.OneData;
+import it.reply.orchestrator.config.specific.ToscaParserAwareTest;
+import it.reply.orchestrator.dto.cmdb.ImageData;
 import it.reply.orchestrator.exception.service.ToscaException;
+import it.reply.orchestrator.util.TestUtil;
 import it.reply.orchestrator.utils.CommonUtils;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class ToscaServiceTest extends WebAppConfigurationAware {
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.OptionalAssert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import junitparams.converters.Nullable;
+
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+@RunWith(JUnitParamsRunner.class)
+public class ToscaServiceTest extends ToscaParserAwareTest {
 
   @Autowired
-  private ToscaService toscaService;
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  protected ToscaServiceImpl toscaService;
 
   public static final String TEMPLATES_BASE_DIR = "./src/test/resources/tosca/";
   public static final String TEMPLATES_INPUT_BASE_DIR = TEMPLATES_BASE_DIR + "inputs/";
@@ -99,10 +98,10 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
   // }
 
   @Test
-  public void getRemovalList() throws IOException, ParsingException, FileException {
+  public void getRemovalList() throws IOException, ParsingException {
     List<String> expectedRemovalList = Arrays.asList("to-be-deleted-1", "to-be-deleted-2");
     String template =
-        getFileContentAsString(TEMPLATES_BASE_DIR + "galaxy_tosca_clues_removal_list.yaml");
+        TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "galaxy_tosca_clues_removal_list.yaml");
     NodeTemplate node = toscaService.getArchiveRootFromTemplate(template).getResult().getTopology()
         .getNodeTemplates().get("torque_wn");
     List<String> removalList = toscaService.getRemovalList(node);
@@ -112,7 +111,7 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
   @Test
   public void checkUserInputDefaultReplaced() throws Exception {
     String template =
-        getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_default_replaced.yaml");
+        TestUtil.getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_default_replaced.yaml");
     Map<String, Object> inputs = new HashMap<String, Object>();
     ArchiveRoot ar = toscaService.prepareTemplate(template, inputs);
     AbstractPropertyValue numCpus = ar.getTopology().getNodeTemplates().get("my_server")
@@ -125,7 +124,7 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
   public void checkUserInputReplacedInNodeArtifactsRelationshipsCapabilitiesProperties()
       throws Exception {
     String template =
-        getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_replaced_all_types.yaml");
+        TestUtil.getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_replaced_all_types.yaml");
     Map<String, Object> inputs = new HashMap<String, Object>();
     inputs.put("input_urls", Arrays.asList("http://a.it", "http://b.it"));
     inputs.put("output_filenames", "test1, test2");
@@ -192,56 +191,109 @@ public class ToscaServiceTest extends WebAppConfigurationAware {
 
   @Test
   public void checkUserInputRequiredNoDefaultValueNotGiven() throws Exception {
-    checkUserInputGeneric("tosca_inputs_required_not_given.yaml", "required and is not present");
+    checkUserInputGeneric("tosca_inputs_required_not_given.yaml",
+        "Input <cpus> is required and is not present in the user's input list, nor has a default value");
   }
 
   @Test
   public void checkUserInputNotRequiredNoDefaultValueNotGiven() throws Exception {
     checkUserInputGeneric("tosca_inputs_not_required_no_default_not_given.yaml",
-        "Failed to replace input function on <node_templates[my_server][capabilities][host][properties][num_cpus]>, caused by: No input provided for <cpus> and no default value provided in the definition");
+        "Failed to replace input function on node_templates[my_server][capabilities][host][properties][num_cpus]; nested exception is java.lang.IllegalArgumentException: No input provided for <cpus> and no default value provided in the definition");
   }
 
   private void checkUserInputGeneric(String templateName, String expectedMessage) throws Exception {
-    thrown.expect(ToscaException.class);
-    thrown.expectMessage(expectedMessage);
 
-    String template = getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + templateName);
+    String template = TestUtil.getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + templateName);
     Map<String, Object> inputs = new HashMap<String, Object>();
-    toscaService.prepareTemplate(template, inputs);
+    Assertions
+        .assertThatThrownBy(() -> toscaService.prepareTemplate(template, inputs))
+        .isInstanceOf(ToscaException.class)
+        .hasMessage(expectedMessage);
   }
 
   @Test
-  public void checkOneDataHardCodedRequirementsExtractionInUserDefinedTemplate() throws Exception {
-    String template = getFileContentAsString(
-        TEMPLATES_ONEDATA_BASE_DIR + "tosca_onedata_requirements_hardcoded_userdefined.yaml");
-    Map<String, Object> inputs = new HashMap<String, Object>();
-    inputs.put("input_onedata_providers", "input_provider_1,input_provider_2");
-    inputs.put("input_onedata_space", "input_onedata_space");
-    inputs.put("output_onedata_providers", "output_provider_1,output_provider_2");
-    inputs.put("output_onedata_space", "output_onedata_space");
-    ArchiveRoot ar = toscaService.prepareTemplate(template, inputs);
-    Map<String, OneData> odr = toscaService.extractOneDataRequirements(ar, inputs);
-    assertEquals(true, odr.containsKey("input"));
-    assertArrayEquals(inputs.get("input_onedata_providers").toString().split(","), odr.get("input")
-        .getProviders().stream().map(info -> info.getEndpoint()).collect(Collectors.toList()).toArray());
-    assertEquals(true, odr.containsKey("output"));
-    assertArrayEquals(inputs.get("output_onedata_providers").toString().split(","),
-        odr.get("output").getProviders().stream().map(info -> info.getEndpoint())
-            .collect(Collectors.toList()).toArray());
+  @Parameters({ "ubuntu, ubuntu, true",
+      "ubuntu, ubuntu:16.04, true",
+      "ubuntu:16.04, ubuntu:16.04, true",
+      "ubuntu:16.04, ubuntu, false",
+      "ubuntu, centos, false",
+      "ubuntu, centos:7, false",
+      "ubuntu:16.04, centos, false",
+      "ubuntu:16.04, centos:7, false",
+      "ubuntu, null, false",
+      "ubuntu:16.04, null, false" })
+  public void checkRequiredImageMetadata(String requiredImageName,
+      @Nullable String availableImageName, boolean expectedResult) {
+    Assertions.assertThat(toscaService.requiredImageMetadata(requiredImageName, availableImageName))
+        .isEqualTo(expectedResult);
   }
 
   @Test
-  public void checkOneDataHardCodedRequirementsExtractionInServiceTemplate() throws Exception {
-    String template = getFileContentAsString(
-        TEMPLATES_ONEDATA_BASE_DIR + "tosca_onedata_requirements_hardcoded_service.yaml");
+  @Parameters({
+      "type, 1, null, 1",
+      "type, 1, 1, 1",
+      "type, 1, 2, 1",
+      "type, 2, null, null",
+      "type, 2, 1, 1",
+      "type, 2, 2, null",
+      "architecture, 1, null, 1",
+      "architecture, 1, 1, 1",
+      "architecture, 1, 2, 1",
+      "architecture, 2, null, null",
+      "architecture, 2, 1, 1",
+      "architecture, 2, 2, null",
+      "distribution, 1, null, 1",
+      "distribution, 1, 1, 1",
+      "distribution, 1, 2, 1",
+      "distribution, 2, null, null",
+      "distribution, 2, 1, 1",
+      "distribution, 2, 2, null",
+      "version, 1, null, 1",
+      "version, 1, 1, 1",
+      "version, 1, 2, 1",
+      "version, 2, null, null",
+      "version, 2, 1, 1",
+      "version, 2, 2, null",
+      "null, 1, null, 0",
+      "null, 1, 1, 1",
+      "null, 1, 2, null"
+  })
+  public void checkRequiredImageMetadata(@Nullable String fieldname, String fieldValue,
+      @Nullable String imageName, @Nullable String expectedId)
+      throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException,
+      SecurityException {
+    List<ImageData> images = new ArrayList<>();
 
-    Map<String, Object> inputs = new HashMap<String, Object>();
-    ArchiveRoot ar = toscaService.prepareTemplate(template, inputs);
-    Map<String, OneData> odr = toscaService.extractOneDataRequirements(ar, inputs);
-    assertEquals(0, odr.size());
+    for (int i = 0; i < 2; ++i) {
+      images.add(ImageData
+          .builder()
+          .imageId(String.valueOf(i))
+          .imageName(String.valueOf(i))
+          .type(String.valueOf(i))
+          .architecture(String.valueOf(i))
+          .distribution(String.valueOf(i))
+          .version(String.valueOf(i))
+          .build());
+    }
+    ImageData imageMetadata = ImageData.builder().build();
+    if (imageName != null) {
+      imageMetadata.setImageName(imageName);
+    }
+    if (fieldname != null) {
+      Field field = ImageData.class.getDeclaredField(fieldname);
+      field.setAccessible(true);
+      field.set(imageMetadata, fieldValue);
+    }
+
+    OptionalAssert<ImageData> assertion =
+        Assertions.assertThat(toscaService.getBestImageForCloudProvider(imageMetadata, images));
+    if (expectedId != null) {
+      assertion.hasValueSatisfying(image -> {
+        image.getImageId().equals(expectedId);
+      });
+    } else {
+      assertion.isEmpty();
+    }
   }
 
-  private String getFileContentAsString(String fileUri) throws FileException {
-    return new NoNullOrEmptyFile(new Utf8File(Paths.get(fileUri))).read();
-  }
 }

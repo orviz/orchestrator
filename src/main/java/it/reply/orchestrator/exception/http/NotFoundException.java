@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package it.reply.orchestrator.exception.http;
 
+import org.springframework.http.HttpStatus;
+
 /**
  * Exception thrown when a resource doesn't exist.
  * 
@@ -27,7 +29,7 @@ public class NotFoundException extends OrchestratorApiException {
   private static final long serialVersionUID = 1L;
 
   public NotFoundException(String message) {
-    super(message);
+    super(HttpStatus.NOT_FOUND, message);
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,29 @@ package it.reply.orchestrator.service.commands;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.dto.ranker.CloudProviderRankerRequest;
 import it.reply.orchestrator.dto.ranker.Monitoring;
+import it.reply.orchestrator.dto.ranker.RankedCloudProvider;
 import it.reply.orchestrator.dto.slam.Preference;
 import it.reply.orchestrator.dto.slam.PreferenceCustomer;
 import it.reply.orchestrator.service.CloudProviderRankerService;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-public class GetProvidersRank extends BaseRankCloudProvidersCommand<GetProvidersRank> {
+import org.flowable.engine.delegate.DelegateExecution;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component(WorkflowConstants.Delegate.GET_PROVIDERS_RANK)
+public class GetProvidersRank extends BaseRankCloudProvidersCommand {
 
   @Autowired
   private CloudProviderRankerService cloudProviderRankerService;
 
   @Override
-  protected RankCloudProvidersMessage customExecute(
+  public void execute(DelegateExecution execution,
       RankCloudProvidersMessage rankCloudProvidersMessage) {
 
-    if (rankCloudProvidersMessage.getCloudProviders().isEmpty()) {
-      // nothing to rank
-      return rankCloudProvidersMessage;
-    }
     // Prepare Ranker's request
     List<Monitoring> monitoring = rankCloudProvidersMessage
         .getCloudProvidersMonitoringData()
@@ -57,9 +55,8 @@ public class GetProvidersRank extends BaseRankCloudProvidersCommand<GetProviders
         .getPreferences()
         .stream()
         .map(Preference::getPreferences)
-        // why why why is this a list?
-        .findFirst()
-        .orElseGet(ArrayList::new);
+        .flatMap(List::stream)
+        .collect(Collectors.toList());
 
     CloudProviderRankerRequest cprr = CloudProviderRankerRequest
         .builder()
@@ -69,10 +66,8 @@ public class GetProvidersRank extends BaseRankCloudProvidersCommand<GetProviders
         .build();
 
     // Get provider rank and save in message
-    rankCloudProvidersMessage
-        .setRankedCloudProviders(cloudProviderRankerService.getProviderRanking(cprr));
-
-    return rankCloudProvidersMessage;
+    List<RankedCloudProvider> ranking = cloudProviderRankerService.getProviderRanking(cprr);
+    rankCloudProvidersMessage.setRankedCloudProviders(ranking);
   }
 
   @Override

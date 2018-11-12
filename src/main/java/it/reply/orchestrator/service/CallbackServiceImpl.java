@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import it.reply.orchestrator.dal.repository.DeploymentRepository;
 import it.reply.orchestrator.resource.DeploymentResource;
 import it.reply.orchestrator.resource.DeploymentResourceAssembler;
 
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-@AllArgsConstructor(onConstructor = @__({ @Autowired }))
+@Slf4j
 public class CallbackServiceImpl implements CallbackService {
 
   private DeploymentRepository deploymentRepository;
@@ -38,19 +38,40 @@ public class CallbackServiceImpl implements CallbackService {
 
   private RestTemplate restTemplate;
 
+  /**
+   * Creates a new CallbackServiceImpl.
+   * 
+   * @param deploymentRepository
+   *          the DeploymentRepository to use
+   * @param deploymentResourceAssembler
+   *          the DeploymentResourceAssembler to use
+   * @param restTemplateBuilder
+   *          the RestTemplateBuilder to use
+   */
+  public CallbackServiceImpl(DeploymentRepository deploymentRepository,
+      DeploymentResourceAssembler deploymentResourceAssembler,
+      RestTemplateBuilder restTemplateBuilder) {
+    this.deploymentRepository = deploymentRepository;
+    this.deploymentResourceAssembler = deploymentResourceAssembler;
+    this.restTemplate = restTemplateBuilder.build();
+  }
+
   @Override
   public boolean doCallback(String deploymentId) {
     Deployment deployment = deploymentRepository.findOne(deploymentId);
     return doCallback(deployment);
   }
 
-  @Override
-  public boolean doCallback(Deployment deployment) {
+  private boolean doCallback(Deployment deployment) {
     if (deployment.getCallback() != null) {
       DeploymentResource deploymentResource = deploymentResourceAssembler.toResource(deployment);
-      ResponseEntity<?> response =
-          restTemplate.postForEntity(deployment.getCallback(), deploymentResource, Object.class);
-      return response.getStatusCode().is2xxSuccessful();
+      try {
+        restTemplate.postForEntity(deployment.getCallback(), deploymentResource, Object.class);
+        return true;
+      } catch (RestClientException ex) {
+        LOG.error("Error executing callback for deployment {}", deployment.getId(), ex);
+        return false;
+      }
     }
     return false;
   }

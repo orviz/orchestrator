@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,38 @@
 
 package it.reply.orchestrator.service;
 
+import it.reply.orchestrator.dal.entity.OidcTokenId;
+import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.onedata.OneData;
 import it.reply.orchestrator.dto.onedata.ProviderDetails;
 import it.reply.orchestrator.dto.onedata.SpaceDetails;
+import it.reply.orchestrator.dto.onedata.Token;
+import it.reply.orchestrator.dto.onedata.Tokens;
 import it.reply.orchestrator.dto.onedata.UserSpaces;
 
-import java.util.List;
+import java.util.Map;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public interface OneDataService {
 
-  public String getServiceSpaceToken();
-
-  public String getServiceSpaceName();
-
-  public String getServiceSpaceProvider();
-
-  public String getServiceSpacePath();
-
-  public UserSpaces getUserSpacesId(String oneZoneEndpoint, String onedataToken);
-
-  public UserSpaces getUserSpacesId(String onedataToken);
-
-  public String getUserSpaceNameById(String oneZoneEndpoint, String onedataToken,
-      String oneSpaceId);
-
-  public String getUserSpaceNameById(String onedataToken, String oneSpaceId);
-
-  public List<String> getProvidersIdBySpaceId(String oneZoneEndpoint, String onedataToken,
-      String oneSpaceId);
-
-  public List<String> getProvidersIdBySpaceId(String onedataToken, String oneSpaceId);
+  public UserSpaces getUserSpacesId(String oneZoneEndpoint, String oneDataToken);
 
   public SpaceDetails getSpaceDetailsFromId(String oneZoneEndpoint, String oneDataToken,
       String oneSpaceId);
 
-  public SpaceDetails getSpaceDetailsFromId(String oneDataToken, String oneSpaceId);
-
   public ProviderDetails getProviderDetailsFromId(String oneZoneEndpoint, String oneDataToken,
-      String oneSpaceId, String oneProviderId);
-
-  public ProviderDetails getProviderDetailsFromId(String oneDataToken, String oneSpaceId,
       String oneProviderId);
 
-  public OneData populateProviderInfo(OneData oneDataParameter);
+  Tokens getOneDataTokens(String oneZoneEndpoint, OidcTokenId oidcTokenId);
+
+  Token generateOneDataToken(String oneZoneEndpoint, OidcTokenId oidcTokenId);
+
+  String getOrGenerateOneDataToken(String oneZoneEndpoint, OidcTokenId oidcTokenId);
+
+  public OneData populateProviderInfo(OneData oneDataParameter,
+      Map<String, CloudProvider> cloudProviders,
+      @Nullable OidcTokenId requestedWithToken,
+      String deploymentId);
 
 }

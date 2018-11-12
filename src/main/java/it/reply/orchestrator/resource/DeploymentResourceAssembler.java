@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.entity.OidcEntity;
 import it.reply.orchestrator.utils.CommonUtils;
 
+import java.util.Optional;
+
 import org.springframework.hateoas.core.DummyInvocationUtils;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 public class DeploymentResourceAssembler
@@ -47,8 +47,9 @@ public class DeploymentResourceAssembler
 
     DeploymentResource resource = DeploymentResource.builder()
         .uuid(entity.getId())
-        .creationTime(entity.getCreated())
-        .updateTime(entity.getUpdated())
+        .creationTime(entity.getCreatedAt())
+        .updateTime(entity.getUpdatedAt())
+        .physicalId(entity.getEndpoint())
         .status(entity.getStatus())
         .statusReason(entity.getStatusReason())
         .cloudProviderName(entity.getCloudProviderName())

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package it.reply.orchestrator.dto.onedata;
 
-import it.reply.orchestrator.utils.CommonUtils;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.validation.constraints.NotNull;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,32 +27,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import lombok.experimental.Tolerate;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 @Data
 @ToString(exclude = "token")
 @Builder
-public class OneData implements Serializable {
-
-  private static final long serialVersionUID = 8590316308119399053L;
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class OneData {
 
   @Data
   @Builder
-  @NoArgsConstructor(access = AccessLevel.PRIVATE)
-  @AllArgsConstructor(access = AccessLevel.PRIVATE)
-  public static class OneDataProviderInfo implements Serializable {
-
-    private static final long serialVersionUID = -4904767929269221557L;
+  @NoArgsConstructor(access = AccessLevel.PROTECTED)
+  @AllArgsConstructor(access = AccessLevel.PROTECTED)
+  public static class OneDataProviderInfo {
 
     @Nullable
     private String id;
@@ -75,35 +67,23 @@ public class OneData implements Serializable {
   private String path;
 
   @Nullable
-  private String zone;
+  private String onezone;
 
   @NonNull
+  @NotNull
   @Builder.Default
-  private List<OneDataProviderInfo> providers = new ArrayList<>();
+  private List<OneDataProviderInfo> oneproviders = new ArrayList<>();
+
+  @Nullable
+  private OneDataProviderInfo selectedOneprovider;
 
   private boolean smartScheduling;
 
-  /**
-   * Generate a List of {@link OneDataProviderInfo} from a csv of providers endpoint.
-   * 
-   * @param providers
-   *          the csv of providers endpoint
-   * @return the List of {@link OneDataProviderInfo}
-   */
-  public static List<OneDataProviderInfo> providersListFromString(@Nullable String providers) {
-    return Optional.ofNullable(providers)
-        .map(value -> CommonUtils.checkNotNull(value).split(","))
-        .map(Stream::of)
-        .orElseGet(Stream::empty)
-        .map(endpoint -> OneDataProviderInfo.builder().endpoint(endpoint).build())
-        .collect(Collectors.toList());
+  private boolean serviceSpace;
+
+  @Deprecated
+  protected OneData() {
+    oneproviders = new ArrayList<>();
   }
 
-  public static class OneDataBuilder {
-
-    @Tolerate
-    public OneDataBuilder providers(@Nullable String providers) {
-      return providers(providersListFromString(providers));
-    }
-  }
 }

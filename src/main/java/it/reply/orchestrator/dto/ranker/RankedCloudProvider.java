@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,53 +16,32 @@
 
 package it.reply.orchestrator.dto.ranker;
 
-import it.reply.orchestrator.dto.AdditionalPropertiesAwareDto;
+import javax.validation.constraints.NotNull;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Temporary response mapping - use imported library from CloudProviderRanker project when
- * available.
- * 
- * @author l.biava
- *
- */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class RankedCloudProvider extends AdditionalPropertiesAwareDto implements Serializable {
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class RankedCloudProvider {
 
-  private static final long serialVersionUID = 6559999818418491070L;
-
+  @NonNull
+  @NotNull
   private String name;
+
   private float rank;
+
   private boolean ranked;
+
+  @Nullable
   private String errorReason;
-
-  public RankedCloudProvider() {
-  }
-
-  /**
-   * Generates a new RankedCloudProvider representation.
-   * 
-   * @param name
-   *          the name of the cloud provider
-   * @param rank
-   *          the rank of the clou provider
-   * @param ranked
-   *          the ranking status of the cloud provider
-   * @param error
-   *          the error generated during the ranking, if any
-   */
-  public RankedCloudProvider(String name, float rank, boolean ranked, String error) {
-    this.name = name;
-    this.rank = rank;
-    this.errorReason = error;
-    this.ranked = ranked;
-  }
 
 }

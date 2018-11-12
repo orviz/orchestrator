@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,31 +18,35 @@ package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.service.CallbackService;
 import it.reply.orchestrator.utils.WorkflowConstants;
-import it.reply.workflowmanager.spring.orchestrator.bpm.ejbcommands.BaseCommand;
 
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ExecutionResults;
+import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
-@AllArgsConstructor(onConstructor = @__({ @Autowired }))
-public class Notify extends BaseCommand<Notify> {
+@Component(WorkflowConstants.Delegate.NOTIFY)
+@Slf4j
+public class Notify extends BaseJavaDelegate {
 
+  @Autowired
   private CallbackService callbackService;
 
   @Override
-  protected ExecutionResults customExecute(CommandContext ctx) throws Exception {
-    String deploymentId = getParameter(ctx, WorkflowConstants.WF_PARAM_DEPLOYMENT_ID);
+  public void customExecute(DelegateExecution execution) {
     try {
-      boolean result = callbackService.doCallback(deploymentId);
-      return resultOccurred(result);
-    } catch (Exception ex) {
-      logger.error("Error tring to executing callback", ex);
-      return resultOccurred(false);
+      String deploymentId = getRequiredParameter(execution, WorkflowConstants.Param.DEPLOYMENT_ID,
+          String.class);
+      callbackService.doCallback(deploymentId);
+    } catch (RuntimeException ex) {
+      // swallow it, do not put the whole process in error
+      LOG.warn(getErrorMessagePrefix(), ex);
     }
+  }
+
+  @Override
+  protected String getErrorMessagePrefix() {
+    return "Error executing callback";
   }
 
 }

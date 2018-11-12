@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,34 @@
 
 package it.reply.orchestrator.dto.onedata;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Data;
-
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserSpaces implements Serializable {
+import javax.validation.constraints.NotNull;
 
-  private static final long serialVersionUID = 2242273425591647283L;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+@Data
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class UserSpaces {
 
   @JsonProperty("spaces")
+  @NonNull
+  @NotNull
+  @Builder.Default
   private List<String> spaces = new ArrayList<>();
 
-  @JsonProperty("defaultSpace")
-  private String defaultSpace;
+  @Deprecated
+  protected UserSpaces() {
+    spaces = new ArrayList<>();
+  }
 
 }

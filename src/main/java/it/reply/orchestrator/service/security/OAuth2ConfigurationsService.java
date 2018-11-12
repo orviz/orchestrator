@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package it.reply.orchestrator.service.security;
 import it.reply.orchestrator.config.properties.OidcProperties;
 import it.reply.orchestrator.exception.OrchestratorException;
 
+import java.util.Optional;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.ClientConfigurationService;
 import org.mitre.openid.connect.client.service.ServerConfigurationService;
@@ -26,8 +29,6 @@ import org.mitre.openid.connect.config.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class OAuth2ConfigurationsService {
@@ -39,8 +40,8 @@ public class OAuth2ConfigurationsService {
   private ClientConfigurationService clientConfigurationService;
 
   @Autowired
-  protected OAuth2ConfigurationsService(OidcProperties oidcProperties,
-      ApplicationContext applicationContext) {
+  protected OAuth2ConfigurationsService(@NonNull OidcProperties oidcProperties,
+      @NonNull ApplicationContext applicationContext) {
     this.oidcProperties = oidcProperties;
 
     if (oidcProperties.isEnabled()) {

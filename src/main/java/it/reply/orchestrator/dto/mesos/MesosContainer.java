@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package it.reply.orchestrator.dto.mesos;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-import lombok.Data;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.Getter;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Data
 public class MesosContainer {
@@ -44,22 +45,35 @@ public class MesosContainer {
     private final String toscaName;
   }
 
-  @Nonnull
+  @NonNull
   private Type type;
 
+  @Nullable
   private String image;
 
-  private String network = "BRIDGE";
+  private String network;
 
-  @Nonnull
+  @NonNull
   private List<MesosPortMapping> portMappings = new ArrayList<>();
 
-  @Nonnull
+  @NonNull
   private Multimap<String, String> parameters = ArrayListMultimap.create();
 
-  private boolean forcePullImage;
+  @Nullable
+  private Boolean forcePullImage;
 
-  @Nonnull
+  @Nullable
+  private Boolean priviliged;
+
+  @NonNull
   private List<String> volumes = new ArrayList<>();
+
+  public boolean isForcePullImage() {
+    return Boolean.TRUE.equals(forcePullImage);
+  }
+
+  public boolean isPriviliged() {
+    return Boolean.TRUE.equals(priviliged);
+  }
 
 }

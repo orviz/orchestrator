@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,22 @@
 
 package it.reply.orchestrator.dal.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import com.nimbusds.jwt.JWT;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import it.reply.orchestrator.utils.JwtUtils;
 
 import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.validation.constraints.NotNull;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 @Data
 @NoArgsConstructor
@@ -35,10 +40,24 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class OidcEntityId extends OidcIssuerAwareId implements Serializable {
 
-  private static final long serialVersionUID = -8303859464474981940L;
+  private static final long serialVersionUID = 1L;
 
-  @Nullable
-  @Column(name = "SUBJECT")
+  @NonNull
+  @NotNull
+  @Column(nullable = false, updatable = false)
   private String subject;
+
+  /**
+   * Generate a OidcEntityId from an access token.
+   *
+   * @return the OidcEntityId
+   */
+  public static OidcEntityId fromAccesToken(String accessToken) {
+    JWT jwt = JwtUtils.parseJwt(accessToken);
+    OidcEntityId id = new OidcEntityId();
+    id.setIssuer(JwtUtils.getIssuer(jwt));
+    id.setSubject(JwtUtils.getSubject(jwt));
+    return id;
+  }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,24 @@
 
 package it.reply.orchestrator.dto.cmdb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.io.Serializable;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@NoArgsConstructor
-public class Image extends CmdbDataWrapper<Image, ImageData> implements Serializable {
-
-  private static final long serialVersionUID = -6026989231866013667L;
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Image extends CmdbDataWrapper<Image, ImageData> {
 
   @Builder
-  private Image(@Nullable String id, @Nullable String rev, @Nullable String type,
-      @Nullable ImageData data) {
-    super(id, rev, type, data);
+  protected Image(@NonNull String id, @NonNull ImageData data) {
+    super(id, data);
   }
 
 }

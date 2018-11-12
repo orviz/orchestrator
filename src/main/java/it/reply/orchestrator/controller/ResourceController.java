@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package it.reply.orchestrator.controller;
 
-import it.reply.orchestrator.dal.entity.AbstractResourceEntity;
 import it.reply.orchestrator.dal.entity.Resource;
 import it.reply.orchestrator.resource.BaseResource;
 import it.reply.orchestrator.resource.BaseResourceAssembler;
@@ -38,7 +37,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/deployments/{deploymentId}")
+@RequestMapping(path = "/deployments/{deploymentId}")
 public class ResourceController {
 
   @Autowired
@@ -55,7 +54,7 @@ public class ResourceController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public PagedResources<BaseResource> getResources(
       @PathVariable("deploymentId") String deploymentId,
-      @PageableDefault(sort = AbstractResourceEntity.CREATED_COLUMN_NAME,
+      @PageableDefault(sort = "createdAt",
           direction = Direction.DESC) Pageable pageable,
       PagedResourcesAssembler<Resource> pagedAssembler) {
 

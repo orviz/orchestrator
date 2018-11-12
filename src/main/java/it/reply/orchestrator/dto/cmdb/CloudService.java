@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,48 @@
 
 package it.reply.orchestrator.dto.cmdb;
 
-import com.google.common.base.Preconditions;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.io.Serializable;
-import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData>
-    implements Serializable {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData> {
 
-  private static final long serialVersionUID = 6559999818418491070L;
+  private static final String INDIGO_SERVICE_PREFIX = "eu.indigo-datacloud";
+  private static final String EGI_SERVICE_PREFIX = "eu.egi.cloud";
 
-  private static final String COMPUTE_SERVICE_PREFIX = "eu.egi.cloud.vm-management";
-  private static final String STORAGE_SERVICE_PREFIX = "eu.egi.cloud.storage-management";
+  private static final String COMPUTE_SERVICE_PREFIX = EGI_SERVICE_PREFIX + ".vm-management";
+  private static final String STORAGE_SERVICE_PREFIX = EGI_SERVICE_PREFIX + ".storage-management";
 
   public static final String OPENSTACK_COMPUTE_SERVICE = COMPUTE_SERVICE_PREFIX + ".openstack";
   public static final String OPENNEBULA_COMPUTE_SERVICE = COMPUTE_SERVICE_PREFIX + ".opennebula";
   public static final String OCCI_COMPUTE_SERVICE = COMPUTE_SERVICE_PREFIX + ".occi";
   public static final String AWS_COMPUTE_SERVICE = "com.amazonaws.ec2";
+  public static final String AZURE_COMPUTE_SERVICE = "com.microsoft.azure";
+  public static final String OTC_COMPUTE_SERVICE = "eu.otc.compute";
 
   public static final String CDMI_STORAGE_SERVICE = STORAGE_SERVICE_PREFIX + ".cdmi";
   public static final String ONEPROVIDER_STORAGE_SERVICE = STORAGE_SERVICE_PREFIX + ".oneprovider";
 
-  public static final String OPENNEBULA_TOSCA_SERVICE = "eu.indigo-datacloud.im-tosca.opennebula";
+  public static final String OPENNEBULA_TOSCA_SERVICE =
+      INDIGO_SERVICE_PREFIX + ".im-tosca.opennebula";
+
+  public static final String MARATHON_COMPUTE_SERVICE = INDIGO_SERVICE_PREFIX + ".marathon";
+  public static final String CHRONOS_COMPUTE_SERVICE = INDIGO_SERVICE_PREFIX + ".chronos";
 
   @Builder
-  private CloudService(@Nullable String id, @Nullable String rev, @Nullable String type,
-      @Nullable CloudServiceData data) {
-    super(id, rev, type, data);
+  protected CloudService(@NonNull String id, @NonNull CloudServiceData data) {
+    super(id, data);
   }
 
   /**
@@ -67,12 +67,8 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    *          the requested type
    * @return true if the service type is the requested one, false otherwise
    */
-  public boolean isServiceOfType(String type) {
-    Preconditions.checkNotNull(type);
-    return Optional.ofNullable(getData())
-        .map(CloudServiceData::getServiceType)
-        .filter(type::equals)
-        .isPresent();
+  public boolean isServiceOfType(@NonNull String type) {
+    return getData().getServiceType().equals(type);
   }
 
   /**
@@ -80,8 +76,19 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    * 
    * @return true if the service is a OpenStack compute service
    */
+  @JsonIgnore
   public boolean isOpenStackComputeProviderService() {
     return isServiceOfType(OPENSTACK_COMPUTE_SERVICE);
+  }
+
+  /**
+   * Get if the the service is a OTC compute service.
+   * 
+   * @return true if the service is a OTC compute service
+   */
+  @JsonIgnore
+  public boolean isOtcComputeProviderService() {
+    return isServiceOfType(OTC_COMPUTE_SERVICE);
   }
 
   /**
@@ -89,6 +96,7 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    * 
    * @return true if the service is a OpenNebula compute service
    */
+  @JsonIgnore
   public boolean isOpenNebulaComputeProviderService() {
     return isServiceOfType(OPENNEBULA_COMPUTE_SERVICE);
   }
@@ -98,6 +106,7 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    * 
    * @return true if the service is a OCCI compute service
    */
+  @JsonIgnore
   public boolean isOcciComputeProviderService() {
     return isServiceOfType(OCCI_COMPUTE_SERVICE);
   }
@@ -107,6 +116,7 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    * 
    * @return true if the service is a AWS compute service
    */
+  @JsonIgnore
   public boolean isAwsComputeProviderService() {
     return isServiceOfType(AWS_COMPUTE_SERVICE);
   }
@@ -116,6 +126,7 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    * 
    * @return true if the service is a OneProvider storage service
    */
+  @JsonIgnore
   public boolean isOneProviderStorageService() {
     return isServiceOfType(ONEPROVIDER_STORAGE_SERVICE);
   }
@@ -125,6 +136,7 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    * 
    * @return true if the service is a CDMI storage service
    */
+  @JsonIgnore
   public boolean isCdmiStorageProviderService() {
     return isServiceOfType(CDMI_STORAGE_SERVICE);
   }
@@ -134,8 +146,44 @@ public class CloudService extends CmdbDataWrapper<CloudService, CloudServiceData
    * 
    * @return true if the service is a OpenNebula TOSCA service
    */
+  @JsonIgnore
   public boolean isOpenNebulaToscaProviderService() {
     return isServiceOfType(OPENNEBULA_TOSCA_SERVICE);
   }
 
+  /**
+   * Get if the the service is a Azure compute service.
+   * 
+   * @return true if the service is a Azure compute service
+   */
+  @JsonIgnore
+  public boolean isAzureComputeProviderService() {
+    return isServiceOfType(AZURE_COMPUTE_SERVICE);
+  }
+
+  /**
+   * Get if the the service is a Marathon compute service.
+   *
+   * @return true if the service is a Marathon compute service
+   */
+  @JsonIgnore
+  public boolean isMarathonComputeProviderService() {
+    return isServiceOfType(MARATHON_COMPUTE_SERVICE);
+  }
+
+  /**
+   * Get if the the service is a Chronos compute service.
+   *
+   * @return true if the service is a Chronos compute service
+   */
+  @JsonIgnore
+  public boolean isChronosComputeProviderService() {
+    return isServiceOfType(CHRONOS_COMPUTE_SERVICE);
+  }
+
+  @JsonIgnore
+  public boolean isCredentialsRequired() {
+    return isAwsComputeProviderService() || isAzureComputeProviderService()
+        || isOtcComputeProviderService();
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@
 
 package it.reply.orchestrator.service;
 
+import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.entity.Resource;
 import it.reply.orchestrator.dal.repository.ResourceRepository;
 import it.reply.orchestrator.exception.http.NotFoundException;
+import it.reply.orchestrator.utils.MdcUtils;
 
 import lombok.AllArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor(onConstructor = @__({ @Autowired }))
+@AllArgsConstructor
 public class ResourceServiceImpl implements ResourceService {
 
   private ResourceRepository resourceRepository;
@@ -40,7 +41,8 @@ public class ResourceServiceImpl implements ResourceService {
   @Transactional(readOnly = true)
   public Page<Resource> getResources(String deploymentId, Pageable pageable) {
     // check if deploymentExists
-    deploymentservice.getDeployment(deploymentId);
+    Deployment deployment = deploymentservice.getDeployment(deploymentId);
+    MdcUtils.setDeploymentId(deployment.getId());
     return resourceRepository.findByDeployment_id(deploymentId, pageable);
   }
 
@@ -48,7 +50,8 @@ public class ResourceServiceImpl implements ResourceService {
   @Transactional(readOnly = true)
   public Resource getResource(String uuid, String deploymentId) {
     // check if deploymentExists
-    deploymentservice.getDeployment(deploymentId);
+    Deployment deployment = deploymentservice.getDeployment(deploymentId);
+    MdcUtils.setDeploymentId(deployment.getId());
     return resourceRepository.findByIdAndDeployment_id(uuid, deploymentId)
         .orElseThrow(() -> new NotFoundException(String
             .format("The resource <%s> in deployment <%s> doesn't exist", uuid, deploymentId)));

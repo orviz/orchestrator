@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,27 @@
 
 package it.reply.orchestrator.service.commands;
 
-import alien4cloud.model.topology.NodeTemplate;
 import alien4cloud.tosca.model.ArchiveRoot;
 
 import it.reply.orchestrator.dal.entity.Deployment;
-import it.reply.orchestrator.dal.repository.DeploymentRepository;
 import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
+import it.reply.orchestrator.dto.cmdb.ChronosServiceData;
 import it.reply.orchestrator.dto.cmdb.CloudService;
-import it.reply.orchestrator.dto.cmdb.ImageData;
+import it.reply.orchestrator.dto.cmdb.MarathonServiceData;
+import it.reply.orchestrator.dto.cmdb.MesosFrameworkServiceData;
 import it.reply.orchestrator.dto.cmdb.Type;
-import it.reply.orchestrator.dto.deployment.AwsSlaPlacementPolicy;
-import it.reply.orchestrator.dto.deployment.CredentialsAwareSlaPlacementPolicy;
 import it.reply.orchestrator.dto.deployment.PlacementPolicy;
 import it.reply.orchestrator.dto.deployment.SlaPlacementPolicy;
+import it.reply.orchestrator.dto.dynafed.Dynafed;
 import it.reply.orchestrator.dto.onedata.OneData;
-import it.reply.orchestrator.dto.onedata.OneData.OneDataProviderInfo;
 import it.reply.orchestrator.dto.slam.Service;
 import it.reply.orchestrator.dto.slam.Sla;
 import it.reply.orchestrator.enums.DeploymentType;
 import it.reply.orchestrator.exception.OrchestratorException;
+import it.reply.orchestrator.exception.service.DeploymentException;
 import it.reply.orchestrator.service.ToscaService;
-import it.reply.orchestrator.utils.CommonUtils;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -53,169 +44,246 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-@Component
+import lombok.extern.slf4j.Slf4j;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.flowable.engine.delegate.DelegateExecution;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component(WorkflowConstants.Delegate.PREFILTER_CLOUD_PROVIDERS)
 @Slf4j
-public class PrefilterCloudProviders
-    extends BaseRankCloudProvidersCommand<PrefilterCloudProviders> {
-
-  @Value("${chronos.cloudProviderName}")
-  private String chronosCloudProviderName;
-
-  @Autowired
-  private DeploymentRepository deploymentRepository;
+public class PrefilterCloudProviders extends BaseRankCloudProvidersCommand {
 
   @Autowired
   private ToscaService toscaService;
 
   @Override
-  protected RankCloudProvidersMessage customExecute(
-      RankCloudProvidersMessage rankCloudProvidersMessage) throws Exception {
+  public void execute(DelegateExecution execution,
+      RankCloudProvidersMessage rankCloudProvidersMessage) {
     // TODO Filter cloud providers (i.e. based on OneData)
 
-    Deployment deployment =
-        deploymentRepository.findOne(rankCloudProvidersMessage.getDeploymentId());
-
-    // Filter out providers that do not support the requested images
-    ArchiveRoot ar = toscaService.parseTemplate(deployment.getTemplate());
     Set<CloudProvider> providersToDiscard = new HashSet<>();
     Set<CloudService> servicesToDiscard = new HashSet<>();
 
-    if (!CollectionUtils.isEmpty(rankCloudProvidersMessage.getPlacementPolicies())) {
-      this.discardOnPlacementPolicies(rankCloudProvidersMessage.getPlacementPolicies(),
-          rankCloudProvidersMessage.getCloudProviders().values(),
-          rankCloudProvidersMessage.getSlamPreferences().getSla(), servicesToDiscard);
-    }
+    discardOnPlacementPolicies(rankCloudProvidersMessage.getPlacementPolicies(),
+        rankCloudProvidersMessage.getCloudProviders().values(),
+        rankCloudProvidersMessage.getSlamPreferences().getSla(), servicesToDiscard);
 
     discardProvidersAndServices(providersToDiscard, servicesToDiscard, rankCloudProvidersMessage);
 
-    if (!MapUtils.isEmpty(rankCloudProvidersMessage.getOneDataRequirements())) {
-      OneData inputRequirement = rankCloudProvidersMessage.getOneDataRequirements().get("input");
-      discardOnOneDataRequirements(inputRequirement,
-          rankCloudProvidersMessage.getCloudProviders().values(), providersToDiscard,
-          servicesToDiscard);
-      OneData outputRequirement = rankCloudProvidersMessage.getOneDataRequirements().get("output");
-      discardOnOneDataRequirements(outputRequirement,
-          rankCloudProvidersMessage.getCloudProviders().values(), providersToDiscard,
-          servicesToDiscard);
-    }
+    rankCloudProvidersMessage
+        .getOneDataRequirements()
+        .values()
+        .forEach(ondedataRequirement -> {
+          discardOnOneDataRequirements(ondedataRequirement,
+              rankCloudProvidersMessage.getCloudProviders().values(), providersToDiscard,
+              servicesToDiscard);
+          discardProvidersAndServices(providersToDiscard, servicesToDiscard,
+              rankCloudProvidersMessage);
+        });
+
+    rankCloudProvidersMessage
+        .getDynafedRequirements()
+        .values()
+        .forEach(dyanfedRequirement -> {
+          discardOnDynafedRequirements(dyanfedRequirement,
+              rankCloudProvidersMessage.getCloudProviders().values(), providersToDiscard,
+              servicesToDiscard);
+          discardProvidersAndServices(providersToDiscard, servicesToDiscard,
+              rankCloudProvidersMessage);
+        });
+
+    Deployment deployment = getDeployment(rankCloudProvidersMessage);
+    ArchiveRoot ar = toscaService
+        .prepareTemplate(deployment.getTemplate(), deployment.getParameters());
+
+    rankCloudProvidersMessage
+        .getCloudProviders()
+        .forEach((name, cloudProvider) -> {
+          cloudProvider
+              .getCmdbProviderServices()
+              .forEach((id, cloudProviderService) -> {
+                DeploymentType type = rankCloudProvidersMessage.getDeploymentType();
+                switch (type) {
+                  case TOSCA:
+                    if (cloudProviderService.getData() instanceof MesosFrameworkServiceData) {
+                      addServiceToDiscard(servicesToDiscard, cloudProviderService);
+                    }
+                    break;
+                  case MARATHON:
+                    if (!(cloudProviderService.getData() instanceof MarathonServiceData)) {
+                      addServiceToDiscard(servicesToDiscard, cloudProviderService);
+                    } else {
+                      discardOnMesosGpuRequirement(ar, cloudProviderService, servicesToDiscard);
+                    }
+                    break;
+                  case CHRONOS:
+                    if (!(cloudProviderService.getData() instanceof ChronosServiceData)) {
+                      addServiceToDiscard(servicesToDiscard, cloudProviderService);
+                    } else {
+                      discardOnMesosGpuRequirement(ar, cloudProviderService, servicesToDiscard);
+                    }
+                    break;
+                  default:
+                    throw new DeploymentException("Unknown Deployment Type: " + type);
+                }
+              });
+        });
 
     discardProvidersAndServices(providersToDiscard, servicesToDiscard, rankCloudProvidersMessage);
 
-    // Filter provider for Chronos
-    // FIXME: It's just a demo hack to for Chronos jobs default provider override!!
-    if (rankCloudProvidersMessage.getDeploymentType() == DeploymentType.CHRONOS
-        || rankCloudProvidersMessage.getDeploymentType() == DeploymentType.MARATHON) {
-      rankCloudProvidersMessage.getCloudProviders()
-          .values()
-          .stream()
-          .filter(
-              cloudProvider -> !cloudProvider.getId().equalsIgnoreCase(chronosCloudProviderName))
-          .forEach(cloudProvider -> {
-            LOG.debug(
-                "Discarded provider {} because it doesn't match Chronos default provider {}"
-                    + " for deployment {}",
-                cloudProvider.getId(), chronosCloudProviderName, deployment.getId());
-            addProviderToDiscard(providersToDiscard, servicesToDiscard, cloudProvider);
-          });
-    }
-
-    discardProvidersAndServices(providersToDiscard, servicesToDiscard, rankCloudProvidersMessage);
+    // Filter out providers that do not support the requested images
 
     // Filter provider by image contextualization check
-    rankCloudProvidersMessage.getCloudProviders().values().forEach(cloudProvider -> {
-      cloudProvider.getCmbdProviderServicesByType(Type.COMPUTE).forEach(cloudService -> {
-        Map<Boolean, Map<NodeTemplate, ImageData>> contextualizedImages =
-            toscaService.contextualizeImages(ar, cloudProvider, cloudService.getId());
-        if (!contextualizedImages.get(Boolean.FALSE).isEmpty()) {
-          // Failed to match all required images -> discard provider
-          LOG.debug(
-              "Discarded service {} of provider {} because it doesn't match images requirements"
-                  + " for deployment {}",
-              cloudService.getId(), cloudProvider.getId(), deployment.getId());
-          addServiceToDiscard(servicesToDiscard, cloudService);
-          cloudProvider.getCmdbProviderImages().remove(cloudService.getId());
-        }
-      });
-    });
+    rankCloudProvidersMessage
+        .getCloudProviders()
+        .forEach((cloudProviderName, cloudProvider) -> {
+          cloudProvider
+              .getCmbdProviderServicesByType(Type.COMPUTE)
+              .forEach(cloudService -> {
+                boolean hasMatchingImages = toscaService
+                    .contextualizeImages(ar, cloudProvider, cloudService.getId())
+                    .get(Boolean.FALSE)
+                    .isEmpty();
+                if (!hasMatchingImages) {
+                  // Failed to match all required images -> discard provider
+                  LOG.debug(
+                      "Discarded service {} of provider {} {}", cloudService.getId(),
+                      cloudProvider.getId(), "because it doesn't match images requirements");
+                  addServiceToDiscard(servicesToDiscard, cloudService);
+                  cloudProvider.getCmdbProviderImages().remove(cloudService.getId());
+                }
+              });
+        });
 
     discardProvidersAndServices(providersToDiscard, servicesToDiscard, rankCloudProvidersMessage);
-
-    return rankCloudProvidersMessage;
   }
 
-  private void discardOnPlacementPolicies(List<PlacementPolicy> placementPolicies,
+
+  private void discardOnPlacementPolicies(Map<String, PlacementPolicy> placementPolicies,
       Collection<CloudProvider> cloudProviders, List<Sla> slas,
       Set<CloudService> servicesToDiscard) {
-    if (placementPolicies.size() != 1) {
-      throw new OrchestratorException("Only single placement policies are supported");
-    }
-    if (!(placementPolicies.get(0) instanceof SlaPlacementPolicy)) {
-      throw new OrchestratorException("Only SLA placement policies are supported");
-    }
-    final SlaPlacementPolicy slaPlacementPolicy = (SlaPlacementPolicy) placementPolicies.get(0);
 
-    Sla selectedSla = slas.stream()
-        .filter(sla -> Objects.equals(sla.getId(), slaPlacementPolicy.getSlaId()))
-        .findFirst()
-        .orElseThrow(() -> new OrchestratorException(
-            String.format("No SLA with id %s available", slaPlacementPolicy.getSlaId())));
+    if (placementPolicies.size() > 1) {
+      //TODO relax this constraint
+      throw new OrchestratorException("Only a single placement policy is supported");
+    }
 
-    for (CloudProvider cloudProvider : cloudProviders) {
-      for (CloudService cloudService : cloudProvider.getCmbdProviderServicesByType(Type.COMPUTE)) {
-        boolean serviceSlaIsCloudService = selectedSla.getService()
-            .map(Service::getServiceId)
-            .filter(serviceId -> CommonUtils.checkNotNull(serviceId).equals(cloudService.getId()))
-            .isPresent();
-        if (serviceSlaIsCloudService) {
-          // TODO change this
-          if (cloudService.isAwsComputeProviderService()
-              && slaPlacementPolicy instanceof CredentialsAwareSlaPlacementPolicy) {
-            placementPolicies.set(0,
-                new AwsSlaPlacementPolicy((CredentialsAwareSlaPlacementPolicy) slaPlacementPolicy));
+    List<SlaPlacementPolicy> slaPlacementPolicies = placementPolicies
+        .values()
+        .stream()
+        .map(placementPolicy -> {
+          if (placementPolicy instanceof SlaPlacementPolicy) {
+            final SlaPlacementPolicy slaPlacementPolicy = (SlaPlacementPolicy) placementPolicy;
+            Sla selectedSla = slas
+                .stream()
+                .filter(sla -> Objects.equals(sla.getId(), slaPlacementPolicy.getSlaId()))
+                .findFirst()
+                .orElseThrow(() -> new OrchestratorException(
+                    String.format("No SLA with id %s available", slaPlacementPolicy.getSlaId())));
+
+            slaPlacementPolicy.setServiceIds(selectedSla
+                .getServices()
+                .stream()
+                .map(Service::getServiceId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+            return slaPlacementPolicy;
+          } else {
+            throw new OrchestratorException("Only SLA placement policies are supported");
           }
-        } else {
-          addServiceToDiscard(servicesToDiscard, cloudService);
-        }
-      }
+        }).collect(Collectors.toList());
+
+    boolean slaPlacementRequired = !placementPolicies.isEmpty();
+
+    cloudProviders
+        .forEach(cloudProvider -> {
+          cloudProvider
+              .getCmbdProviderServicesByType(Type.COMPUTE)
+              .forEach(cloudService -> {
+                boolean serviceIsInSlaPolicy = slaPlacementPolicies
+                    .stream()
+                    .flatMap(policy -> policy.getServicesId().stream())
+                    .anyMatch(serviceId -> serviceId.equals(cloudService.getId()));
+                boolean credentialsRequired = cloudService.isCredentialsRequired();
+                if (!serviceIsInSlaPolicy && (slaPlacementRequired || credentialsRequired)) {
+                  LOG.debug(
+                      "Discarded service {} of provider {} because it doesn't match SLA policies",
+                      cloudService.getId(), cloudProvider.getId());
+                  addServiceToDiscard(servicesToDiscard, cloudService);
+                }
+              });
+        });
+  }
+
+  protected void discardOnMesosGpuRequirement(ArchiveRoot archiveRoot,
+      CloudService mesosFrameworkService,
+      Set<CloudService> servicesToDiscard) {
+    boolean requiresGpu = toscaService.isMesosGpuRequired(archiveRoot);
+    if (requiresGpu && !((MesosFrameworkServiceData) mesosFrameworkService.getData())
+        .getProperties().isGpuSupport()) {
+      LOG.debug(
+          "Discarded Mesos framework service {} of provider {} because it doesn't support GPUs",
+          mesosFrameworkService.getId(), mesosFrameworkService.getData().getProviderId());
+      addServiceToDiscard(servicesToDiscard, mesosFrameworkService);
     }
   }
 
-  private void discardOnOneDataRequirements(OneData requirement,
+  protected void discardOnOneDataRequirements(OneData requirement,
       Collection<CloudProvider> cloudProviders, Set<CloudProvider> providersToDiscard,
       Set<CloudService> servicesToDiscard) {
-    if (requirement != null && requirement.isSmartScheduling()) {
-      for (CloudProvider cloudProvider : cloudProviders) {
-        boolean hasOneProviderSupportingSpace = false;
-        for (CloudService cloudService : cloudProvider.getCmdbProviderServices().values()) {
-          if (!cloudService.isOneProviderStorageService()) {
-            continue;
-          } else {
-            for (OneDataProviderInfo providerInfo : requirement.getProviders()) {
-              if (Objects.equals(providerInfo.getId(), cloudService.getData().getEndpoint())) {
-                hasOneProviderSupportingSpace = true;
-                providerInfo.setCloudProviderId(cloudProvider.getId());
-                providerInfo.setCloudServiceId(cloudService.getId());
-              }
-            }
-          }
-        }
+    if (requirement.isSmartScheduling()) {
+      cloudProviders.forEach(cloudProvider -> {
+        boolean hasOneProviderSupportingSpace = requirement
+            .getOneproviders()
+            .stream()
+            .anyMatch(providerInfo -> cloudProvider
+                .getId()
+                .equals(providerInfo.getCloudProviderId()));
         if (!hasOneProviderSupportingSpace) {
+          LOG.debug(
+              "Discarded provider {} because it doesn't have any oneProvider supporting space {}",
+              cloudProvider.getId(), requirement.getSpace());
           addProviderToDiscard(providersToDiscard, servicesToDiscard, cloudProvider);
         }
-      }
+      });
     }
   }
 
-  protected void addProviderToDiscard(Set<CloudProvider> providersToDiscard,
-      Set<CloudService> servicesToDiscard, CloudProvider providerEntry) {
+  protected void discardOnDynafedRequirements(@NonNull Dynafed requirement,
+      @NonNull Collection<CloudProvider> cloudProviders,
+      @NonNull Set<CloudProvider> providersToDiscard,
+      @NonNull Set<CloudService> servicesToDiscard) {
+
+    cloudProviders.forEach(cloudProvider -> {
+      boolean supportsAllFiles = requirement
+          .getFiles()
+          .stream()
+          .allMatch(file -> file
+              .getResources()
+              .stream()
+              .anyMatch(resource -> cloudProvider.getId().equals(resource.getCloudProviderId())));
+      if (!supportsAllFiles) {
+        LOG.debug("Discarded provider {} {}", cloudProvider.getId(),
+            "because it doesn't have any storage provider supporting the dynafed requirements");
+        addProviderToDiscard(providersToDiscard, servicesToDiscard, cloudProvider);
+      }
+    });
+  }
+
+  protected void addProviderToDiscard(@NonNull Set<CloudProvider> providersToDiscard,
+      @NonNull Set<CloudService> servicesToDiscard, @NonNull CloudProvider providerEntry) {
     providersToDiscard.add(providerEntry);
-    providerEntry.getCmdbProviderServices()
+    providerEntry
+        .getCmdbProviderServices()
         .forEach((key, value) -> addServiceToDiscard(servicesToDiscard, value));
   }
 
-  protected void addServiceToDiscard(Set<CloudService> servicesToDiscard,
-      CloudService csToDiscard) {
+  protected void addServiceToDiscard(@NonNull Set<CloudService> servicesToDiscard,
+      @NonNull CloudService csToDiscard) {
     servicesToDiscard.add(csToDiscard);
   }
 
@@ -223,12 +291,16 @@ public class PrefilterCloudProviders
       Set<CloudService> servicesToDiscard, RankCloudProvidersMessage rankCloudProvidersMessage) {
     // Add providers that doesn't have any compute service anymore
     for (CloudProvider cloudProvider : rankCloudProvidersMessage.getCloudProviders().values()) {
-      cloudProvider.getCmbdProviderServicesByType(Type.COMPUTE)
+      cloudProvider
+          .getCmbdProviderServicesByType(Type.COMPUTE)
           .stream()
           .filter(computeService -> servicesToDiscard.contains(computeService))
-          .forEach(computeServiceToDiscard -> cloudProvider.getCmdbProviderServices()
+          .forEach(computeServiceToDiscard -> cloudProvider
+              .getCmdbProviderServices()
               .remove(computeServiceToDiscard.getId()));
       if (cloudProvider.getCmbdProviderServicesByType(Type.COMPUTE).isEmpty()) {
+        LOG.debug("Discarded provider {} {}", cloudProvider.getId(),
+            "because it doesn't have any compute service matching the deployment requirements");
         addProviderToDiscard(providersToDiscard, servicesToDiscard, cloudProvider);
       }
     }

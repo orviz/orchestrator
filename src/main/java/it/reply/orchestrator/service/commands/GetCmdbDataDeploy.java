@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,26 @@ package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.service.CmdbService;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
+import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
-public class GetCmdbDataDeploy extends BaseRankCloudProvidersCommand<GetCmdbDataDeploy> {
+@Component(WorkflowConstants.Delegate.GET_CMDB_DATA_DEPLOY)
+public class GetCmdbDataDeploy extends BaseRankCloudProvidersCommand {
 
   @Autowired
   private CmdbService cmdbService;
 
   @Override
-  protected RankCloudProvidersMessage customExecute(
+  public void execute(DelegateExecution execution,
       RankCloudProvidersMessage rankCloudProvidersMessage) {
 
     // Get CMDB data for each Cloud Provider
-    rankCloudProvidersMessage.getCloudProviders()
+    rankCloudProvidersMessage
+        .getCloudProviders()
         .forEach((key, cloudProvider) -> cmdbService.fillCloudProviderInfo(cloudProvider));
-
-    return rankCloudProvidersMessage;
   }
 
   @Override

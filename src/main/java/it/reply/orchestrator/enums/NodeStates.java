@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +16,70 @@
 
 package it.reply.orchestrator.enums;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
- * Normative nodes states. For more details see @see <a href=
+ * Normative nodes states. For more details see <a href=
  * "http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#_Toc445238244">
- * Tosca Simple Profile</a>
- * 
+ * Tosca Simple Profile YAML v1.0</a>
  */
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public enum NodeStates {
 
-  // Node is not yet created. Node only exists as a template definition.
-  INITIAL,
+  /**
+   * Node is not yet created. Node only exists as a template definition.
+   */
+  INITIAL(false),
 
-  // Node is transitioning from initial state to created state.
-  CREATING,
+  /**
+   * Node is transitioning from initial state to created state.
+   */
+  CREATING(true),
 
-  // Node software has been installed.
-  CREATED,
+  /**
+   * Node software has been installed.
+   */
+  CREATED(false),
 
-  // Node is transitioning from created state to configured state.
-  CONFIGURING,
+  /**
+   * Node is transitioning from created state to configured state.
+   */
+  CONFIGURING(true),
 
-  // Node has been configured prior to being started.
-  CONFIGURED,
+  /**
+   * Node has been configured prior to being started.
+   */
+  CONFIGURED(false),
 
-  // Node is transitioning from configured state to started state.
-  STARTING,
+  /**
+   * Node is transitioning from configured state to started state.
+   */
+  STARTING(true),
 
-  // Node is started.
-  STARTED,
+  /**
+   * Node is started.
+   */
+  STARTED(false),
 
-  // Node is transitioning from its current state to a configured state.
-  STOPPING,
+  /**
+   * Node is transitioning from its current state to a configured state.
+   */
+  STOPPING(true),
 
-  // Node is transitioning from its current state to one where it is deleted and its state is no
-  // longer tracked by the instance model.
-  DELETING,
+  /**
+   * Node is transitioning from its current state to one where it is deleted and its state is no
+   * longer tracked by the instance model.
+   */
+  DELETING(true),
 
-  // Node is in an error state.
-  ERROR;
+  /**
+   * Node is in an error state.
+   */
+  ERROR(false);
+
+  @Getter
+  private final boolean transitional;
 
 }

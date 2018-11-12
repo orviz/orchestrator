@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,11 @@ import it.reply.orchestrator.dto.cmdb.Provider;
 import it.reply.orchestrator.dto.cmdb.ProviderData;
 import it.reply.orchestrator.dto.cmdb.Type;
 
+import java.util.List;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 /**
  * This integration test makes real request to the CMDB APIs.
@@ -46,20 +47,20 @@ public class CmdbServiceIT extends WebAppConfigurationAwareIT {
   private CmdbService service;
 
   @Test
+  @Ignore
   public void getServiceTest() throws Exception {
 
     CloudService serviceRecas = service.getServiceById(recasId);
     CloudServiceData data = CloudServiceData.builder()
         .serviceType("eu.egi.cloud.vm-management.openstack")
-        .endpoint("http://cloud.recas.ba.infn.it:5000/v2.0")
+        .endpoint("https://cloud.recas.ba.infn.it:5000/v3")
         .providerId("provider-RECAS-BARI")
         .type(Type.COMPUTE)
+        .region("recas-cloud")
         .build();
 
     CloudService service = CloudService.builder()
         .id(recasId)
-        .rev("1-256d36283315ea9bb045e6d5038657b6")
-        .type("service")
         .data(data)
         .build();
 
@@ -67,30 +68,23 @@ public class CmdbServiceIT extends WebAppConfigurationAwareIT {
   }
 
   @Test
+  @Ignore
   public void getProviderTest() throws Exception {
     Provider providerRecas = service.getProviderById(recasProviderName);
-    ProviderData data = ProviderData.builder()
-        .id("476")
-        .primaryKey("83757G0")
-        .name("RECAS-BARI")
-        .country("Italy")
-        .countryCode("IT")
-        .roc("NGI_IT")
-        .subgrid("")
-        .giisUrl("ldap://cloud-bdii.recas.ba.infn.it:2170/GLUE2DomainID=RECAS-BARI,o=glue")
-        .build();
-
-    Provider provider = Provider.builder()
+    Provider provider = Provider
+        .builder()
         .id(recasProviderName)
-        .rev("1-c7dbe4d8be30aa4c0f14d3ad0411d962")
-        .type("provider")
-        .data(data)
+        .data(ProviderData
+            .builder()
+            .name("RECAS-BARI")
+            .build())
         .build();
 
     assertEquals(provider, providerRecas);
   }
 
   @Test
+  @Ignore
   public void getImageForServiceTest() throws Exception {
 
     List<Image> recasImages = service.getImagesByService(recasId);

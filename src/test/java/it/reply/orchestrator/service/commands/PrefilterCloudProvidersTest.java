@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,13 @@
 
 package it.reply.orchestrator.service.commands;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.assertj.core.util.Maps;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
 import alien4cloud.model.topology.NodeTemplate;
 import alien4cloud.tosca.model.ArchiveRoot;
+
+import com.google.common.collect.Lists;
+
+import it.reply.orchestrator.controller.ControllerTestUtils;
+import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.repository.DeploymentRepository;
 import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
@@ -52,19 +42,40 @@ import it.reply.orchestrator.dto.slam.Sla;
 import it.reply.orchestrator.dto.slam.SlamPreferences;
 import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.exception.OrchestratorException;
+import it.reply.orchestrator.exception.service.WorkflowException;
 import it.reply.orchestrator.service.ToscaService;
 import it.reply.orchestrator.util.TestUtil;
+import it.reply.orchestrator.utils.WorkflowConstants;
 
-public class PrefilterCloudProvidersTest {
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-  @InjectMocks
-  PrefilterCloudProviders prefilterCloudProviders;
+import org.assertj.core.util.Maps;
+import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+
+public class PrefilterCloudProvidersTest extends
+    BaseRankCloudProvidersCommandTest<PrefilterCloudProviders> {
 
   @Mock
   private DeploymentRepository deploymentRepository;
 
   @Mock
   private ToscaService toscaService;
+
+  public PrefilterCloudProvidersTest() {
+    super(new PrefilterCloudProviders());
+  }
 
   @Before
   public void setup() {
@@ -73,32 +84,40 @@ public class PrefilterCloudProvidersTest {
 
   @Test
   public void testBasicCustomExecuteSuccess() throws Exception {
-    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm();
-    generateDeployDm.getDeployment().setDeploymentProvider(DeploymentProvider.HEAT);
+    Deployment deployment = ControllerTestUtils.createDeployment();
+    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm(deployment);
+    deployment.setDeploymentProvider(DeploymentProvider.HEAT);
     RankCloudProvidersMessage rankCloudProvidersMessage = new RankCloudProvidersMessage();
+    rankCloudProvidersMessage.setSlamPreferences(SlamPreferences.builder().build());
     rankCloudProvidersMessage.setDeploymentId(generateDeployDm.getDeploymentId());
 
-    Mockito.when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
-        .thenReturn(generateDeployDm.getDeployment());
-    Assert.assertEquals(rankCloudProvidersMessage,
-        prefilterCloudProviders.customExecute(rankCloudProvidersMessage));
+    when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
+        .thenReturn(deployment);
+    
+    ExecutionEntity execution = new ExecutionEntityBuilder()
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .build();
+
+    assertThatCode(() -> command.execute(execution))
+        .doesNotThrowAnyException();
   }
 
 
   @Test
   public void testCustomExecuteSuccess() throws Exception {
-    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm();
+    Deployment deployment = ControllerTestUtils.createDeployment();
+    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm(deployment);
     String id = UUID.randomUUID().toString();
     RankCloudProvidersMessage rankCloudProvidersMessage =
-        generateRankCloudProvidersMessage(generateDeployDm, DeploymentProvider.CHRONOS);
+        generateRankCloudProvidersMessage(deployment, DeploymentProvider.CHRONOS);
 
     // set slam preferences
     SlamPreferences slamPreferences = getSlamPreferences(id);
     rankCloudProvidersMessage.setSlamPreferences(slamPreferences);
 
     // set placement policies
-    List<PlacementPolicy> placementPolicies = new ArrayList<>();
-    placementPolicies.add(new SlaPlacementPolicy(new ArrayList<String>(), id));
+    Map<String, PlacementPolicy> placementPolicies = new HashMap<>();
+    placementPolicies.put("policy", new SlaPlacementPolicy(new ArrayList<>(), id));
     rankCloudProvidersMessage.setPlacementPolicies(placementPolicies);
 
     // set cloud provider
@@ -111,24 +130,28 @@ public class PrefilterCloudProvidersTest {
     rankCloudProvidersMessage.setOneDataRequirements(oneDataRequirements);
 
     ArchiveRoot ar = new ArchiveRoot();
-    Mockito.when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
-        .thenReturn(generateDeployDm.getDeployment());
-    Mockito.when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
-    Mockito
-        .when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
+    when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
+        .thenReturn(deployment);
+    when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
+    when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
             Mockito.anyObject()))
         .thenReturn(Maps.newHashMap(Boolean.FALSE, new HashMap<>()));
-    Assert.assertEquals(rankCloudProvidersMessage,
-        prefilterCloudProviders.customExecute(rankCloudProvidersMessage));
 
+    ExecutionEntity execution = new ExecutionEntityBuilder()
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .build();
+
+    assertThatCode(() -> command.execute(execution))
+        .doesNotThrowAnyException();
   }
 
-  @Test(expected = OrchestratorException.class)
+  @Test
   public void testCustomExecuteOrchestratorExceptionNoSinglePlacement() throws Exception {
     String id = UUID.randomUUID().toString();
-    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm();
+    Deployment deployment = ControllerTestUtils.createDeployment();
+    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm(deployment);
     RankCloudProvidersMessage rankCloudProvidersMessage =
-        generateRankCloudProvidersMessage(generateDeployDm, DeploymentProvider.CHRONOS);
+        generateRankCloudProvidersMessage(deployment, DeploymentProvider.CHRONOS);
 
     // set slam preferences
     SlamPreferences slamPreferences = getSlamPreferences(id);
@@ -136,91 +159,110 @@ public class PrefilterCloudProvidersTest {
 
 
     // set placementPolicies
-    List<PlacementPolicy> placementPolicies = new ArrayList<>();
-    placementPolicies.add(new SlaPlacementPolicy(new ArrayList<String>(), id));
-    placementPolicies
-        .add(new SlaPlacementPolicy(new ArrayList<String>(), UUID.randomUUID().toString()));
+    Map<String, PlacementPolicy> placementPolicies = new HashMap<>();
+    placementPolicies.put("policy_1", new SlaPlacementPolicy(new ArrayList<String>(), id));
+    placementPolicies.put("policy_2",
+        new SlaPlacementPolicy(new ArrayList<String>(), UUID.randomUUID().toString()));
 
     rankCloudProvidersMessage.setPlacementPolicies(placementPolicies);
     ArchiveRoot ar = new ArchiveRoot();
-    Mockito.when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
-        .thenReturn(generateDeployDm.getDeployment());
-    Mockito.when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
-    Mockito
-        .when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
+    when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
+        .thenReturn(deployment);
+    when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
+    when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
             Mockito.anyObject()))
         .thenReturn(new HashMap<>());
-    Assert.assertEquals(rankCloudProvidersMessage,
-        prefilterCloudProviders.customExecute(rankCloudProvidersMessage));
 
+    ExecutionEntity execution = new ExecutionEntityBuilder()
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .build();
+
+    assertThatThrownBy(() -> command.execute(execution))
+        .isInstanceOf(WorkflowException.class)
+        .hasCauseInstanceOf(OrchestratorException.class)
+        .hasMessage("Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: Only a single placement policy is supported");
   }
 
-  @Test(expected = OrchestratorException.class)
+  @Test
   public void testCustomExecuteOrchestratorExceptioNoSLAWithId() throws Exception {
     String id = UUID.randomUUID().toString();
-    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm();
+    Deployment deployment = ControllerTestUtils.createDeployment();
+    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm(deployment);
     RankCloudProvidersMessage rankCloudProvidersMessage =
-        generateRankCloudProvidersMessage(generateDeployDm, DeploymentProvider.CHRONOS);
+        generateRankCloudProvidersMessage(deployment, DeploymentProvider.CHRONOS);
 
     // set slam preferences
     SlamPreferences slamPreferences = getSlamPreferences(id);
     rankCloudProvidersMessage.setSlamPreferences(slamPreferences);
 
     // set placement policies
-    List<PlacementPolicy> placementPolicies = new ArrayList<>();
+    Map<String, PlacementPolicy> placementPolicies = new HashMap<>();
     // use another id for launch exception
-    placementPolicies
-        .add(new SlaPlacementPolicy(new ArrayList<String>(), UUID.randomUUID().toString()));
+    String slaId = UUID.randomUUID().toString();
+    placementPolicies.put("policy",
+        new SlaPlacementPolicy(new ArrayList<String>(), slaId));
 
     rankCloudProvidersMessage.setPlacementPolicies(placementPolicies);
     ArchiveRoot ar = new ArchiveRoot();
-    Mockito.when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
-        .thenReturn(generateDeployDm.getDeployment());
-    Mockito.when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
-    Mockito
-        .when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
+    when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
+        .thenReturn(deployment);
+    when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
+    when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
             Mockito.anyObject()))
         .thenReturn(new HashMap<>());
-    Assert.assertEquals(rankCloudProvidersMessage,
-        prefilterCloudProviders.customExecute(rankCloudProvidersMessage));
 
+    ExecutionEntity execution = new ExecutionEntityBuilder()
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .build();
+
+    assertThatThrownBy(() -> command.execute(execution))
+        .isInstanceOf(WorkflowException.class)
+        .hasCauseInstanceOf(OrchestratorException.class)
+        .hasMessage("Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: No SLA with id " + slaId + " available");
   }
 
-  @Test(expected = OrchestratorException.class)
+  @Test
   public void testCustomExecuteOrchestratorExceptioNoSLAPlacement() throws Exception {
     String id = UUID.randomUUID().toString();
-    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm();
+    Deployment deployment = ControllerTestUtils.createDeployment();
+    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm(deployment);
     RankCloudProvidersMessage rankCloudProvidersMessage =
-        generateRankCloudProvidersMessage(generateDeployDm, DeploymentProvider.CHRONOS);
+        generateRankCloudProvidersMessage(deployment, DeploymentProvider.CHRONOS);
 
     // set slam preferences
     SlamPreferences slamPreferences = getSlamPreferences(id);
     rankCloudProvidersMessage.setSlamPreferences(slamPreferences);
 
     // set placement policies
-    List<PlacementPolicy> placementPolicies = new ArrayList<>();
-    placementPolicies.add(getPlacementePolicies());
+    Map<String, PlacementPolicy> placementPolicies = new HashMap<>();
+    placementPolicies.put("policy", Mockito.mock(PlacementPolicy.class));
     rankCloudProvidersMessage.setPlacementPolicies(placementPolicies);
 
     ArchiveRoot ar = new ArchiveRoot();
-    Mockito.when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
-        .thenReturn(generateDeployDm.getDeployment());
-    Mockito.when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
-    Mockito
-        .when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
+    when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
+        .thenReturn(deployment);
+    when(toscaService.parseTemplate(Mockito.anyString())).thenReturn(ar);
+    when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
             Mockito.anyObject()))
         .thenReturn(new HashMap<>());
-    Assert.assertEquals(rankCloudProvidersMessage,
-        prefilterCloudProviders.customExecute(rankCloudProvidersMessage));
 
+    ExecutionEntity execution = new ExecutionEntityBuilder()
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .build();
+
+    assertThatThrownBy(() -> command.execute(execution))
+        .isInstanceOf(WorkflowException.class)
+        .hasCauseInstanceOf(OrchestratorException.class)
+        .hasMessage("Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: Only SLA placement policies are supported");
   }
 
   @Test
   public void testCustomExecuteRemoveCloudService() throws Exception {
     String id = UUID.randomUUID().toString();
-    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm();
+    Deployment deployment = ControllerTestUtils.createDeployment();
+    DeploymentMessage generateDeployDm = TestUtil.generateDeployDm(deployment);
     RankCloudProvidersMessage rankCloudProvidersMessage =
-        generateRankCloudProvidersMessage(generateDeployDm, DeploymentProvider.HEAT);
+        generateRankCloudProvidersMessage(deployment, DeploymentProvider.HEAT);
 
     // set slam preferences
     SlamPreferences slamPreferences = getSlamPreferences(id);
@@ -231,83 +273,88 @@ public class PrefilterCloudProvidersTest {
     Map<String, CloudProvider> cloudProviders = getCloudProviders(cloudServices);
     rankCloudProvidersMessage.setCloudProviders(cloudProviders);
 
-    Mockito.when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
-        .thenReturn(generateDeployDm.getDeployment());
+    when(deploymentRepository.findOne(generateDeployDm.getDeploymentId()))
+        .thenReturn(deployment);
 
-    Mockito
-        .when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
+    when(toscaService.contextualizeImages(Mockito.anyObject(), Mockito.anyObject(),
             Mockito.anyObject()))
         .thenReturn(
-            Maps.newHashMap(Boolean.FALSE, Maps.newHashMap(new NodeTemplate(), new ImageData())));
+            Maps.newHashMap(Boolean.FALSE,
+                Maps.newHashMap(new NodeTemplate(), ImageData.builder().build())));
 
-    Assert.assertEquals(rankCloudProvidersMessage,
-        prefilterCloudProviders.customExecute(rankCloudProvidersMessage));
+    ExecutionEntity execution = new ExecutionEntityBuilder()
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .build();
 
+    assertThatCode(() -> command.execute(execution))
+        .doesNotThrowAnyException();
   }
 
 
 
-  private RankCloudProvidersMessage generateRankCloudProvidersMessage(DeploymentMessage dm,
+  private RankCloudProvidersMessage generateRankCloudProvidersMessage(Deployment deployment,
       DeploymentProvider dp) {
-    dm.getDeployment().setDeploymentProvider(dp);
+    deployment.setDeploymentProvider(dp);
     RankCloudProvidersMessage rankCloudProvidersMessage = new RankCloudProvidersMessage();
-    rankCloudProvidersMessage.setDeploymentId(dm.getDeploymentId());
+    rankCloudProvidersMessage.setDeploymentId(deployment.getId());
     return rankCloudProvidersMessage;
   }
 
   private SlamPreferences getSlamPreferences(String id) {
-    SlamPreferences slamPreferences = new SlamPreferences();
-    List<Sla> arrayList = new ArrayList<>();
-    Sla sla = new Sla();
-    sla.setId(id);
-    List<Service> services = new ArrayList<Service>();
-    Service service = new Service();
-    service.setServiceId(UUID.randomUUID().toString());
-    services.add(service);
-    sla.setServices(services);
-    arrayList.add(sla);
-    slamPreferences.setSla(arrayList);
-    List<Priority> priorities = getPriorities();
-    Preference extPreference = new Preference();
-    extPreference.setPreferences(getPreferencesCustomer(priorities));
-    List<Preference> preferences = new ArrayList<Preference>();
-    preferences.add(extPreference);
-    slamPreferences.setPreferences(preferences);
-    return slamPreferences;
-  }
-
-  private List<Priority> getPriorities() {
-    List<Priority> priorities = new ArrayList<Priority>();
-    Priority priority = new Priority();
-    priority.setServiceId(UUID.randomUUID().toString());
-    priorities.add(priority);
-    return priorities;
-  }
-
-  private List<PreferenceCustomer> getPreferencesCustomer(List<Priority> priorities) {
-    PreferenceCustomer preferenceCustomer = new PreferenceCustomer();
-    preferenceCustomer.setPriority(priorities);
-    List<PreferenceCustomer> preferencesCustomer = new ArrayList<PreferenceCustomer>();
-    preferencesCustomer.add(preferenceCustomer);
-    return preferencesCustomer;
+    return SlamPreferences
+        .builder()
+        .preferences(Lists
+            .newArrayList(Preference
+                .builder()
+                .preferences(Lists
+                    .newArrayList(PreferenceCustomer
+                        .builder()
+                        .priority(Lists
+                            .newArrayList(Priority
+                                .builder()
+                                .serviceId(UUID.randomUUID().toString())
+                                .build()))
+                        .build()))
+                .build()))
+        .sla(Lists
+            .newArrayList(Sla
+                .builder()
+                .id(id)
+                .services(Lists
+                    .newArrayList(Service
+                        .builder()
+                        .serviceId(UUID.randomUUID().toString())
+                        .build()))
+                .build()))
+        .build();
   }
 
   private Map<String, CloudProvider> getCloudProviders(Map<String, CloudService> cloudServices) {
-    CloudProvider cloudProvider = new CloudProvider("provider-RECAS-BARI");
-    cloudProvider.setCmdbProviderServices(cloudServices);
+    CloudProvider cloudProvider = CloudProvider
+        .builder()
+        .id("provider-RECAS-BARI")
+        .cmdbProviderServices(cloudServices)
+        .build();
     Map<String, CloudProvider> cloudProviders = new HashMap<>();
-    cloudProviders.put("key", cloudProvider);
+    cloudProviders.put(cloudProvider.getId(), cloudProvider);
     return cloudProviders;
   }
 
   private Map<String, CloudService> getCloudServices() {
-    CloudService cloudService = new CloudService();
-    CloudServiceData csd = new CloudServiceData();
-    csd.setType(Type.COMPUTE);
-    csd.setServiceType("eu.egi.cloud.storage-management.oneprovider");
-    cloudService.setData(csd);
+    CloudService cloudService = CloudService
+        .builder()
+        .id("provider-RECAS-BARI")
+        .data(CloudServiceData
+            .builder()
+            .type(Type.STORAGE)
+            .endpoint("http://example.com")
+            .providerId("providerId")
+            .serviceType(CloudService.ONEPROVIDER_STORAGE_SERVICE)
+            .hostname("example.com")
+            .build())
+        .build();
     Map<String, CloudService> cloudServices = new HashMap<>();
-    cloudServices.put("key", cloudService);
+    cloudServices.put(cloudService.getId(), cloudService);
     return cloudServices;
   }
 
@@ -317,14 +364,12 @@ public class PrefilterCloudProvidersTest {
         .token("token")
         .space("space")
         .path("path")
-        .providers("providers")
         .smartScheduling(true)
         .build();
     OneData onedataOutput = OneData.builder()
         .token("token")
         .space("space")
         .path("path")
-        .providers("providers")
         .smartScheduling(true)
         .build();
     oneDataRequirements.put("input", onedataInput);
@@ -332,26 +377,4 @@ public class PrefilterCloudProvidersTest {
     return oneDataRequirements;
   }
 
-
-  // Used for generate excpetion
-  private PlacementPolicy getPlacementePolicies() {
-    return new PlacementPolicy() {
-
-      private static final long serialVersionUID = -3043392471995029378L;
-
-      @Override
-      public List<String> getNodes() {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      @Override
-      public void setNodes(List<String> nodes) {
-        // TODO Auto-generated method stub
-
-      }
-
-    };
-
-  }
 }

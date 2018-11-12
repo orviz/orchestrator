@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package it.reply.orchestrator.dto.mesos;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
+import lombok.Data;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 @Data
 public abstract class MesosTask<T extends MesosTask<T>> {
@@ -39,19 +39,24 @@ public abstract class MesosTask<T extends MesosTask<T>> {
 
   private Double cpus;
 
+  private Long gpus;
+
   private Double memSize;
 
-  private List<T> parents;
+  @NonNull
+  private List<T> parents = new ArrayList<>();
 
-  private List<T> children;
+  @NonNull
+  private List<List<String>> constraints = new ArrayList<>();
 
-  List<List<String>> constraints = new ArrayList<>();
-
-  @Nonnull
+  @NonNull
   private List<String> uris = new ArrayList<>();
 
-  @Nonnull
+  @NonNull
   private Map<String, String> env = new HashMap<>();
+
+  @NonNull
+  private Map<String, String> labels = new HashMap<>();
 
   public Optional<MesosContainer> getContainer() {
     return Optional.ofNullable(this.container);

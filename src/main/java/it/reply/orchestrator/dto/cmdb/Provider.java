@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,24 @@
 
 package it.reply.orchestrator.dto.cmdb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.io.Serializable;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@NoArgsConstructor
-public class Provider extends CmdbDataWrapper<Provider, ProviderData> implements Serializable {
-
-  private static final long serialVersionUID = 6559999818418491070L;
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Provider extends CmdbDataWrapper<Provider, ProviderData> {
 
   @Builder
-  private Provider(@Nullable String id, @Nullable String rev, @Nullable String type,
-      @Nullable ProviderData data) {
-    super(id, rev, type, data);
+  protected Provider(@NonNull String id, @NonNull ProviderData data) {
+    super(id, data);
   }
 
 }

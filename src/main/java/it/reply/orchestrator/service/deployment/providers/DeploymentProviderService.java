@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package it.reply.orchestrator.service.deployment.providers;
 
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
 import it.reply.orchestrator.exception.service.DeploymentException;
+
+import java.util.Optional;
 
 public interface DeploymentProviderService {
 
@@ -56,11 +58,15 @@ public interface DeploymentProviderService {
    * @throws DeploymentException
    *           if the deployment fails.
    */
-  public boolean isDeployed(DeploymentMessage deploymentMessage) throws DeploymentException;
+  public boolean isDeployed(DeploymentMessage deploymentMessage);
 
-  public void finalizeDeploy(DeploymentMessage deploymentMessage, boolean deployed);
+  public void finalizeDeploy(DeploymentMessage deploymentMessage);
+
+  public void cleanFailedDeploy(DeploymentMessage deploymentMessage);
 
   public boolean doUpdate(DeploymentMessage deploymentMessage, String template);
+
+  public void cleanFailedUpdate(DeploymentMessage deploymentMessage);
 
   /**
    * Executes the undeployment of the given <code>deployment</code>, which typically means deleting
@@ -97,8 +103,10 @@ public interface DeploymentProviderService {
    * @throws DeploymentException
    *           if the deployment fails.
    */
-  public boolean isUndeployed(DeploymentMessage deploymentMessage) throws DeploymentException;
+  public boolean isUndeployed(DeploymentMessage deploymentMessage);
 
-  public void finalizeUndeploy(DeploymentMessage deploymentMessage, boolean undeployed);
+  public void finalizeUndeploy(DeploymentMessage deploymentMessage);
+
+  public Optional<String> getAdditionalErrorInfo(DeploymentMessage deploymentMessage);
 
 }

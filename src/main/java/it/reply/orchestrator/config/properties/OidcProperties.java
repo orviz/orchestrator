@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,7 @@
 
 package it.reply.orchestrator.config.properties;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.boot.autoconfigure.security.SecurityPrerequisite;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.util.Assert;
-import org.springframework.validation.annotation.Validated;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,26 +24,50 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.autoconfigure.security.SecurityPrerequisite;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+import org.springframework.validation.annotation.Validated;
+
+@Validated
 @Slf4j
 @Data
+@NoArgsConstructor
 @ConfigurationProperties(prefix = OidcProperties.PROPERTIES_PREFIX)
+@Component
 public class OidcProperties implements SecurityPrerequisite, InitializingBean {
+
+  public static final Set<String> REQUIRED_SCOPES =
+      ImmutableSet.of("openid", "profile", "offline_access");
 
   protected static final String PROPERTIES_PREFIX = "oidc";
 
-  public static final String OIDC_ENABLED_CONDITION =
-      "@'" + PROPERTIES_PREFIX + ".CONFIGURATION_PROPERTIES'.enabled";
-  public static final String OIDC_DISABLED_CONDITION = "!" + OIDC_ENABLED_CONDITION;
+  public static final String SECURITY_ENABLED_PROPERTY = PROPERTIES_PREFIX + ".enabled";
 
   private boolean enabled;
 
-  private boolean cacheTokens;
+  private boolean cacheTokens = true;
 
   @NotNull
   @NonNull
+  @Valid
+  @NestedConfigurationProperty
   private Map<String, IamProperties> iamProperties = new HashMap<>();
 
   /**
@@ -89,7 +101,7 @@ public class OidcProperties implements SecurityPrerequisite, InitializingBean {
       for (Entry<String, IamProperties> iamConfigurationEntry : iamProperties.entrySet()) {
         String issuer = iamConfigurationEntry.getKey();
         IamProperties iamConfiguration = iamConfigurationEntry.getValue();
-        OrchestratorProperties orchestratorConfiguration = iamConfiguration.getOrchestrator();
+        ScopedOidcClientProperties orchestratorConfiguration = iamConfiguration.getOrchestrator();
         Assert.notNull(orchestratorConfiguration,
             "Orchestrator OAuth2 client for issuer " + issuer + " must be provided");
         Assert.hasText(orchestratorConfiguration.getClientId(),
@@ -97,6 +109,7 @@ public class OidcProperties implements SecurityPrerequisite, InitializingBean {
         Assert.hasText(orchestratorConfiguration.getClientSecret(),
             "Orchestrator OAuth2 clientSecret for issuer " + issuer + " must be provided");
         if (orchestratorConfiguration.getScopes().isEmpty()) {
+          // TODO do we need this?
           LOG.warn("No Orchestrator OAuth2 scopes provided for issuer {}", issuer);
         }
 
@@ -122,23 +135,23 @@ public class OidcProperties implements SecurityPrerequisite, InitializingBean {
   }
 
   @Data
+  @Validated
   @NoArgsConstructor
   public static class IamProperties {
 
     @NotNull
     @NonNull
-    private OrchestratorProperties orchestrator;
+    @Valid
+    @NestedConfigurationProperty
+    private ScopedOidcClientProperties orchestrator;
 
-    @MonotonicNonNull
+    @Nullable
+    @Valid
+    @NestedConfigurationProperty
     private OidcClientProperties clues;
 
     public Optional<OidcClientProperties> getClues() {
       return Optional.ofNullable(clues);
-    }
-
-    public void setClues(OidcClientProperties clues) {
-      Assert.notNull(clues);
-      this.clues = clues;
     }
   }
 
@@ -163,12 +176,11 @@ public class OidcProperties implements SecurityPrerequisite, InitializingBean {
   @ToString(callSuper = true)
   @Validated
   @NoArgsConstructor
-  public static class OrchestratorProperties extends OidcClientProperties {
+  public static class ScopedOidcClientProperties extends OidcClientProperties {
 
     @NotNull
     @NonNull
-    private List<String> scopes = new ArrayList<>();
+    private List<String> scopes = new ArrayList<>(REQUIRED_SCOPES);
 
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,19 @@ package it.reply.orchestrator.dto.common;
 
 import it.reply.orchestrator.utils.CommonUtils;
 
+import java.util.Optional;
+
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.http.HttpStatus;
 
-import java.io.Serializable;
-import java.util.Optional;
-
 @Data
-public class Error implements Serializable {
-
-  private static final long serialVersionUID = 6559999818418491070L;
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Error {
 
   @Nullable
   private Integer code;
@@ -43,14 +43,16 @@ public class Error implements Serializable {
 
   /**
    * Generate an Error from an exception and a {@link HttpStatus}.
-   * 
-   * @param ex
+   *
+   * @param exception
    *          the exception
+   * @param message
+   *          the message
    * @param status
    *          the HttpStatus
    */
   @Builder
-  private Error(@Nullable Exception exception, @Nullable String message,
+  protected Error(@Nullable Exception exception, @Nullable String message,
       @Nullable HttpStatus status) {
     Optional.ofNullable(status).map(CommonUtils::checkNotNull).ifPresent(safeStatus -> {
       code = safeStatus.value();

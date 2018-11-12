@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package it.reply.orchestrator.resource.common;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import java.util.Date;
+
+import javax.validation.constraints.NotNull;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -26,23 +28,28 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.hateoas.ResourceSupport;
 
-import java.util.Date;
-
-@JsonInclude(Include.NON_NULL)
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class AbstractResource extends ResourceSupport {
+public abstract class AbstractResource extends ResourceSupport {
 
+  @NotNull
+  @NonNull
   private String uuid;
 
+  @Nullable
   @JsonFormat(timezone = "UTC", pattern = "yyyy-MM-dd'T'HH:mmZ")
   private Date creationTime;
 
+  @Nullable
   @JsonFormat(timezone = "UTC", pattern = "yyyy-MM-dd'T'HH:mmZ")
   private Date updateTime;
 
+  @Nullable
+  private String physicalId;
 }

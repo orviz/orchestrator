@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,21 @@ package it.reply.orchestrator.service;
 import alien4cloud.model.topology.NodeTemplate;
 import alien4cloud.model.topology.RelationshipTemplate;
 import alien4cloud.tosca.model.ArchiveRoot;
-import alien4cloud.tosca.parser.ParsingException;
 
-import it.reply.orchestrator.config.WorkflowConfigProducerBean;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import it.reply.orchestrator.config.properties.OidcProperties;
 import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.entity.OidcEntity;
 import it.reply.orchestrator.dal.entity.OidcEntityId;
-import it.reply.orchestrator.dal.entity.OidcRefreshToken;
-import it.reply.orchestrator.dal.entity.OidcTokenId;
 import it.reply.orchestrator.dal.entity.Resource;
 import it.reply.orchestrator.dal.entity.WorkflowReference;
+import it.reply.orchestrator.dal.entity.WorkflowReference.Action;
 import it.reply.orchestrator.dal.repository.DeploymentRepository;
-import it.reply.orchestrator.dal.repository.OidcEntityRepository;
 import it.reply.orchestrator.dal.repository.ResourceRepository;
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
 import it.reply.orchestrator.dto.deployment.PlacementPolicy;
+import it.reply.orchestrator.dto.dynafed.Dynafed;
 import it.reply.orchestrator.dto.onedata.OneData;
 import it.reply.orchestrator.dto.request.DeploymentRequest;
 import it.reply.orchestrator.enums.DeploymentProvider;
@@ -42,44 +41,39 @@ import it.reply.orchestrator.enums.DeploymentType;
 import it.reply.orchestrator.enums.NodeStates;
 import it.reply.orchestrator.enums.Status;
 import it.reply.orchestrator.enums.Task;
-import it.reply.orchestrator.exception.OrchestratorException;
 import it.reply.orchestrator.exception.http.BadRequestException;
 import it.reply.orchestrator.exception.http.ConflictException;
+import it.reply.orchestrator.exception.http.ForbiddenException;
 import it.reply.orchestrator.exception.http.NotFoundException;
-import it.reply.orchestrator.exception.service.ToscaException;
 import it.reply.orchestrator.service.security.OAuth2TokenService;
 import it.reply.orchestrator.utils.CommonUtils;
+import it.reply.orchestrator.utils.MdcUtils;
 import it.reply.orchestrator.utils.ToscaConstants;
 import it.reply.orchestrator.utils.WorkflowConstants;
-import it.reply.workflowmanager.exceptions.WorkflowException;
-import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager;
-import it.reply.workflowmanager.orchestrator.bpm.BusinessProcessManager.RUNTIME_STRATEGY;
 
-import org.jgrapht.graph.DirectedMultigraph;
-import org.jgrapht.traverse.TopologicalOrderIterator;
-import org.kie.api.runtime.process.ProcessInstance;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.social.oauth2.AccessGrant;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.flowable.engine.RuntimeService;
+import org.flowable.engine.runtime.ProcessInstance;
+import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.traverse.TopologicalOrderIterator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
+@Slf4j
 public class DeploymentServiceImpl implements DeploymentService {
 
   private static final Pattern OWNER_PATTERN = Pattern.compile("([^@]+)@([^@]+)");
@@ -91,13 +85,10 @@ public class DeploymentServiceImpl implements DeploymentService {
   private ResourceRepository resourceRepository;
 
   @Autowired
-  private OidcEntityRepository oidcEntityRepository;
-
-  @Autowired
   private ToscaService toscaService;
 
   @Autowired
-  private BusinessProcessManager wfService;
+  private RuntimeService wfService;
 
   @Autowired
   private OAuth2TokenService oauth2TokenService;
@@ -105,11 +96,19 @@ public class DeploymentServiceImpl implements DeploymentService {
   @Autowired
   private OidcProperties oidcProperties;
 
+  @Autowired
+  private ObjectMapper objectMapper;
+
   @Override
   @Transactional(readOnly = true)
   public Page<Deployment> getDeployments(Pageable pageable, String owner) {
     if (owner == null) {
-      return deploymentRepository.findAll(pageable);
+      if (oidcProperties.isEnabled()) {
+        OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
+        return deploymentRepository.findAll(requester, pageable);
+      } else {
+        return deploymentRepository.findAll(pageable);
+      }
     } else {
       OidcEntityId ownerId;
       if ("me".equals(owner)) {
@@ -124,7 +123,12 @@ public class DeploymentServiceImpl implements DeploymentService {
           throw new BadRequestException("Value " + owner + " for param createdBy is illegal");
         }
       }
-      return deploymentRepository.findByOwner_oidcEntityId(ownerId, pageable);
+      if (oidcProperties.isEnabled()) {
+        OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
+        return deploymentRepository.findAllByOwner(requester, ownerId, pageable);
+      } else {
+        return deploymentRepository.findAllByOwner(ownerId, pageable);
+      }
     }
   }
 
@@ -132,131 +136,108 @@ public class DeploymentServiceImpl implements DeploymentService {
   @Transactional(readOnly = true)
   public Deployment getDeployment(String uuid) {
 
-    Deployment deployment = deploymentRepository.findOne(uuid);
+    Deployment deployment = null;
+    if (oidcProperties.isEnabled()) {
+      OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
+      deployment = deploymentRepository.findOne(requester, uuid);
+    } else {
+      deployment = deploymentRepository.findOne(uuid);
+    }
     if (deployment != null) {
+      MdcUtils.setDeploymentId(deployment.getId());
       return deployment;
     } else {
       throw new NotFoundException("The deployment <" + uuid + "> doesn't exist");
     }
   }
 
-  private Optional<OidcEntity> getOrGenerateRequester() {
+  private void throwIfNotOwned(Deployment deployment) {
     if (oidcProperties.isEnabled()) {
       OidcEntityId requesterId = oauth2TokenService.generateOidcEntityIdFromCurrentAuth();
-
-      OidcEntity requester = oidcEntityRepository
-          .findByOidcEntityId(requesterId)
-          .orElseGet(oauth2TokenService::generateOidcEntityFromCurrentAuth);
-      // exchange token if a refresh token is not yet associated with the user
-      if (requester.getRefreshToken() == null) {
-        OidcTokenId currentTokenId = oauth2TokenService.generateTokenIdFromCurrentAuth();
-        AccessGrant grant = oauth2TokenService.exchangeAccessToken(currentTokenId,
-            oauth2TokenService.getOAuth2TokenFromCurrentAuth(), OAuth2TokenService.REQUIRED_SCOPES);
-
-        OidcRefreshToken token = OidcRefreshToken.fromAccessGrant(currentTokenId, grant);
-
-        requester.setRefreshToken(token);
-
+      OidcEntity owner = deployment.getOwner();
+      if (owner != null && !requesterId.equals(owner.getOidcEntityId())) {
+        throw new ForbiddenException(
+            "Only the owner of the deployment can perform this operation");
       }
-      return Optional.of(requester);
-    } else {
-      return Optional.empty();
     }
   }
 
   @Override
   @Transactional
   public Deployment createDeployment(DeploymentRequest request) {
-    Map<String, NodeTemplate> nodes;
-    Deployment deployment;
-    Map<String, OneData> odRequirements = new HashMap<>();
-    List<PlacementPolicy> placementPolicies = new ArrayList<>();
-    DeploymentType deploymentType;
+    Deployment deployment = new Deployment();
+    deployment.setStatus(Status.CREATE_IN_PROGRESS);
+    deployment.setTask(Task.NONE);
+    deployment.setTemplate(request.getTemplate());
+    deployment.setParameters(request.getParameters());
+    deployment.setCallback(request.getCallback());
+    deployment = deploymentRepository.save(deployment);
+    MdcUtils.setDeploymentId(deployment.getId());
+    LOG.debug("Creating deployment with template\n{}", request.getTemplate());
+    // Parse once, validate structure and user's inputs, replace user's input
+    ArchiveRoot parsingResult =
+        toscaService.prepareTemplate(request.getTemplate(), request.getParameters());
+    Map<String, NodeTemplate> nodes = parsingResult.getTopology().getNodeTemplates();
 
-    try {
-      // Parse once, validate structure and user's inputs, replace user's input
-      ArchiveRoot parsingResult =
-          toscaService.prepareTemplate(request.getTemplate(), request.getParameters());
+    // Create internal resources representation (to store in DB)
+    createResources(deployment, nodes);
 
-      nodes = parsingResult.getTopology().getNodeTemplates();
-
-      deployment = new Deployment();
-      deployment.setStatus(Status.CREATE_IN_PROGRESS);
-      deployment.setTask(Task.NONE);
-      deployment.setTemplate(request.getTemplate());
-      deployment.setParameters(request.getParameters());
-
-      if (request.getCallback() != null) {
-        deployment.setCallback(request.getCallback());
-      }
-
-      // FIXME: Define function to decide DeploymentProvider (Temporary - just for prototyping)
-      deploymentType = inferDeploymentType(nodes);
-
-      if (deploymentType == DeploymentType.CHRONOS) {
-        // Extract OneData requirements from template
-        odRequirements =
-            toscaService.extractOneDataRequirements(parsingResult, request.getParameters());
-      }
-
-      placementPolicies = toscaService.extractPlacementPolicies(parsingResult);
-
-      deployment = deploymentRepository.save(deployment);
-
-      // Create internal resources representation (to store in DB)
-      createResources(deployment, nodes);
-
-    } catch (IOException ex) {
-      throw new OrchestratorException(ex.getMessage(), ex);
-    } catch (ParsingException | ToscaException ex) {
-      throw new BadRequestException("Template is invalid: " + ex.getMessage(), ex);
+    if (oidcProperties.isEnabled()) {
+      deployment.setOwner(oauth2TokenService.getOrGenerateOidcEntityFromCurrentAuth());
     }
 
-    Map<String, Object> params = new HashMap<>();
-    params.put(WorkflowConstants.WF_PARAM_DEPLOYMENT_ID, deployment.getId());
-    params.put(WorkflowConstants.WF_PARAM_LOGGER,
-        LoggerFactory.getLogger(WorkflowConfigProducerBean.DEPLOY.getProcessId()));
-
-    Optional<OidcEntity> requester = this.getOrGenerateRequester();
-    requester.ifPresent(deployment::setOwner);
+    DeploymentType deploymentType = inferDeploymentType(nodes);
 
     // Build deployment message
-    DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, requester);
-    deploymentMessage
-        .setOneDataRequirements(CommonUtils.notNullOrDefaultValue(odRequirements, new HashMap<>()));
-    deploymentMessage.setPlacementPolicies(
-        CommonUtils.notNullOrDefaultValue(placementPolicies, new ArrayList<>()));
-    deploymentMessage.setDeploymentType(deploymentType);
-    params.put(WorkflowConstants.WF_PARAM_DEPLOYMENT_MESSAGE, deploymentMessage);
+    DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, deploymentType);
 
-    ProcessInstance pi = null;
-    try {
-      pi = wfService.startProcess(WorkflowConfigProducerBean.DEPLOY.getProcessId(), params,
-          RUNTIME_STRATEGY.PER_PROCESS_INSTANCE);
-    } catch (WorkflowException ex) {
-      throw new OrchestratorException(ex);
-    }
+    Map<String, OneData> odRequirements = toscaService
+        .extractOneDataRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setOneDataRequirements(odRequirements);
+
+    Map<String, Dynafed> dyanfedRequirements = toscaService
+        .extractDyanfedRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
+
+    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
+
+    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
+    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
+
+    Map<String, PlacementPolicy> placementPolicies = toscaService
+        .extractPlacementPolicies(parsingResult);
+    deploymentMessage.setPlacementPolicies(placementPolicies);
+    deploymentMessage.setDeploymentType(deploymentType);
+
+    boolean isHybrid = toscaService.isHybridDeployment(parsingResult);
+    deploymentMessage.setHybrid(isHybrid);
+
+    ProcessInstance pi = wfService
+        .createProcessInstanceBuilder()
+        .variable(WorkflowConstants.Param.DEPLOYMENT_ID, deployment.getId())
+        .variable(WorkflowConstants.Param.REQUEST_ID, MdcUtils.getRequestId())
+        .variable(WorkflowConstants.Param.DEPLOYMENT_MESSAGE,
+            objectMapper.valueToTree(deploymentMessage))
+        .processDefinitionKey(WorkflowConstants.Process.DEPLOY)
+        .businessKey(MdcUtils.toBusinessKey())
+        .start();
+
     deployment.addWorkflowReferences(
-        new WorkflowReference(pi.getId(), RUNTIME_STRATEGY.PER_PROCESS_INSTANCE));
+        new WorkflowReference(pi.getId(), MdcUtils.getRequestId(), Action.CREATE));
     deployment = deploymentRepository.save(deployment);
     return deployment;
 
   }
 
   protected DeploymentMessage buildDeploymentMessage(Deployment deployment,
-      Optional<OidcEntity> requester) {
+      DeploymentType deploymentType) {
     DeploymentMessage deploymentMessage = new DeploymentMessage();
-    requester.ifPresent(req -> {
-      OidcTokenId tokenId = new OidcTokenId();
-      tokenId.setIssuer(req.getOidcEntityId().getIssuer());
-      tokenId.setJti(req.getRefreshToken().getOriginalTokenId());
-      deploymentMessage.setRequestedWithToken(tokenId);
-    });
+    if (oidcProperties.isEnabled()) {
+      deploymentMessage.setRequestedWithToken(oauth2TokenService.exchangeCurrentAccessToken());
+    }
     deploymentMessage.setDeploymentId(deployment.getId());
-    deploymentMessage.setChosenCloudProviderEndpoint(deployment.getCloudProviderEndpoint());
-
+    deploymentMessage.setDeploymentType(deploymentType);
     return deploymentMessage;
-
   }
 
   private DeploymentType inferDeploymentType(Map<String, NodeTemplate> nodes) {
@@ -286,128 +267,128 @@ public class DeploymentServiceImpl implements DeploymentService {
   @Override
   @Transactional
   public void deleteDeployment(String uuid) {
-    Deployment deployment = deploymentRepository.findOne(uuid);
-    if (deployment != null) {
-      if (deployment.getStatus() == Status.DELETE_COMPLETE
-          || deployment.getStatus() == Status.DELETE_IN_PROGRESS) {
-        throw new ConflictException(
-            String.format("Deployment already in %s state.", deployment.getStatus().toString()));
-      } else {
-        // Update deployment status
-        deployment.setStatus(Status.DELETE_IN_PROGRESS);
-        deployment.setStatusReason(null);
-        deployment.setTask(Task.NONE);
-        deployment = deploymentRepository.save(deployment);
+    Deployment deployment = getDeployment(uuid);
+    MdcUtils.setDeploymentId(deployment.getId());
+    throwIfNotOwned(deployment);
 
-        // Abort all WF currently active on this deployment
-        Iterator<WorkflowReference> wrIt = deployment.getWorkflowReferences().iterator();
-        while (wrIt.hasNext()) {
-          WorkflowReference wr = wrIt.next();
-          wfService.abortProcess(wr.getProcessId(), wr.getRuntimeStrategy());
-          wrIt.remove();
-        }
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(WorkflowConstants.WF_PARAM_DEPLOYMENT_ID, deployment.getId());
-        params.put(WorkflowConstants.WF_PARAM_LOGGER,
-            LoggerFactory.getLogger(WorkflowConfigProducerBean.UNDEPLOY.getProcessId()));
-
-        // No deployment IaaS reference -> nothing to delete
-        if (deployment.getEndpoint() == null) {
-          deploymentRepository.delete(deployment);
-          return;
-        }
-
-        Optional<OidcEntity> requester = this.getOrGenerateRequester();
-
-        // Build deployment message
-        DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, requester);
-        DeploymentType deploymentType = inferDeploymentType(deployment.getDeploymentProvider());
-        deploymentMessage.setDeploymentType(deploymentType);
-        params.put(WorkflowConstants.WF_PARAM_DEPLOYMENT_MESSAGE, deploymentMessage);
-
-        ProcessInstance pi = null;
-        try {
-          pi = wfService.startProcess(WorkflowConfigProducerBean.UNDEPLOY.getProcessId(), params,
-              RUNTIME_STRATEGY.PER_PROCESS_INSTANCE);
-        } catch (WorkflowException ex) {
-          throw new OrchestratorException(ex);
-        }
-        deployment.addWorkflowReferences(
-            new WorkflowReference(pi.getId(), RUNTIME_STRATEGY.PER_PROCESS_INSTANCE));
-        deployment = deploymentRepository.save(deployment);
-      }
-    } else {
-      throw new NotFoundException("The deployment <" + uuid + "> doesn't exist");
+    if (deployment.getStatus() == Status.DELETE_COMPLETE
+        || deployment.getStatus() == Status.DELETE_IN_PROGRESS) {
+      throw new ConflictException(
+          String.format("Deployment already in %s state.", deployment.getStatus().toString()));
     }
+
+    // Update deployment status
+    deployment.setStatus(Status.DELETE_IN_PROGRESS);
+    deployment.setStatusReason(null);
+    deployment.setTask(Task.NONE);
+
+    wfService
+        .createExecutionQuery()
+        .onlyProcessInstanceExecutions()
+        .variableValueEquals(WorkflowConstants.Param.DEPLOYMENT_ID, deployment.getId())
+        .list()
+        .forEach(execution -> wfService.deleteProcessInstance(execution.getProcessInstanceId(),
+            "Process deleted by user with request " + MdcUtils.getRequestId()));
+
+    if (deployment.getDeploymentProvider() == null) {
+      // no deployment provider -> no resources created
+      // TODO handle it in a better way (e.g. a stub provider)
+      deploymentRepository.delete(deployment);
+      return;
+    }
+    DeploymentType deploymentType = inferDeploymentType(deployment.getDeploymentProvider());
+
+    // Build deployment message
+    DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, deploymentType);
+
+    ProcessInstance pi = wfService
+        .createProcessInstanceBuilder()
+        .variable(WorkflowConstants.Param.DEPLOYMENT_ID, deployment.getId())
+        .variable(WorkflowConstants.Param.REQUEST_ID, MdcUtils.getRequestId())
+        .variable(WorkflowConstants.Param.DEPLOYMENT_MESSAGE,
+            objectMapper.valueToTree(deploymentMessage))
+        .processDefinitionKey(WorkflowConstants.Process.UNDEPLOY)
+        .businessKey(MdcUtils.toBusinessKey())
+        .start();
+
+    deployment.addWorkflowReferences(
+        new WorkflowReference(pi.getId(), MdcUtils.getRequestId(), Action.DELETE));
   }
 
   @Override
   @Transactional
   public void updateDeployment(String id, DeploymentRequest request) {
-    Deployment deployment = deploymentRepository.findOne(id);
-    if (deployment != null) {
+    Deployment deployment = getDeployment(id);
+    MdcUtils.setDeploymentId(deployment.getId());
+    LOG.debug("Updating deployment with template\n{}", id, request.getTemplate());
+    throwIfNotOwned(deployment);
 
-      if (deployment.getDeploymentProvider() == DeploymentProvider.CHRONOS
-          || deployment.getDeploymentProvider() == DeploymentProvider.MARATHON) {
-        throw new BadRequestException(String.format("%s deployments cannot be updated.",
-            deployment.getDeploymentProvider().toString()));
-      }
-
-      if (deployment.getStatus() == Status.CREATE_COMPLETE
-          || deployment.getStatus() == Status.UPDATE_COMPLETE
-          || deployment.getStatus() == Status.UPDATE_FAILED) {
-        try {
-          // Check if the new template is valid: parse, validate structure and user's inputs,
-          // replace user's inputs
-          toscaService.prepareTemplate(request.getTemplate(), deployment.getParameters());
-
-        } catch (ParsingException | IOException ex) {
-          throw new OrchestratorException(ex);
-        }
-        deployment.setStatus(Status.UPDATE_IN_PROGRESS);
-        deployment.setStatusReason(null);
-        deployment.setTask(Task.NONE);
-
-        deployment = deploymentRepository.save(deployment);
-
-        // !! WARNING !! That's an hack to avoid an obscure NonUniqueObjetException on the new
-        // WorkflowReference created after the WF start
-        deployment.getWorkflowReferences().size();
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(WorkflowConstants.WF_PARAM_DEPLOYMENT_ID, deployment.getId());
-        params.put(WorkflowConstants.WF_PARAM_TOSCA_TEMPLATE, request.getTemplate());
-        params.put(WorkflowConstants.WF_PARAM_LOGGER,
-            LoggerFactory.getLogger(WorkflowConfigProducerBean.UPDATE.getProcessId()));
-
-        Optional<OidcEntity> requester = this.getOrGenerateRequester();
-
-        // Build deployment message
-        DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, requester);
-        params.put(WorkflowConstants.WF_PARAM_DEPLOYMENT_MESSAGE, deploymentMessage);
-
-        DeploymentType deploymentType = inferDeploymentType(deployment.getDeploymentProvider());
-        deploymentMessage.setDeploymentType(deploymentType);
-
-        ProcessInstance pi = null;
-        try {
-          pi = wfService.startProcess(WorkflowConfigProducerBean.UPDATE.getProcessId(), params,
-              RUNTIME_STRATEGY.PER_PROCESS_INSTANCE);
-        } catch (WorkflowException ex) {
-          throw new OrchestratorException(ex);
-        }
-        deployment.addWorkflowReferences(
-            new WorkflowReference(pi.getId(), RUNTIME_STRATEGY.PER_PROCESS_INSTANCE));
-        deployment = deploymentRepository.save(deployment);
-      } else {
-        throw new ConflictException(String.format("Cannot update a deployment in %s state",
-            deployment.getStatus().toString()));
-
-      }
-    } else {
-      throw new NotFoundException("The deployment <" + id + "> doesn't exist");
+    if (deployment.getDeploymentProvider() == DeploymentProvider.CHRONOS
+        || deployment.getDeploymentProvider() == DeploymentProvider.MARATHON) {
+      throw new BadRequestException(String.format("%s deployments cannot be updated.",
+          deployment.getDeploymentProvider().toString()));
     }
+
+    if (!(deployment.getStatus() == Status.CREATE_COMPLETE
+        || deployment.getStatus() == Status.UPDATE_COMPLETE
+        || deployment.getStatus() == Status.UPDATE_FAILED)) {
+      throw new ConflictException(String.format("Cannot update a deployment in %s state",
+          deployment.getStatus().toString()));
+    }
+
+    deployment.setStatus(Status.UPDATE_IN_PROGRESS);
+    deployment.setStatusReason(null);
+    deployment.setTask(Task.NONE);
+    deployment.getParameters().putAll(request.getParameters());
+    if (request.getCallback() != null) {
+      deployment.setCallback(request.getCallback());
+    }
+    deployment = deploymentRepository.save(deployment);
+
+    DeploymentType deploymentType = inferDeploymentType(deployment.getDeploymentProvider());
+
+    // Build deployment message
+    DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, deploymentType);
+
+    // Check if the new template is valid: parse, validate structure and user's inputs,
+    // replace user's inputs
+    ArchiveRoot parsingResult =
+        toscaService.prepareTemplate(request.getTemplate(), deployment.getParameters());
+
+    boolean isHybrid = toscaService.isHybridDeployment(parsingResult);
+    deploymentMessage.setHybrid(isHybrid);
+
+    Map<String, PlacementPolicy> placementPolicies =
+        toscaService.extractPlacementPolicies(parsingResult);
+    deploymentMessage.setPlacementPolicies(placementPolicies);
+
+    Map<String, OneData> odRequirements = toscaService
+        .extractOneDataRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setOneDataRequirements(odRequirements);
+
+    Map<String, Dynafed> dyanfedRequirements = toscaService
+        .extractDyanfedRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
+
+    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
+
+    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
+    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
+
+    ProcessInstance pi = wfService
+        .createProcessInstanceBuilder()
+        .variable(WorkflowConstants.Param.DEPLOYMENT_ID, deployment.getId())
+        .variable(WorkflowConstants.Param.REQUEST_ID, MdcUtils.getRequestId())
+        .variable(WorkflowConstants.Param.TOSCA_TEMPLATE, request.getTemplate())
+        .variable(WorkflowConstants.Param.DEPLOYMENT_MESSAGE,
+            objectMapper.valueToTree(deploymentMessage))
+        .processDefinitionKey(WorkflowConstants.Process.UPDATE)
+        .businessKey(MdcUtils.toBusinessKey())
+        .start();
+
+    deployment.addWorkflowReferences(
+        new WorkflowReference(pi.getId(), MdcUtils.getRequestId(), Action.UPDATE));
+
   }
 
   private void createResources(Deployment deployment, Map<String, NodeTemplate> nodes) {

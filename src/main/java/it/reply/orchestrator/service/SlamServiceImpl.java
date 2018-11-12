@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,105 +16,76 @@
 
 package it.reply.orchestrator.service;
 
-import it.reply.orchestrator.config.properties.OidcProperties;
-import it.reply.orchestrator.dal.entity.OidcEntity;
-import it.reply.orchestrator.dal.entity.OidcRefreshToken;
+import it.reply.orchestrator.config.properties.SlamProperties;
 import it.reply.orchestrator.dal.entity.OidcTokenId;
-import it.reply.orchestrator.dal.repository.OidcTokenRepository;
 import it.reply.orchestrator.dto.slam.SlamPreferences;
 import it.reply.orchestrator.exception.service.DeploymentException;
 import it.reply.orchestrator.service.security.OAuth2TokenService;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
+import java.net.URI;
+
+import javax.ws.rs.core.UriBuilder;
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.HeadersBuilder;
-import org.springframework.http.ResponseEntity;
-import org.springframework.social.support.URIBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.util.Optional;
-import java.util.function.Function;
-
 @Service
-@PropertySource("classpath:slam/slam.properties")
+@EnableConfigurationProperties(SlamProperties.class)
 public class SlamServiceImpl implements SlamService {
 
-  @Autowired
-  private RestTemplate restTemplate;
+  private SlamProperties slamProperties;
 
-  @Autowired
-  private OidcTokenRepository tokenRepository;
-
-  @Autowired
-  private OidcProperties oidcProperties;
-
-  @Autowired
   private OAuth2TokenService oauth2TokenService;
 
-  @Value("${slam.url}")
-  private String url;
+  private RestTemplate restTemplate;
 
-  @Value("${preferences}")
-  private String preferences;
-
-  @Override
-  public String getUrl() {
-    return url;
-  }
-
-  protected <R> R executeWithClient(Function<RequestEntity<?>, R> function, URI requestUri,
-      OidcTokenId tokenId) {
-    if (!oidcProperties.isEnabled()) {
-      return function.apply(RequestEntity.get(requestUri).build());
-    }
-    try {
-      String accessToken =
-          oauth2TokenService.getAccessToken(tokenId, OAuth2TokenService.REQUIRED_SCOPES);
-      HeadersBuilder<?> request =
-          RequestEntity.get(requestUri).header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-
-      return function.apply(request.build());
-    } catch (HttpClientErrorException ex) {
-      if (Optional.ofNullable(ex.getStatusCode())
-          .filter(HttpStatus.UNAUTHORIZED::equals)
-          .isPresent()) {
-        String accessToken = oauth2TokenService
-            .refreshAccessToken(tokenId, OAuth2TokenService.REQUIRED_SCOPES).getAccessToken();
-        HeadersBuilder<?> request = RequestEntity.get(requestUri).header(HttpHeaders.AUTHORIZATION,
-            "Bearer " + accessToken);
-        return function.apply(request.build());
-      } else {
-        throw ex;
-      }
-    }
+  /**
+   * Creates a new SlamServiceImpl.
+   *
+   * @param slamProperties
+   *          the SlamProperties to use
+   * @param oauth2TokenService
+   *          the OAuth2TokenService to use
+   * @param restTemplateBuilder
+   *          the RestTemplateBuilder to use
+   */
+  public SlamServiceImpl(
+      SlamProperties slamProperties, OAuth2TokenService oauth2TokenService,
+      RestTemplateBuilder restTemplateBuilder) {
+    this.slamProperties = slamProperties;
+    this.oauth2TokenService = oauth2TokenService;
+    this.restTemplate = restTemplateBuilder.build();
   }
 
   @Override
   public SlamPreferences getCustomerPreferences(OidcTokenId tokenId) {
 
-    String slamCustomer = Optional.ofNullable(tokenId)
-        .flatMap(tokenRepository::findByOidcTokenId)
-        .map(OidcRefreshToken::getEntity)
-        .map(OidcEntity::getOrganization)
-        .orElse("indigo-dc");
+    String slamCustomer = oauth2TokenService.getOrganization(tokenId);
 
-    URI requestUri = URIBuilder.fromUri(url.concat(preferences).concat(slamCustomer)).build();
+    URI requestUri = UriBuilder
+        .fromUri(slamProperties.getUrl() + slamProperties.getCustomerPreferencesPath())
+        .build(slamCustomer)
+        .normalize();
 
-    ResponseEntity<SlamPreferences> response = this.executeWithClient(
-        request -> restTemplate.exchange(request, SlamPreferences.class), requestUri, tokenId);
-
-    if (response.getStatusCode().is2xxSuccessful()) {
-      return response.getBody();
+    try {
+      return oauth2TokenService.executeWithClientForResult(tokenId,
+          accessToken -> {
+            HeadersBuilder<?> requestBuilder = RequestEntity.get(requestUri);
+            if (accessToken != null) {
+              requestBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+            }
+            return restTemplate.exchange(requestBuilder.build(), SlamPreferences.class);
+          }, OAuth2TokenService.restTemplateTokenRefreshEvaluator).getBody();
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error fetching SLA for customer <" + slamCustomer + "> from SLAM.", ex);
     }
-    throw new DeploymentException("Unable to find SLAM preferences. "
-        + response.getStatusCode().toString() + " " + response.getStatusCode().getReasonPhrase());
   }
 
 }

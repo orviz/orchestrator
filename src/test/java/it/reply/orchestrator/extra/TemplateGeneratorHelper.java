@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,21 @@
 
 package it.reply.orchestrator.extra;
 
-import es.upv.i3m.grycap.file.NoNullOrEmptyFile;
-import es.upv.i3m.grycap.file.Utf8File;
-import es.upv.i3m.grycap.im.exceptions.FileException;
-
 import it.reply.orchestrator.service.ToscaServiceTest;
+import it.reply.orchestrator.util.TestUtil;
 
-import java.nio.file.Paths;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TemplateGeneratorHelper {
-  public static void main(String[] args) throws FileException {
+  public static void main(String[] args) throws IOException {
     System.out.println(
         generateChronosTemplate(10000).replace(System.getProperty("line.separator"), "\\n"));
   }
 
-  public static String generateChronosTemplate(int nodeNumber) throws FileException {
-    String baseTemplate = getFileContentAsString(
+  public static String generateChronosTemplate(int nodeNumber) throws IOException {
+    String baseTemplate = TestUtil.getFileContentAsString(
         ToscaServiceTest.TEMPLATES_BASE_DIR + "chronos_tosca_generator.yaml");
 
     Pattern pat = Pattern.compile("(?s)<pattern>(.*?)<\\/pattern>");
@@ -48,9 +45,5 @@ public class TemplateGeneratorHelper {
     }
 
     return matcher.replaceFirst(sb.toString());
-  }
-
-  private static String getFileContentAsString(String fileUri) throws FileException {
-    return new NoNullOrEmptyFile(new Utf8File(Paths.get(fileUri))).read();
   }
 }

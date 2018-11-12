@@ -1,5 +1,5 @@
 #
-# Copyright © 2015-2017 Santer Reply S.p.A.
+# Copyright © 2015-2018 Santer Reply S.p.A.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,60 +14,43 @@
 # limitations under the License.
 #
 
-FROM jboss/wildfly:9.0.2.Final
+FROM openjdk:8-jdk-alpine
 
-MAINTAINER Alberto Brigandì <a.brigandi@reply.it>
+MAINTAINER Alberto Brigandì <a.brigandi@reply.com>
 
-USER root
-RUN yum install -y libaio nc && yum clean all
-USER jboss
+# Fix https://github.com/docker-library/openjdk/issues/73
+RUN apk add --no-cache fontconfig ttf-dejavu
 
-ENV MYSQL_CONNECTOR_VERSION=5.1.38 \
-	JBOSS_CONF_FILE=standalone-full-ha.xml
-COPY add_mysql_driver_module.sh add_json_log_formatter_module.sh update_hibernate_module.sh otherConfigs.xsl datasourcesConfig.xsl launch.sh /
+RUN apk add --no-cache bash
 
-RUN /add_mysql_driver_module.sh \
-	&& /add_json_log_formatter_module.sh \
-	&& /update_hibernate_module.sh \
-	&& java -jar /usr/share/java/saxon.jar -o:$JBOSS_HOME/standalone/configuration/$JBOSS_CONF_FILE \
-		-s:$JBOSS_HOME/standalone/configuration/$JBOSS_CONF_FILE -xsl:/otherConfigs.xsl
+WORKDIR /orchestrator
 
-EXPOSE  3528 \
-		3529 \
-		4712 \
-		4713 \
-		7600 \
-		8009 \
-		8080 \
-		8443 \
-		8787 \
-		9990 \
-		9993 \
-		23364 \
-		45688 \
-		45700 \
-		54200 \
-		55200 \
-		57600
+COPY launch.sh launch.sh
 
-ENV WAR_NAME orchestrator.war
+ENV ARTIFACT_NAME="orchestrator.war"
 
-ARG WAR_NAME_SRC=$WAR_NAME
+ARG ARTIFACT_SRC="${ARTIFACT_NAME}"
 
-ADD $WAR_NAME_SRC $JBOSS_HOME/standalone/deployments/$WAR_NAME.zip
-RUN unzip $JBOSS_HOME/standalone/deployments/$WAR_NAME.zip -d $JBOSS_HOME/standalone/deployments/$WAR_NAME \
-	&& touch $JBOSS_HOME/standalone/deployments/$WAR_NAME.dodeploy \
-	&& rm $JBOSS_HOME/standalone/deployments/$WAR_NAME.zip
+ADD [ "${ARTIFACT_SRC}", "${ARTIFACT_NAME}" ]
 
-ENV ORCHESTRATOR_DB_ENDPOINT="databaseorchestrator:3306" \
-	ORCHESTRATOR_DB_NAME=orchestrator \
-	ORCHESTRATOR_DB_USER=root \
-	ORCHESTRATOR_DB_PWD=root \
+RUN addgroup -S orchestrator \
+	&& adduser -S -g orchestrator orchestrator \
+	&& chown orchestrator:orchestrator /orchestrator
+
+USER orchestrator
+
+ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XshowSettings:vm" \
+	ORCHESTRATOR_DB_ENDPOINT="databaseorchestrator:3306" \
+	ORCHESTRATOR_DB_NAME="orchestrator" \
+	ORCHESTRATOR_DB_USER="root" \
+	ORCHESTRATOR_DB_PWD="root" \
 	WORKFLOW_DB_ENDPOINT="databaseworkflow:3306" \
-	WORKFLOW_DB_NAME=workflow \
-	WORKFLOW_DB_USER=root \
-	WORKFLOW_DB_PWD=root
+	WORKFLOW_DB_NAME="workflow" \
+	WORKFLOW_DB_USER="root" \
+	WORKFLOW_DB_PWD="root"
 
-ENTRYPOINT ["/launch.sh"]
+EXPOSE 8080
 
-CMD ["/opt/jboss/wildfly/bin/standalone.sh"]
+ENTRYPOINT [ "/orchestrator/launch.sh" ]
+
+CMD [ "java" ]

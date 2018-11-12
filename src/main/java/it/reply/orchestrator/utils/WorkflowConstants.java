@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,54 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class WorkflowConstants {
-  public static final String WF_PARAM_DEPLOYMENT_ID = "DEPLOYMENT_ID";
-  public static final String WF_PARAM_DEPLOYMENT_MESSAGE = "DeploymentMessage";
-  public static final String WF_PARAM_RANK_CLOUD_PROVIDERS_MESSAGE = "RankCloudProvidersMessage";
-  public static final String WF_PARAM_TOSCA_TEMPLATE = "TOSCA_TEMPLATE";
-  public static final String WF_PARAM_LOGGER = "logger";
-  public static final String WF_PARAM_POLLING_STATUS = "pollingStatus";
 
+  @UtilityClass
+  public static class Param {
+    public static final String DEPLOYMENT_ID = "DEPLOYMENT_ID";
+    public static final String REQUEST_ID = "REQUEST_ID";
+    public static final String DEPLOYMENT_MESSAGE = "DeploymentMessage";
+    public static final String RANK_CLOUD_PROVIDERS_MESSAGE = "RankCloudProvidersMessage";
+    public static final String TOSCA_TEMPLATE = "TOSCA_TEMPLATE";
+    public static final String EXCEPTION = "exception";
+  }
+
+  @UtilityClass
+  public static class ErrorCode {
+
+    public static final String CLOUD_PROVIDER_ERROR = "CloudProviderError";
+    public static final String RUNTIME_ERROR = "RuntimeError";
+  }
+
+  @UtilityClass
+  public static class Process {
+    public static final String DEPLOY = "Deploy";
+    public static final String UNDEPLOY = "Undeploy";
+    public static final String UPDATE = "Update";
+    public static final String RANK_CLOUD_PROVIDERS = "RankCloudProviders";
+  }
+
+  @UtilityClass
+  public static class Delegate {
+    public static final String UPDATE_DEPLOYMENT = "updateDeployment";
+    public static final String UPDATE = "update";
+    public static final String UNDEPLOY = "undeploy";
+    public static final String PREFILTER_CLOUD_PROVIDERS = "prefilterCloudProviders";
+    public static final String POLL_UNDEPLOY = "pollUndeploy";
+    public static final String POLL_DEPLOY = "pollDeploy";
+    public static final String NOTIFY = "notify";
+    public static final String HANDLE_ERROR = "handleError";
+    public static final String HANDLE_TIMEOUT = "handleTimeout";
+    public static final String GET_SLAM = "getSlam";
+    public static final String GET_PROVIDERS_RANK = "getProvidersRank";
+    public static final String GET_ONEDATA_DATA = "getOneDataData";
+    public static final String GET_DYNAFED_DATA = "getDynafedData";
+    public static final String GET_MONITORING_DATA = "getMonitoringData";
+    public static final String GET_CMDB_DATA_UPDATE = "getCmdbDataUpdate";
+    public static final String GET_CMDB_DATA_DEPLOY = "getCmdbDataDeploy";
+    public static final String FINALIZE_UNDEPLOY = "finalizeUndeploy";
+    public static final String FINALIZE_DEPLOY = "finalizeDeploy";
+    public static final String DEPLOY = "deploy";
+    public static final String CLEAN_FAILED_DEPLOY = "cleanFailedDeploy";
+    public static final String CLEAN_FAILED_UPDATE = "cleanFailedUpdate";
+  }
 }

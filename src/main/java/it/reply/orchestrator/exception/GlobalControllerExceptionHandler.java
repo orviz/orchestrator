@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,16 @@
 package it.reply.orchestrator.exception;
 
 import it.reply.orchestrator.dto.common.Error;
-import it.reply.orchestrator.exception.http.BadRequestException;
-import it.reply.orchestrator.exception.http.ConflictException;
-import it.reply.orchestrator.exception.http.NotFoundException;
-import it.reply.orchestrator.exception.service.ToscaException;
+import it.reply.orchestrator.exception.http.OrchestratorApiException;
+import it.reply.orchestrator.utils.CommonUtils;
+
+import java.sql.SQLTransientException;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.flowable.engine.common.api.FlowableOptimisticLockingException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,78 +37,78 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.Optional;
-
 @ControllerAdvice
 @Slf4j
 public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
   /**
-   * Not Found exception handler.
-   * 
+   * {@link OrchestratorApiException} handler.
+   *
    * @param ex
    *          the exception
    * @return a {@code ResponseEntity} instance
    */
   @ExceptionHandler
-  public ResponseEntity<Object> handleException(NotFoundException ex, WebRequest request) {
-    return handleExceptionInternal(ex, HttpStatus.NOT_FOUND, request);
+  public ResponseEntity<Object> handleException(OrchestratorApiException ex, WebRequest request) {
+    return handleExceptionInternal(ex, ex.getHttpStatus(), request);
   }
 
   /**
-   * Conflict exception handler.
-   * 
-   * @param ex
-   *          the exception
-   * @return a {@code ResponseEntity} instance
-   */
-  @ExceptionHandler
-  public ResponseEntity<Object> handleException(ConflictException ex, WebRequest request) {
-    return handleExceptionInternal(ex, HttpStatus.CONFLICT, request);
-  }
-
-  /**
-   * Bad Request exception handler.
-   * 
-   * @param ex
-   *          the exception
-   * @return a {@code ResponseEntity} instance
-   */
-  @ExceptionHandler
-  public ResponseEntity<Object> handleException(BadRequestException ex, WebRequest request) {
-    return logAndHandleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request);
-  }
-
-  /**
-   * Invalid TOSCA exception handler.
-   * 
-   * @param ex
-   *          the exception
-   * @return a {@code ResponseEntity} instance
-   */
-  @ExceptionHandler
-  public ResponseEntity<Object> handleException(ToscaException ex, WebRequest request) {
-    return logAndHandleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request);
-  }
-
-  /**
-   * OAuth2Exception exception handler. This handler will just re-throw the exception and will let
-   * the {@link AbstractOAuth2SecurityExceptionHandler} to handle it.
-   * 
+   * OAuth2Exception exception handler. This handler will just re-throw the exception and to let
+   * the {@link AbstractOAuth2SecurityExceptionHandler} handle it.
+   *
    * @param ex
    *          the exception
    * @return a {@code ResponseEntity} instance
    */
   @ExceptionHandler
   public ResponseEntity<Object> handleException(OAuth2Exception ex, WebRequest request) {
-    // NOTE: is not a requirement to re-thow the same exception,
+    // NOTE: is not a requirement to re-throw the same exception,
     // whichever unchecked exception would fulfill the scope
     throw ex;
   }
 
   /**
+   * {@link TransientDataAccessException} and {@link FlowableOptimisticLockingException} handler.
+   *
+   * @param ex
+   *     the exception
+   * @return a {@code ResponseEntity} instance
+   */
+  @ExceptionHandler({TransientDataAccessException.class, FlowableOptimisticLockingException.class})
+  public ResponseEntity<Object> handleTransientDataException(Exception ex, WebRequest request) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.RETRY_AFTER, "0");
+    Error bodyToWrite = Error
+        .builder()
+        .message("The request couldn't be fulfilled because of a concurrent update."
+            + " Please retry later")
+        .exception(ex)
+        .status(HttpStatus.CONFLICT)
+        .build();
+    return handleExceptionInternal(ex, bodyToWrite, headers, HttpStatus.CONFLICT, request);
+  }
+
+  /**
+   * {@link PersistenceException} handler.
+   *
+   * @param ex
+   *     the exception
+   * @return a {@code ResponseEntity} instance
+   */
+  @ExceptionHandler
+  public ResponseEntity<Object> handleIbatisPersistenceException(PersistenceException ex,
+      WebRequest request) {
+    if (ex.getCause() instanceof SQLTransientException) {
+      return handleTransientDataException(ex, request);
+    } else {
+      return handleGenericException(ex, request);
+    }
+  }
+
+  /**
    * Server Error exception handler.
-   * 
+   *
    * @param ex
    *          the exception
    * @return a {@code ResponseEntity} instance
@@ -115,18 +118,19 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
     if (ex.getCause() instanceof OAuth2Exception) {
       return this.handleException((OAuth2Exception) ex.getCause(), request);
     } else {
-      return logAndHandleExceptionInternal(ex, HttpStatus.INTERNAL_SERVER_ERROR, request);
+      return handleExceptionInternal(ex, HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
   }
 
   @Override
   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body,
       HttpHeaders headers, HttpStatus status, WebRequest request) {
-    final HttpHeaders headersToWrite = Optional.ofNullable(headers).orElseGet(HttpHeaders::new);
-    final Object bodyToWrite =
-        Optional
-          .ofNullable(body)
-          .orElseGet(() -> Error.builder().exception(ex).status(status).build());
+    if (status != HttpStatus.NOT_FOUND && status != HttpStatus.METHOD_NOT_ALLOWED) {
+      LOG.error("Error handling request {}", request, ex);
+    }
+    final HttpHeaders headersToWrite = CommonUtils.notNullOrDefaultValue(headers, HttpHeaders::new);
+    final Object bodyToWrite = CommonUtils.notNullOrDefaultValue(body,
+        () -> CommonUtils.checkNotNull(Error.builder().exception(ex).status(status).build()));
     return super.handleExceptionInternal(ex, bodyToWrite, headersToWrite, status, request);
   }
 
@@ -135,10 +139,9 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
     return handleExceptionInternal(ex, null, null, status, request);
   }
 
-  protected ResponseEntity<Object> logAndHandleExceptionInternal(Exception ex, HttpStatus status,
-      WebRequest request) {
-    LOG.error("Error handling request {}", request, ex);
-    return handleExceptionInternal(ex, status, request);
+  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, HttpStatus status,
+      HttpHeaders headers, WebRequest request) {
+    return handleExceptionInternal(ex, null, headers, status, request);
   }
 
 }

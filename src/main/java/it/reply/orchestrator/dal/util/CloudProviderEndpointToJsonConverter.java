@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import it.reply.orchestrator.dto.CloudProviderEndpoint;
 
-import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Converter
 public class CloudProviderEndpointToJsonConverter
-    extends AbstractToJsonConverter<CloudProviderEndpoint>
-    implements AttributeConverter<CloudProviderEndpoint, String> {
+    extends AbstractToJsonConverter<@Nullable CloudProviderEndpoint> {
 
-  private static final TypeReference<CloudProviderEndpoint> REFERENCE =
-      new TypeReference<CloudProviderEndpoint>() {
+  private static final TypeReference<@Nullable CloudProviderEndpoint> REFERENCE =
+      new TypeReference<@Nullable CloudProviderEndpoint>() {
       };
 
   public CloudProviderEndpointToJsonConverter() {

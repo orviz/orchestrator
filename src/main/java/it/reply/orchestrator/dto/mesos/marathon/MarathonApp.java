@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class MarathonApp extends MesosTask<MarathonApp> {
 
-  @Nonnull
-  private Map<String, String> labels = new HashMap<>();
+  private Integer instances;
 
   @Override
-  public String getToscaNodeName() {
+  public final String getToscaNodeName() {
     return ToscaConstants.Nodes.MARATHON;
   }
 

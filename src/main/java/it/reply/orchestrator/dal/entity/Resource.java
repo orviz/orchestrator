@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 
 package it.reply.orchestrator.dal.entity;
 
+import it.reply.orchestrator.dal.util.CloudProviderEndpointToJsonConverter;
+import it.reply.orchestrator.dto.CloudProviderEndpoint;
 import it.reply.orchestrator.enums.NodeStates;
-
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -37,53 +36,52 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 @Entity
-@Table(indexes = { @Index(columnList = "toscaNodeName"), @Index(columnList = "deployment_uuid"),
-    @Index(columnList = AbstractResourceEntity.CREATED_COLUMN_NAME) })
+@Table(indexes = {
+    @Index(columnList = "toscaNodeName"),
+    @Index(columnList = "deployment_id"),
+    @Index(columnList = "createdAt")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 public class Resource extends AbstractResourceEntity {
 
-  private static final long serialVersionUID = -4916577635363604624L;
-
   @Enumerated(EnumType.STRING)
-  @Column(name = "state", length = 500)
+  @Column(nullable = false)
   private NodeStates state;
 
-  @Column(name = "iaasId", length = 500)
+  @Nullable
   private String iaasId;
 
-  // @Enumerated(EnumType.STRING)
-  @Column(name = "toscaNodeType")
+  @Column(nullable = false)
   private String toscaNodeType;
 
-  @Column(name = "toscaNodeName")
+  @Column(nullable = false)
   private String toscaNodeName;
 
   @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-  @JoinTable(name = "Resource_requiredBy", joinColumns = @JoinColumn(name = "Resource_uuid"),
-      inverseJoinColumns = @JoinColumn(name = "requiredBy"))
+  @JoinTable(name = "resource_required_by", joinColumns = @JoinColumn(name = "resource_id"),
+      inverseJoinColumns = @JoinColumn(name = "required_by", nullable = false))
   private Set<Resource> requiredBy = new HashSet<>();
 
   @ManyToMany(mappedBy = "requiredBy")
   private Set<Resource> requires = new HashSet<>();
 
   @ManyToOne
-  @JoinColumn(name = "deployment_uuid")
+  @JoinColumn(name = "deployment_id", nullable = false)
   private Deployment deployment;
 
-  /**
-   * Creates a new Resource object.
-   * 
-   * @param toscaNodeName
-   *          the TOSCA node name of the resource
-   */
-  public Resource(String toscaNodeName) {
-    super();
-    this.toscaNodeName = toscaNodeName;
-    state = NodeStates.INITIAL;
-  }
+  @Convert(converter = CloudProviderEndpointToJsonConverter.class)
+  @Nullable
+  @Column(columnDefinition = "TEXT")
+  private CloudProviderEndpoint cloudProviderEndpoint;
 
   public void addRequiredResource(Resource resource) {
     requires.add(resource);

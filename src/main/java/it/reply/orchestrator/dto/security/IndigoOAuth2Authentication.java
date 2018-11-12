@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,31 @@
 
 package it.reply.orchestrator.dto.security;
 
-import com.google.common.base.Preconditions;
+import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.mitre.openid.connect.model.UserInfo;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-
-import javax.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class IndigoOAuth2Authentication extends OAuth2Authentication {
 
-  private static final long serialVersionUID = -1868480964470168415L;
+  private static final long serialVersionUID = 1L;
 
   @NonNull
   @NotNull
-  private OAuth2AccessToken token;
+  private DefaultOAuth2AccessToken token;
 
-  @NonNull
-  @NotNull
+  @Nullable
   private UserInfo userInfo;
 
   /**
@@ -56,10 +55,14 @@ public class IndigoOAuth2Authentication extends OAuth2Authentication {
    *          credentials).
    */
   public IndigoOAuth2Authentication(OAuth2Authentication authentication, OAuth2AccessToken token,
-      UserInfo userInfo) {
+      @Nullable UserInfo userInfo) {
     super(authentication.getOAuth2Request(), authentication.getUserAuthentication());
-    this.token = Preconditions.checkNotNull(token);
-    this.userInfo = Preconditions.checkNotNull(userInfo);
+    this.token = new DefaultOAuth2AccessToken(token.getValue());
+    this.token.setRefreshToken(token.getRefreshToken());
+    this.token.setExpiration(token.getExpiration());
+    this.token.setScope(token.getScope());
+    this.token.setTokenType(token.getTokenType());
+    this.userInfo = userInfo;
   }
 
 }

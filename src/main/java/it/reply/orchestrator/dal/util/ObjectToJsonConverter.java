@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,16 @@ package it.reply.orchestrator.dal.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-@Converter
-public class ObjectToJsonConverter extends AbstractToJsonConverter<Object>
-    implements AttributeConverter<Object, String> {
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-  private static final TypeReference<Object> REFERENCE = new TypeReference<Object>() {
-  };
+@Converter
+public class ObjectToJsonConverter extends AbstractToJsonConverter<@Nullable Object> {
+
+  private static final TypeReference<@Nullable Object> REFERENCE =
+      new TypeReference<@Nullable Object>() {
+      };
 
   public ObjectToJsonConverter() {
     super(REFERENCE);

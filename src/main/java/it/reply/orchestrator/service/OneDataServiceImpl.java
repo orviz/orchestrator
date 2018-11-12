@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,274 +16,298 @@
 
 package it.reply.orchestrator.service;
 
-import com.google.common.collect.Lists;
-
+import it.reply.orchestrator.config.properties.OneDataProperties;
+import it.reply.orchestrator.config.properties.OneDataProperties.ServiceSpaceProperties;
+import it.reply.orchestrator.dal.entity.OidcTokenId;
+import it.reply.orchestrator.dto.CloudProvider;
+import it.reply.orchestrator.dto.cmdb.CloudService;
 import it.reply.orchestrator.dto.onedata.OneData;
 import it.reply.orchestrator.dto.onedata.OneData.OneDataProviderInfo;
+import it.reply.orchestrator.dto.onedata.OneData.OneDataProviderInfo.OneDataProviderInfoBuilder;
 import it.reply.orchestrator.dto.onedata.ProviderDetails;
 import it.reply.orchestrator.dto.onedata.SpaceDetails;
+import it.reply.orchestrator.dto.onedata.Token;
+import it.reply.orchestrator.dto.onedata.Tokens;
 import it.reply.orchestrator.dto.onedata.UserSpaces;
 import it.reply.orchestrator.exception.service.DeploymentException;
+import it.reply.orchestrator.service.security.OAuth2TokenService;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.UriBuilder;
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Objects;
-
-import javax.annotation.PostConstruct;
-
 @Service
-@PropertySource(value = { "classpath:application.properties", "${conf-file-path.onedata}" })
+@EnableConfigurationProperties(OneDataProperties.class)
 public class OneDataServiceImpl implements OneDataService {
 
-  @Autowired
+  private OneDataProperties oneDataProperties;
+
   private RestTemplate restTemplate;
 
-  @Value("${onezone.default.url}")
-  private String defaultOneZoneEndpoint;
+  private OAuth2TokenService oauth2TokenService;
 
-  @Value("${onezone.base.rest.path}")
-  private String oneZoneBaseRestPath;
-
-  @Value("${oneprovider.base.rest.path}")
-  private String oneProviderBaseRestPath;
-
-  @Value("${service.space.token}")
-  private String serviceSpaceToken;
-
-  @Value("${service.space.name}")
-  private String serviceSpaceName;
-
-  @Value("${service.space.provider}")
-  private String serviceSpaceProvider;
-
-  @Value("${service.space.path:''}")
-  private String serviceSpacePath;
-
-  @PostConstruct
-  private void init() {
-    defaultOneZoneEndpoint = addTrailingSlash(defaultOneZoneEndpoint);
-
-    if (oneZoneBaseRestPath.startsWith("/")) {
-      oneZoneBaseRestPath = oneZoneBaseRestPath.substring(1);
-    }
-    oneZoneBaseRestPath = addTrailingSlash(oneZoneBaseRestPath);
-
-    if (oneProviderBaseRestPath.startsWith("/")) {
-      oneProviderBaseRestPath = oneProviderBaseRestPath.substring(1);
-    }
-    oneProviderBaseRestPath = addTrailingSlash(oneProviderBaseRestPath);
-
-  }
-
-  private String addTrailingSlash(String endpoint) {
-    if (!endpoint.endsWith("/")) {
-      endpoint += "/";
-    }
-    return endpoint;
-  }
-
-  @Override
-  public String getServiceSpaceToken() {
-    return serviceSpaceToken;
-  }
-
-  @Override
-  public String getServiceSpaceName() {
-    return serviceSpaceName;
-  }
-
-  @Override
-  public String getServiceSpaceProvider() {
-    return serviceSpaceProvider;
-  }
-
-  @Override
-  public String getServiceSpacePath() {
-    return serviceSpacePath;
+  /**
+   * Generate a new {@link OneDataServiceImpl}.
+   *
+   * @param oneDataProperties
+   *     the oneDataProperties
+   * @param restTemplateBuilder
+   *     the restTemplateBuilder
+   * @param oauth2TokenService
+   *     the oauth2TokenService
+   */
+  public OneDataServiceImpl(OneDataProperties oneDataProperties,
+      RestTemplateBuilder restTemplateBuilder,
+      OAuth2TokenService oauth2TokenService) {
+    this.oneDataProperties = oneDataProperties;
+    this.oauth2TokenService = oauth2TokenService;
+    this.restTemplate = restTemplateBuilder.build();
   }
 
   @Override
   public UserSpaces getUserSpacesId(String oneZoneEndpoint, String oneDataToken) {
-    if (oneZoneEndpoint == null) {
-      oneZoneEndpoint = defaultOneZoneEndpoint;
-    }
-    oneZoneEndpoint = addTrailingSlash(oneZoneEndpoint) + oneZoneBaseRestPath + "user/spaces";
 
-    ResponseEntity<UserSpaces> response =
-        getForEntity(restTemplate, oneZoneEndpoint, oneDataToken, UserSpaces.class);
-    if (response.getStatusCode().is2xxSuccessful()) {
-      return response.getBody();
-    }
-    throw new DeploymentException("Unable to get OneData spaces. "
-        + response.getStatusCode().toString() + " " + response.getStatusCode().getReasonPhrase());
-  }
+    URI requestUri = UriBuilder
+        .fromUri(oneZoneEndpoint + oneDataProperties.getOnezoneBasePath() + "/user/spaces")
+        .build()
+        .normalize();
 
-  @Override
-  public UserSpaces getUserSpacesId(String onedataToken) {
-    return getUserSpacesId(null, onedataToken);
+    try {
+      return restTemplate
+          .exchange(requestUri, HttpMethod.GET, withOnedataToken(oneDataToken), UserSpaces.class)
+          .getBody();
+    } catch (RestClientException ex) {
+      throw new DeploymentException("Error retrieving OneData spaces", ex);
+    }
   }
 
   @Override
   public SpaceDetails getSpaceDetailsFromId(String oneZoneEndpoint, String oneDataToken,
       String oneSpaceId) {
-    if (oneZoneEndpoint == null) {
-      oneZoneEndpoint = defaultOneZoneEndpoint;
+
+    URI requestUri = UriBuilder
+        .fromUri(
+            oneZoneEndpoint + oneDataProperties.getOnezoneBasePath() + "/user/spaces/{oneSpaceId}")
+        .build(oneSpaceId)
+        .normalize();
+
+    try {
+      return restTemplate
+          .exchange(requestUri, HttpMethod.GET, withOnedataToken(oneDataToken), SpaceDetails.class)
+          .getBody();
+    } catch (RestClientException ex) {
+      throw new DeploymentException("Error retrieving details for OneData space " + oneSpaceId, ex);
     }
-    oneZoneEndpoint =
-        addTrailingSlash(oneZoneEndpoint) + oneZoneBaseRestPath + "user/spaces/" + oneSpaceId;
-
-    ResponseEntity<SpaceDetails> response =
-        getForEntity(restTemplate, oneZoneEndpoint, oneDataToken, SpaceDetails.class);
-    if (response.getStatusCode().is2xxSuccessful()) {
-      return response.getBody();
-    }
-    throw new DeploymentException("Unable to OneData space details. "
-        + response.getStatusCode().toString() + " " + response.getStatusCode().getReasonPhrase());
-  }
-
-  @Override
-  public SpaceDetails getSpaceDetailsFromId(String oneDataToken, String oneSpaceId) {
-    return getSpaceDetailsFromId(null, oneDataToken, oneSpaceId);
-  }
-
-  @Override
-  public String getUserSpaceNameById(String oneZoneEndpoint, String oneDataToken,
-      String oneSpaceId) {
-    SpaceDetails details = getSpaceDetailsFromId(oneZoneEndpoint, oneDataToken, oneSpaceId);
-    return details.getName();
-  }
-
-  @Override
-  public String getUserSpaceNameById(String onedataToken, String oneSpaceId) {
-    return getUserSpaceNameById(null, onedataToken, oneSpaceId);
-  }
-
-  @Override
-  public List<String> getProvidersIdBySpaceId(String oneZoneEndpoint, String oneDataToken,
-      String oneSpaceId) {
-    SpaceDetails details = getSpaceDetailsFromId(oneZoneEndpoint, oneDataToken, oneSpaceId);
-    return Lists.newArrayList(details.getProvidersSupports().keySet());
-  }
-
-  @Override
-  public List<String> getProvidersIdBySpaceId(String oneDataToken, String oneSpaceId) {
-    return getProvidersIdBySpaceId(null, oneDataToken, oneSpaceId);
   }
 
   @Override
   public ProviderDetails getProviderDetailsFromId(String oneZoneEndpoint, String oneDataToken,
-      String oneSpaceId, String oneProviderId) {
-    if (oneZoneEndpoint == null) {
-      oneZoneEndpoint = defaultOneZoneEndpoint;
-    }
-    oneZoneEndpoint = String.format("%s%sspaces/%s/providers/%s", addTrailingSlash(oneZoneEndpoint),
-        oneZoneBaseRestPath, oneSpaceId, oneProviderId);
-
-    ResponseEntity<ProviderDetails> response =
-        getForEntity(restTemplate, oneZoneEndpoint, oneDataToken, ProviderDetails.class);
-    if (response.getStatusCode().is2xxSuccessful()) {
-      return response.getBody();
-    }
-    throw new DeploymentException("Unable to OneData provider details. "
-        + response.getStatusCode().toString() + " " + response.getStatusCode().getReasonPhrase());
-  }
-
-  @Override
-  public ProviderDetails getProviderDetailsFromId(String oneDataToken, String oneSpaceId,
       String oneProviderId) {
-    return getProviderDetailsFromId(null, oneDataToken, oneSpaceId, oneProviderId);
+
+    URI requestUri = UriBuilder
+        .fromUri(
+            oneZoneEndpoint + oneDataProperties.getOnezoneBasePath() + "/providers/{oneProviderId}")
+        .build(oneProviderId)
+        .normalize();
+
+    try {
+      return restTemplate
+          .exchange(requestUri, HttpMethod.GET, withOnedataToken(oneDataToken),
+              ProviderDetails.class)
+          .getBody();
+    } catch (RestClientException ex) {
+      throw new DeploymentException("Error retrieving details of provider " + oneProviderId, ex);
+    }
   }
-
-  private <T> ResponseEntity<T> getForEntity(RestTemplate restTemplate, String endpoint,
-      String oneDataToken, Class<T> entityClass) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("macaroon", oneDataToken);
-
-    HttpEntity<?> entity = new HttpEntity<>(headers);
-    return restTemplate.exchange(endpoint, HttpMethod.GET, entity, entityClass);
-  }
-
-  // private boolean sameUrl(String lhs, String rhs) {
-  // if (lhs == null && rhs == null) {
-  // return true;
-  // } else if (lhs != null && rhs != null) {
-  // URI lhsUri = URI.create(addTrailingSlash(lhs));
-  // URI rhsUri = URI.create(addTrailingSlash(rhs));
-  // if (!Objects.equal(lhsUri.getHost(), rhsUri.getHost())) {
-  // return false;
-  // } else if (!Objects.equal(lhsUri.getPath(), rhsUri.getPath())) {
-  // return false;
-  // } else {
-  // if (lhsUri.getScheme().equals("http") && rhsUri.getScheme().equals("http")) {
-  // if ((lhsUri.getPort() == -1 || lhsUri.getPort() == 80) && (rhsUri.getPort() == -1 ||
-  // rhsUri.getPort() == 80)) {
-  // return true;
-  // }
-  // } else if (lhsUri.getScheme().equals("https") && rhsUri.getScheme().equals("https")) {
-  // if ((lhsUri.getPort() == -1 || lhsUri.getPort() == 443) && (rhsUri.getPort() == -1 ||
-  // rhsUri.getPort() == 443)) {
-  // return true;
-  // }
-  // }
-  // return Objects.equal(lhsUri.getScheme(), rhsUri.getScheme()) && lhsUri.getPort() ==
-  // rhsUri.getPort();
-  // }
-  // } else {
-  // return false;
-  // }
-  // }
 
   @Override
-  public OneData populateProviderInfo(OneData onedataParameter) {
-    boolean addAllProvidersinfo = false;
-    if (CollectionUtils.isEmpty(onedataParameter.getProviders())) {
-      addAllProvidersinfo = true;
+  public Tokens getOneDataTokens(String oneZoneEndpoint, OidcTokenId oidcTokenId) {
+
+    String organization = oauth2TokenService.getOrganization(oidcTokenId);
+
+    URI requestUri = UriBuilder
+        .fromUri(oneZoneEndpoint + oneDataProperties.getOnezoneBasePath() + "/user/client_tokens")
+        .build()
+        .normalize();
+
+    try {
+      return oauth2TokenService.executeWithClientForResult(oidcTokenId,
+          token -> restTemplate.exchange(
+              requestUri, HttpMethod.GET, withOidcToken(organization, token), Tokens.class)
+              .getBody(),
+          OAuth2TokenService.restTemplateTokenRefreshEvaluator);
+    } catch (RestClientException ex) {
+      throw new DeploymentException("Error retrieving OneData tokens", ex);
+    }
+  }
+
+  @Override
+  public Token generateOneDataToken(String oneZoneEndpoint, OidcTokenId oidcTokenId) {
+
+    String organization = oauth2TokenService.getOrganization(oidcTokenId);
+
+    URI requestUri = UriBuilder
+        .fromUri(oneZoneEndpoint + oneDataProperties.getOnezoneBasePath() + "/user/client_tokens")
+        .build()
+        .normalize();
+
+    try {
+      return oauth2TokenService.executeWithClientForResult(oidcTokenId,
+          token -> restTemplate.exchange(
+              requestUri, HttpMethod.POST, withOidcToken(organization, token), Token.class)
+              .getBody(),
+          OAuth2TokenService.restTemplateTokenRefreshEvaluator);
+    } catch (RestClientException ex) {
+      throw new DeploymentException("Error generating new OneData token", ex);
+    }
+  }
+
+  @Override
+  public String getOrGenerateOneDataToken(String oneZoneEndpoint, OidcTokenId oidcTokenId) {
+    return getOneDataTokens(oneZoneEndpoint, oidcTokenId)
+        .getTokens()
+        .stream()
+        .findAny()
+        .orElseGet(() -> generateOneDataToken(oneZoneEndpoint, oidcTokenId).getToken());
+  }
+
+  private HttpEntity<?> withOnedataToken(String oneDataToken) {
+    // TODO use a request interceptor (restTemplate must not be singleton)
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("X-Auth-Token", oneDataToken);
+    return new HttpEntity<>(headers);
+  }
+
+  private HttpEntity<?> withOidcToken(String organization, String oidcToken) {
+    Objects.requireNonNull(oidcToken, "OIDC must be enabled");
+    // TODO use a request interceptor (restTemplate must not be singleton)
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("X-Auth-Token", organization + ":" + oidcToken);
+    return new HttpEntity<>(headers);
+  }
+
+  @Override
+  public OneData populateProviderInfo(OneData oneDataParameter,
+      Map<String, CloudProvider> cloudProviders,
+      OidcTokenId requestedWithToken,
+      String deploymentId) {
+    if (oneDataParameter.isServiceSpace()) {
+      ServiceSpaceProperties serviceSpaceProperties = oneDataProperties.getServiceSpace();
+      Optional.ofNullable(serviceSpaceProperties.getOnezoneUrl())
+          .map(URI::toString)
+          .ifPresent(oneDataParameter::setOnezone);
+      oneDataParameter.setToken(serviceSpaceProperties.getToken());
+      oneDataParameter.setSpace(serviceSpaceProperties.getName());
+      oneDataParameter.setPath(serviceSpaceProperties.getBaseFolderPath() + deploymentId + "/");
+    }
+    String spaceName = oneDataParameter.getSpace();
+
+    final String oneZone;
+    if (oneDataParameter.getOnezone() == null) {
+      oneZone = oneDataProperties.getOnezoneUrl().toString();
+      oneDataParameter.setOnezone(oneZone);
     } else {
-      // FIXME remove once all the logic has been implemented
-      return onedataParameter;
+      oneZone = oneDataParameter.getOnezone();
     }
 
-    UserSpaces spaces = getUserSpacesId(onedataParameter.getZone(), onedataParameter.getToken());
-    List<String> providersId = Lists.newArrayList();
-    SpaceDetails spaceDetail = null;
-    for (String spaceId : spaces.getSpaces()) {
-      spaceDetail =
-          getSpaceDetailsFromId(onedataParameter.getZone(), onedataParameter.getToken(), spaceId);
-      if (Objects.equals(onedataParameter.getSpace(), spaceDetail.getCanonicalName())) {
-        providersId.addAll(spaceDetail.getProvidersSupports().keySet());
-        break;
-      }
-    }
-    if (spaceDetail == null) {
-      throw new DeploymentException(String.format("Could not found space %s in onezone %s",
-          onedataParameter.getSpace(), onedataParameter.getZone() != null
-              ? onedataParameter.getZone() : defaultOneZoneEndpoint));
+    String oneToken;
+    if (oneDataParameter.getToken() != null) {
+      oneToken = oneDataParameter.getToken();
+    } else {
+      oneToken = getOrGenerateOneDataToken(oneZone, requestedWithToken);
+      oneDataParameter.setToken(oneToken);
     }
 
-    for (String providerId : providersId) {
-      ProviderDetails providerDetails = getProviderDetailsFromId(onedataParameter.getZone(),
-          onedataParameter.getToken(), spaceDetail.getSpaceId(), providerId);
-      if (addAllProvidersinfo) {
-        OneDataProviderInfo providerInfo = OneDataProviderInfo.builder()
-            .id(providerId)
-            .endpoint(providerDetails.getRedirectionPoint())
-            .build();
-        onedataParameter.getProviders().add(providerInfo);
-      } else {
-        // TODO implement the logic
+    Set<String> requestedProviders = oneDataParameter
+        .getOneproviders()
+        .stream()
+        .map(OneDataProviderInfo::getEndpoint)
+        .collect(Collectors.toSet());
+
+    boolean useRequestedProviders = !requestedProviders.isEmpty();
+
+    UserSpaces spaces = getUserSpacesId(oneZone, oneToken);
+
+    SpaceDetails spaceDetail = spaces
+        .getSpaces()
+        .stream()
+        .map(spaceId -> getSpaceDetailsFromId(oneZone, oneToken, spaceId))
+        .filter(tmpSpaceDetail -> Objects.equals(spaceName, tmpSpaceDetail.getName()))
+        .findAny()
+        .orElseThrow(() -> new DeploymentException(
+            "No OneData space with name " + spaceName + " could be found in oneZone " + oneZone));
+
+    List<OneDataProviderInfo> oneDataProviderInfos = new ArrayList<>();
+    Iterator<String> providerIdIterator = spaceDetail.getProviders().keySet().iterator();
+
+    Map<String, CloudService> oneProviderCloudServices = cloudProviders
+        .values()
+        .stream()
+        .flatMap(provider -> provider.getCmdbProviderServices().values().stream())
+        .filter(CloudService::isOneProviderStorageService)
+        .collect(Collectors.toMap(cs -> cs.getData().getEndpoint(), cs -> cs));
+
+    while (providerIdIterator.hasNext() && (!useRequestedProviders || !requestedProviders
+        .isEmpty())) {
+      String providerId = providerIdIterator.next();
+      OneDataProviderInfoBuilder oneDataProviderInfobuilder = OneDataProviderInfo
+          .builder()
+          .id(providerId);
+
+      CloudService cloudService = oneProviderCloudServices.get(providerId);
+      boolean cloudServiceFound = cloudService != null;
+      if (cloudServiceFound) {
+        oneDataProviderInfobuilder
+            .cloudProviderId(cloudService.getData().getProviderId())
+            .cloudServiceId(cloudService.getId());
       }
+
+      ProviderDetails providerDetails = getProviderDetailsFromId(oneZone, oneToken, providerId);
+      String oneProviderEndpoint = providerDetails.getDomain();
+      boolean isInRequestedProviders = requestedProviders.remove(oneProviderEndpoint);
+
+      if (useRequestedProviders && !isInRequestedProviders) {
+        continue;
+      }
+
+      if (!cloudServiceFound && oneDataParameter.isSmartScheduling()) {
+        if (useRequestedProviders) {
+          throw new DeploymentException("Requested OneProvider " + oneProviderEndpoint
+              + " not registered in CMDB hence not eligible for smart scheduling");
+        } else {
+          continue;
+        }
+      }
+      oneDataProviderInfos.add(oneDataProviderInfobuilder.endpoint(oneProviderEndpoint).build());
     }
-    return onedataParameter;
+    if (!requestedProviders.isEmpty()) {
+      throw new DeploymentException(
+          "These requested OneProviders are not supporting the space " + spaceName + ":\n" + Arrays
+              .toString(requestedProviders.toArray()));
+    }
+    if (oneDataProviderInfos.isEmpty()) {
+      throw new DeploymentException("No OneProviders available for the space " + spaceName);
+    }
+    oneDataParameter.setOneproviders(oneDataProviderInfos);
+    return oneDataParameter;
   }
 
 }

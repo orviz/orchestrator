@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2017 Santer Reply S.p.A.
+ * Copyright © 2015-2018 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,43 @@
 
 package it.reply.orchestrator.service.security;
 
+import static org.assertj.core.api.Assertions.*;
+
+import it.reply.orchestrator.config.properties.OidcProperties;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import it.reply.orchestrator.config.properties.OidcProperties;
+import org.mockito.Spy;
 
 public class OAuth2TokenServiceTest {
 
   @InjectMocks
-  OAuth2TokenService oAuth2TokenService = new OAuth2TokenService();
+  private OAuth2TokenService oAuth2TokenService = new OAuth2TokenService();
 
-  @Mock
-  OidcProperties oidcProperties;
+  @Spy
+  private OidcProperties oidcProperties;
 
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void failGetOAuth2Token() {
-    Mockito.when(oidcProperties.isEnabled()).thenReturn(false);
-    oAuth2TokenService.getOAuth2TokenFromCurrentAuth();
+    oidcProperties.setEnabled(false);
+    assertThatThrownBy(() -> oAuth2TokenService.getOAuth2TokenFromCurrentAuth())
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("Security is not enabled");
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void failGetOAuth2TokenNull() {
-    Mockito.when(oidcProperties.isEnabled()).thenReturn(true);
-    oAuth2TokenService.getOAuth2TokenFromCurrentAuth();
+    oidcProperties.setEnabled(true);
+    assertThatThrownBy(() -> oAuth2TokenService.getOAuth2TokenFromCurrentAuth())
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("User is not authenticated");
   }
 
 }
