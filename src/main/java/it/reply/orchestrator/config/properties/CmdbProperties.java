@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class CmdbProperties {
 
   @NotNull
   @NonNull
-  private String providerByIdPath = "/provider/id/{providerId}";
+  private String providerByIdPath = "/provider/id/{providerId}?include_docs=true";
 
   @NotNull
   @NonNull
@@ -48,15 +48,38 @@ public class CmdbProperties {
 
   @NotNull
   @NonNull
-  private String serviceByIdPath = "/service/id/{serviceId}";
+  private String serviceByIdPath = "/service/id/{serviceId}?include_docs=true";
 
   @NotNull
   @NonNull
-  private String imagesByServiceIdPath =
-      "/service/id/{serviceId}/has_many/images?include_docs=true";
+  private String tenantsByServiceIdPath =
+      "/service/id/{serviceId}/has_many/tenants?include_docs=true";
 
   @NotNull
   @NonNull
-  private String imageByIdPath = "/image/id/{imageId}";
+  private String tenantsByOrganizationIdPath =
+      "/tenant/filters/iam_organisation/{organisationId}?include_docs=true";
+
+  @NotNull
+  @NonNull
+  private String tenantByIdPath = "/tenant/id/{tenantId}?include_docs=true";
+
+  @NotNull
+  @NonNull
+  private String imagesByTenantIdPath =
+      "/tenant/id/{tenantId}/has_many/images?include_docs=true";
+
+  @NotNull
+  @NonNull
+  private String imageByIdPath = "/image/id/{imageId}?include_docs=true";
+
+  @NotNull
+  @NonNull
+  private String flavorsByTenantIdPath =
+      "/tenant/id/{tenantId}/has_many/flavors?include_docs=true";
+
+  @NotNull
+  @NonNull
+  private String flavorByIdPath = "/flavor/id/{flavorId}?include_docs=true";
 
 }

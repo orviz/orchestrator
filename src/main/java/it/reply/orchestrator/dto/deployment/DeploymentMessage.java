@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package it.reply.orchestrator.dto.deployment;
 
 import it.reply.orchestrator.dto.CloudProviderEndpoint;
 import it.reply.orchestrator.dto.onedata.OneData;
-import it.reply.orchestrator.dto.workflow.CloudProvidersOrderedIterator;
+import it.reply.orchestrator.dto.workflow.CloudServicesOrderedIterator;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -43,6 +43,8 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   // Max value allowed by SQL
   // private static final Instant MAX_TIMEOUT = Instant.parse("9999-12-31T23:59:59.999Z");
   private static final Instant MAX_TIMEOUT = Instant.parse("2038-01-19T03:14:07.999Z");
+  private static final Integer MAX_PROVIDER_TIMEOUT = 14400;
+  private static final String TIME_FORMAT = "PT%dM";
 
   @NonNull
   @NotNull
@@ -50,7 +52,7 @@ public class DeploymentMessage extends BaseWorkflowMessage {
 
   /**
    * Sets the Deployment timeout.
-   * 
+   *
    * @param timeoutMins
    *          the timeout in Minutes
    */
@@ -64,6 +66,9 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   }
 
   @Nullable
+  private QcgJobsOrderedIterator qcgJobsIterator;
+
+  @Nullable
   private ChronosJobsOrderedIterator chronosJobsIterator;
 
   private boolean createComplete;
@@ -71,8 +76,25 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   private boolean pollComplete;
   private boolean skipPollInterval;
 
+  @NonNull
+  @NotNull
+  private String providerTimeout = String.format(TIME_FORMAT, MAX_PROVIDER_TIMEOUT);
+
+  /**
+   * Sets the Deployment per provider timeout.
+   *
+   * @param timeoutMins
+   *          the timeout in Minutes
+   */
+  public void setProviderTimeoutInMins(Integer timeoutMins) {
+    this.providerTimeout = Optional
+        .ofNullable(timeoutMins)
+        .map(value -> String.format(TIME_FORMAT, value))
+        .orElse(String.format(TIME_FORMAT, MAX_PROVIDER_TIMEOUT));
+  }
+
   @Nullable
-  private CloudProvidersOrderedIterator cloudProvidersOrderedIterator;
+  private CloudServicesOrderedIterator cloudServicesOrderedIterator;
 
   @Nullable
   private CloudProviderEndpoint chosenCloudProviderEndpoint;

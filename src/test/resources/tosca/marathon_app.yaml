@@ -7,20 +7,19 @@ topology_template:
 
   node_templates:
 
-    marathon-app:
+    marathon:
       type: tosca.nodes.indigo.Container.Application.Docker.Marathon
       properties:
         uris: []
-        labels:
-          HAPROXY_GROUP: external
+        enable_https: true
       artifacts:
         image:
           file: hello-world
           type: tosca.artifacts.Deployment.Image.Container.Docker
       requirements:
-        - host: docker_runtime
+        - host: Docker
 
-    docker_runtime:
+    Docker:
       type: tosca.nodes.indigo.Container.Runtime.Docker
       capabilities:
         host:
@@ -33,5 +32,5 @@ topology_template:
             volumes: [ 'marathon:/data:rw:dvdi:rexray', '/data:rw' ]
 
   outputs:
-    endpoint: 
-      value:  { concat: [ { get_attribute : [ marathon-app, load_balancer_ips, 0 ] }, ':', { get_attribute : [ docker_runtime, host, publish_ports, 0, target ] } ] }
+    endpoint:
+      value:  { concat: [ { get_attribute : [ marathon, load_balancer_ips, 0 ] }, ':', { get_attribute : [ Docker, host, publish_ports, 0, target ] } ] }

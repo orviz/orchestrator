@@ -45,17 +45,17 @@ No action required.
 ### UPGRADING TO v1.3.x
 #### Upgrading to v1.3.0-FINAL
 In this release the IAM integration has undergone a major rework, thus some changes in the configuration needs to be done:
- * The `profile` and `offline_access` scopes need to be added (if not already present) in the IAM protected resource server configuration.  
+ * The `profile` and `offline_access` scopes need to be added (if not already present) in the IAM protected resource server configuration.
   :warning: The access tokens used to authenticate API requests to the Orchestrator will need to have this scopes granted. Please check the IAM configuration of the clients calling the Orchestrator and refer to their guide in order to understand how to configure them with this new scopes.
- * The `urn:ietf:params:oauth:grant-type:token-exchange` grant type needs to be added in the IAM protected resource server configuration.  
+ * The `urn:ietf:params:oauth:grant-type:token-exchange` grant type needs to be added in the IAM protected resource server configuration.
  * The `SECURITY_ENABLE` parameter has been renamed to `OIDC_ENABLED`
  * The `OIDC_ISSUERS` , `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` have been deprecated and combined into `OIDC_IAM-PROPERTIES[{issuer}]_ORCHESTRATOR_CLIENT-ID` and `OIDC_IAM-PROPERTIES[{issuer}]_ORCHESTRATOR_CLIENT-SECRET`.
-  
+
   If your configuration was:
    * `OIDC_ISSUERS`: _**https://iam-test.indigo-datacloud.eu/**_
    * `OIDC_CLIENT_ID`: _**client_id**_
    * `OIDC_CLIENT_SECRET`: _**client_secret**_
-  
+
   now it would be:
    * `OIDC_IAM-PROPERTIES[https://iam-test.indigo-datacloud.eu/]_ORCHESTRATOR_CLIENT-ID`: _**client_id**_
    * `OIDC_IAM-PROPERTIES[https://iam-test.indigo-datacloud.eu/]_ORCHESTRATOR_CLIENT-SECRET`: _**client_secret**_
@@ -83,3 +83,17 @@ With this release 2 major configuration changes have been introduced:
 Additionally, a way to import self-signed certificates has been added. Please check to the [deployment guide](./how_to_deploy.md) to learn more about this feature.
 #### Upgrading to v2.1.1-FINAL
 No action required.
+### UPGRADING TO v2.2.x
+#### Upgrading to v2.2.0-FINAL
+The following steps are necessary for the upgrade:
+
+- delete all the tokens/refresh tokens stored in the orchestrator DB (database tables 'oidc\_entity' and 'oidc\_refresh\_token'), e.g. using commands like:
+
+```
+mysql>use orchestrator;
+
+mysql>delete from oidc_entity;
+
+mysql>delete from oidc_refresh_token;
+```
+- add the 'audience' property (mandatory) to iam-properties in `application.yml` (see [Configure IAM integration](how_to_deploy.md#configure-iam-integration-optional)); this can be a user-defined string. We recommend to generate a uuid.

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,18 @@
 package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
+import it.reply.orchestrator.dto.cmdb.CloudProvider;
+import it.reply.orchestrator.dto.slam.Service;
 import it.reply.orchestrator.service.CmdbService;
+import it.reply.orchestrator.service.security.OAuth2TokenService;
 import it.reply.orchestrator.utils.WorkflowConstants;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +40,39 @@ public class GetCmdbDataDeploy extends BaseRankCloudProvidersCommand {
   @Autowired
   private CmdbService cmdbService;
 
+  @Autowired
+  private OAuth2TokenService oauth2TokenService;
+
   @Override
   public void execute(DelegateExecution execution,
       RankCloudProvidersMessage rankCloudProvidersMessage) {
 
-    // Get CMDB data for each Cloud Provider
+    Map<String, Set<String>> servicesWithSla = new HashMap<>();
+
+    String organisation = oauth2TokenService.getOrganization(
+        rankCloudProvidersMessage.getRequestedWithToken());
+
     rankCloudProvidersMessage
-        .getCloudProviders()
-        .forEach((key, cloudProvider) -> cmdbService.fillCloudProviderInfo(cloudProvider));
+        .getSlamPreferences()
+        .getSla()
+        .forEach(sla -> {
+          String providerId = sla.getCloudProviderId();
+          servicesWithSla
+              .computeIfAbsent(providerId, id -> new HashSet<>())
+              .addAll(sla
+                  .getServices()
+                  .stream()
+                  .map(Service::getServiceId)
+                  .collect(Collectors.toSet()));
+        });
+    Map<String, CloudProvider> cloudProviders = servicesWithSla
+        .entrySet()
+        .stream()
+        .map(entry -> cmdbService.fillCloudProviderInfo(entry.getKey(),
+            entry.getValue(), organisation))
+        .collect(Collectors.toMap(CloudProvider::getId, Function.identity()));
+    rankCloudProvidersMessage.setCloudProviders(cloudProviders);
+
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package it.reply.orchestrator.service;
 
-import alien4cloud.model.components.ScalarPropertyValue;
-import alien4cloud.model.topology.Capability;
-import alien4cloud.model.topology.NodeTemplate;
-import alien4cloud.model.topology.Topology;
 import alien4cloud.tosca.model.ArchiveRoot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +40,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
+import org.alien4cloud.tosca.model.definitions.ScalarPropertyValue;
+import org.alien4cloud.tosca.model.templates.Capability;
+import org.alien4cloud.tosca.model.templates.NodeTemplate;
+import org.alien4cloud.tosca.model.templates.Topology;
+import org.assertj.core.api.AbstractThrowableAssert;
 import org.assertj.core.util.Lists;
 import org.flowable.engine.impl.ExecutionQueryImpl;
 import org.flowable.engine.impl.RuntimeServiceImpl;
@@ -71,6 +74,7 @@ import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @JsonTest
@@ -281,7 +285,6 @@ public class DeploymentServiceTest {
     Capability capability = new Capability();
     capability.setProperties(Maps.newHashMap());
     ScalarPropertyValue countValue = new ScalarPropertyValue("2");
-    countValue.setPrintable(true);
     capability.getProperties().put("count", countValue);
 
     Map<String, Capability> capabilities = Maps.newHashMap();
@@ -324,6 +327,30 @@ public class DeploymentServiceTest {
   }
 
   @Test
+  @Parameters({"nul,nul", "nul,1", "1,nul", "1,1", "1,2", "2,1"})
+  public void createDeploymentWithTimeoutValuesError(String timeout,
+      String providerTimeout) throws Exception {
+    @Nullable Integer iTimeout = (timeout.compareTo("nul") == 0 ? null : Integer.parseInt(timeout));
+    @Nullable Integer iProviderTimeout = (providerTimeout.compareTo("nul") == 0 ? null : Integer.parseInt(providerTimeout));
+    DeploymentRequest deploymentRequest = DeploymentRequest
+        .builder()
+        .template("template")
+        .timeoutMins(iTimeout)
+        .providerTimeoutMins(iProviderTimeout)
+        .build();
+
+    AbstractThrowableAssert<?, ? extends Throwable> assertion = assertThatCode(
+        () -> basecreateDeploymentSuccessful(deploymentRequest, null));
+    if (iTimeout != null && iProviderTimeout != null
+        && iProviderTimeout > iTimeout) {
+      assertion.isInstanceOf(BadRequestException.class)
+          .hasMessage("ProviderTimeout must be <= Timeout");
+    } else {
+      assertion.doesNotThrowAnyException();
+    }
+  }
+
+  @Test
   public void createChronosDeploymentSuccessful() throws Exception {
     DeploymentRequest deploymentRequest = DeploymentRequest
         .builder()
@@ -358,6 +385,37 @@ public class DeploymentServiceTest {
         .getResources()
         .forEach(resource -> Mockito.verify(resourceRepository).save(resource));
   }
+
+  @Test
+  public void createQcgDeploymentSuccessful() throws Exception {
+    DeploymentRequest deploymentRequest = DeploymentRequest
+        .builder()
+        .template("template")
+        .build();
+
+    String nodeName1 = "job1";
+    String nodeType = "tosca.nodes.indigo.Qcg.Job";
+
+    Map<String, NodeTemplate> nts = Maps.newHashMap();
+    NodeTemplate nt = new NodeTemplate();
+    nt.setType(nodeType);
+    nt.setName(nodeName1);
+    nts.put(nodeName1, nt);
+
+    Deployment returneDeployment = basecreateDeploymentSuccessful(deploymentRequest, nts);
+
+    assertThat(returneDeployment.getResources())
+        .extracting(Resource::getToscaNodeName)
+        .containsExactlyInAnyOrder(nodeName1);
+    assertThat(returneDeployment.getResources()).allSatisfy(resource -> {
+      assertThat(resource.getToscaNodeType()).isEqualTo(nodeType);
+    });
+
+    returneDeployment
+        .getResources()
+        .forEach(resource -> Mockito.verify(resourceRepository).save(resource));
+  }
+
 
   @Test
   public void deleteDeploymentNotFound() throws Exception {
@@ -446,7 +504,8 @@ public class DeploymentServiceTest {
   @Test
   @Parameters({
       "CHRONOS",
-      "MARATHON" })
+      "MARATHON",
+      "QCG"})
   public void updateDeploymentBadRequest(DeploymentProvider provider) throws Exception {
 
     String id = UUID.randomUUID().toString();

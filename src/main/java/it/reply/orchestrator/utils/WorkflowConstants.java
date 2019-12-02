@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,5 +69,6 @@ public class WorkflowConstants {
     public static final String DEPLOY = "deploy";
     public static final String CLEAN_FAILED_DEPLOY = "cleanFailedDeploy";
     public static final String CLEAN_FAILED_UPDATE = "cleanFailedUpdate";
+    public static final String PROVIDER_TIMEOUT = "providerTimeout";
   }
 }

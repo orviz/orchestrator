@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,25 @@
 
 package it.reply.orchestrator.service;
 
-import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.CloudProviderEndpoint;
 import it.reply.orchestrator.dto.CloudProviderEndpoint.CloudProviderEndpointBuilder;
 import it.reply.orchestrator.dto.CloudProviderEndpoint.IaaSType;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
+import it.reply.orchestrator.dto.cmdb.CloudProvider;
 import it.reply.orchestrator.dto.cmdb.CloudService;
-import it.reply.orchestrator.dto.cmdb.Type;
-import it.reply.orchestrator.dto.deployment.CredentialsAwareSlaPlacementPolicy;
-import it.reply.orchestrator.dto.deployment.PlacementPolicy;
-import it.reply.orchestrator.dto.ranker.RankedCloudProvider;
-import it.reply.orchestrator.dto.workflow.CloudProvidersOrderedIterator;
+import it.reply.orchestrator.dto.policies.CredentialsAwareSlaPlacementPolicy;
+import it.reply.orchestrator.dto.policies.ToscaPolicy;
+import it.reply.orchestrator.dto.ranker.RankedCloudService;
+import it.reply.orchestrator.dto.workflow.CloudServicesOrderedIterator;
 import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.enums.DeploymentType;
 import it.reply.orchestrator.exception.service.DeploymentException;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,7 +47,7 @@ import org.springframework.stereotype.Service;
 public class CloudProviderEndpointServiceImpl {
 
   /**
-   * Generates the {@link CloudProvidersOrderedIterator} a Cloud Provider.
+   * Generates the {@link CloudServicesOrderedIterator}.
    *
    * @param rankCloudProvidersMessage
    *     the rankCloudProvidersMessage
@@ -54,55 +55,49 @@ public class CloudProviderEndpointServiceImpl {
    *     max num of cloud providers on which iterate
    * @return the iterator
    */
-  public CloudProvidersOrderedIterator generateCloudProvidersOrderedIterator(
+  public CloudServicesOrderedIterator generateCloudProvidersOrderedIterator(
       RankCloudProvidersMessage rankCloudProvidersMessage, Integer maxProvidersRetry) {
-    Map<String, CloudProvider> cloudProviders = rankCloudProvidersMessage.getCloudProviders();
 
-    Stream<CloudProvider> orderedCloudProviders;
-    if (DeploymentType.isMesosDeployment(rankCloudProvidersMessage.getDeploymentType())) {
-      orderedCloudProviders = rankCloudProvidersMessage.getCloudProviders().values().stream()
-          .limit(1);
-    } else {
-      orderedCloudProviders =
-          rankCloudProvidersMessage
-              .getRankedCloudProviders()
-              .stream()
-              .filter(Objects::nonNull)
-              // Choose the one ranked
-              .filter(RankedCloudProvider::isRanked)
-              // and with the highest rank
-              .sorted(Comparator.comparing(RankedCloudProvider::getRank).reversed())
-              .map(RankedCloudProvider::getName)
-              .map(cloudProviders::get)
-              .filter(Objects::nonNull);
-      if (maxProvidersRetry != null) {
-        orderedCloudProviders = orderedCloudProviders.limit(maxProvidersRetry);
-      }
+    Map<String, CloudService> cloudServices = rankCloudProvidersMessage
+        .getCloudProviders()
+        .values()
+        .stream()
+        .map(CloudProvider::getServices)
+        .map(Map::values)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toMap(CloudService::getId, Function.identity()));
+
+    Stream<CloudService> orderedCloudServices =
+        rankCloudProvidersMessage
+            .getRankedCloudServices()
+            .stream()
+            // Choose the ones ranked
+            .filter(RankedCloudService::isRanked)
+            // and with the best rank
+            .sorted(Comparator.comparing(RankedCloudService::getRank))
+            .map(RankedCloudService::getServiceId)
+            .map(cloudServices::get)
+            .filter(Objects::nonNull);
+    if (maxProvidersRetry != null) {
+      orderedCloudServices = orderedCloudServices.limit(maxProvidersRetry);
     }
-    return new CloudProvidersOrderedIterator(orderedCloudProviders
-        .collect(Collectors.toList()));
+
+    return new CloudServicesOrderedIterator(orderedCloudServices.collect(Collectors.toList()));
   }
 
   /**
    * Generates the {@link CloudProviderEndpoint}.
    *
-   * @param chosenCloudProvider
-   *     the chosen {@link CloudProvider}
+   * @param computeService
+   *     the chosen {@link CloudService}
    * @param placementPolicies
    *     the placementPolicies
    * @param isHybrid
    *     true if the deployment id hybrid
    * @return the {@link CloudProviderEndpoint}
    */
-  public CloudProviderEndpoint getCloudProviderEndpoint(CloudProvider chosenCloudProvider,
-      Map<String, PlacementPolicy> placementPolicies, boolean isHybrid) {
-
-    CloudService computeService = chosenCloudProvider
-        .getCmbdProviderServicesByType(Type.COMPUTE)
-        .stream()
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException(
-            "No compute Service Available for Cloud Provider : " + chosenCloudProvider));
+  public CloudProviderEndpoint getCloudProviderEndpoint(CloudService computeService,
+      Map<String, ToscaPolicy> placementPolicies, boolean isHybrid) {
 
     String imEndpoint = null;
     CloudProviderEndpointBuilder cpe = CloudProviderEndpoint.builder();
@@ -130,7 +125,7 @@ public class CloudProviderEndpointServiceImpl {
       iaasType = IaaSType.OPENNEBULA;
     } else if (computeService.isOpenNebulaToscaProviderService()) {
       iaasType = IaaSType.OPENNEBULA;
-      imEndpoint = computeService.getData().getEndpoint();
+      imEndpoint = computeService.getEndpoint();
     } else if (computeService.isOcciComputeProviderService()) {
       iaasType = IaaSType.OCCI;
     } else if (computeService.isAwsComputeProviderService()) {
@@ -143,13 +138,15 @@ public class CloudProviderEndpointServiceImpl {
       iaasType = IaaSType.CHRONOS;
     } else if (computeService.isMarathonComputeProviderService()) {
       iaasType = IaaSType.MARATHON;
+    } else if (computeService.isQcgComputeProviderService()) {
+      iaasType = IaaSType.QCG;
     } else {
       throw new IllegalArgumentException("Unknown Cloud Provider type: " + computeService);
     }
 
-    cpe.cpEndpoint(computeService.getData().getEndpoint());
+    cpe.cpEndpoint(computeService.getEndpoint());
     cpe.cpComputeServiceId(computeService.getId());
-    cpe.region(computeService.getData().getRegion());
+    cpe.region(computeService.getRegion());
     cpe.iaasType(iaasType);
     cpe.imEndpoint(imEndpoint);
 
@@ -165,20 +162,22 @@ public class CloudProviderEndpointServiceImpl {
 
   /**
    * Infer the deployment provider from the deployment type and the cloud provider.
-   * 
+   *
    * @param deploymentType
-   *          the deployment type
-   * @param cloudProvider
-   *          the cloud provider
+   *     the deployment type
+   * @param cloudService
+   *     the cloud service
    * @return the deployment provider
    */
   public DeploymentProvider getDeploymentProvider(DeploymentType deploymentType,
-      CloudProvider cloudProvider) {
+      CloudService cloudService) {
     switch (deploymentType) {
       case CHRONOS:
         return DeploymentProvider.CHRONOS;
       case MARATHON:
         return DeploymentProvider.MARATHON;
+      case QCG:
+        return DeploymentProvider.QCG;
       case TOSCA:
         return DeploymentProvider.IM;
       default:

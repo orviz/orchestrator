@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,8 @@ public class OAuth2TokenCacheService {
 
   public static class TokenEvictionFilter implements EvictionFilter<OidcTokenId, AccessGrant> {
 
+    private static final long serialVersionUID = 1L;
+
     @Override
     public boolean evictAllowed(Entry<OidcTokenId, AccessGrant> entry) {
       return entry.getValue() == null || entry.getValue().isExpired();
@@ -75,7 +77,7 @@ public class OAuth2TokenCacheService {
 
   /**
    * Creates a new OAuth2TokenCacheService.
-   * 
+   *
    * @param ignite
    *          the {@link Ignite} instance.
    */
@@ -97,7 +99,7 @@ public class OAuth2TokenCacheService {
   /**
    * Exchanges an access token, puts the refresh token in DB and the exchanged access token in
    * cache.
-   * 
+   *
    * @param id
    *          the ID of the access token in the cache
    * @param accessToken

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,13 +54,19 @@ public class DeploymentRequest {
   private String callback;
 
   @Nullable
-  @Min(value = 1, message = "Timeout value, if provided, must be at least of 1 minute")
+  @Min(value = 1, message = "Overall timeout value, if provided, must be at least of 1 minute")
   private Integer timeoutMins;
+
+  @Nullable
+  @Min(value = 1, message = "Provider timeout value, if provided, must be at least of 1 minute and"
+      + " equal or less than timeoutMins")
+  private Integer providerTimeoutMins;
 
   @Nullable
   @Min(value = 1, message = "maxProvidersRetry value, if provided, must be at least of 1")
   private Integer maxProvidersRetry;
 
+  @Builder.Default
   private boolean keepLastAttempt = false;
 
   @SuppressWarnings("null")

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package it.reply.orchestrator.config;
 
+import it.reply.orchestrator.config.properties.OrchestratorProperties;
+
 import java.util.Objects;
 
 import javax.cache.configuration.Factory;
@@ -29,6 +31,8 @@ import org.apache.ignite.IgniteSpring;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.logger.slf4j.Slf4jLogger;
+import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -52,27 +56,34 @@ public class IgniteConfig {
 
   /**
    * Generates a new IgniteConfiguration.
-   * 
+   *
    * @return the generated IgniteConfiguration
    */
   @Bean
-  public IgniteConfiguration igniteConfiguration(JtaTransactionManager transactionManager) {
+  public IgniteConfiguration igniteConfiguration(JtaTransactionManager transactionManager,
+      OrchestratorProperties orchestratorProperties) {
 
-    Factory<TransactionManager> txManagerFactory = new TransactionManagerFactory(
-        transactionManager.getTransactionManager());
+    TransactionConfiguration txCfg = new TransactionConfiguration().setTxManagerFactory(
+        new TransactionManagerFactory(transactionManager.getTransactionManager()));
 
-    return new IgniteConfiguration()
+    IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
         .setGridLogger(new Slf4jLogger())
         .setClientMode(false)
         .setActiveOnStart(true)
-        .setTransactionConfiguration(
-            new TransactionConfiguration().setTxManagerFactory(txManagerFactory))
+        .setTransactionConfiguration(txCfg)
         .setMetricsLogFrequency(0);
+
+    if (!orchestratorProperties.isClustered()) {
+      TcpDiscoverySpi discoverySpi = new TcpDiscoverySpi()
+          .setIpFinder(new TcpDiscoveryVmIpFinder(true));
+      igniteConfiguration = igniteConfiguration.setDiscoverySpi(discoverySpi);
+    }
+    return igniteConfiguration;
   }
 
   /**
    * Generates a new Ignite instance.
-   * 
+   *
    * @return the generated Ignite instance
    */
   @Bean(destroyMethod = "close")

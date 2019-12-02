@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package it.reply.orchestrator.service;
 
-import alien4cloud.model.topology.NodeTemplate;
-import alien4cloud.model.topology.RelationshipTemplate;
 import alien4cloud.tosca.model.ArchiveRoot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,9 +30,9 @@ import it.reply.orchestrator.dal.entity.WorkflowReference.Action;
 import it.reply.orchestrator.dal.repository.DeploymentRepository;
 import it.reply.orchestrator.dal.repository.ResourceRepository;
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
-import it.reply.orchestrator.dto.deployment.PlacementPolicy;
 import it.reply.orchestrator.dto.dynafed.Dynafed;
 import it.reply.orchestrator.dto.onedata.OneData;
+import it.reply.orchestrator.dto.policies.ToscaPolicy;
 import it.reply.orchestrator.dto.request.DeploymentRequest;
 import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.enums.DeploymentType;
@@ -58,10 +56,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.alien4cloud.tosca.model.templates.NodeTemplate;
+import org.alien4cloud.tosca.model.templates.RelationshipTemplate;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.jgrapht.graph.DirectedMultigraph;
@@ -162,6 +164,33 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
   }
 
+  private void populateFromRequestData(DeploymentRequest request,
+      ArchiveRoot parsingResult, DeploymentMessage deploymentMessage) {
+    Map<String, OneData> odRequirements = toscaService
+        .extractOneDataRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setOneDataRequirements(odRequirements);
+
+    Map<String, Dynafed> dyanfedRequirements = toscaService
+        .extractDyanfedRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
+
+    @Nullable
+    Integer timeoutInMins = request.getTimeoutMins();
+    @Nullable
+    Integer providerTimeoutInMins = request.getProviderTimeoutMins();
+
+    if (timeoutInMins != null && providerTimeoutInMins != null
+        && providerTimeoutInMins > timeoutInMins) {
+      throw new BadRequestException("ProviderTimeout must be <= Timeout");
+    }
+
+    deploymentMessage.setTimeoutInMins(timeoutInMins);
+    deploymentMessage.setProviderTimeoutInMins(providerTimeoutInMins);
+
+    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
+    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
+  }
+
   @Override
   @Transactional
   public Deployment createDeployment(DeploymentRequest request) {
@@ -191,20 +220,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     // Build deployment message
     DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, deploymentType);
 
-    Map<String, OneData> odRequirements = toscaService
-        .extractOneDataRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setOneDataRequirements(odRequirements);
+    populateFromRequestData(request, parsingResult,  deploymentMessage);
 
-    Map<String, Dynafed> dyanfedRequirements = toscaService
-        .extractDyanfedRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
-
-    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
-
-    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
-    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
-
-    Map<String, PlacementPolicy> placementPolicies = toscaService
+    Map<String, ToscaPolicy> placementPolicies = toscaService
         .extractPlacementPolicies(parsingResult);
     deploymentMessage.setPlacementPolicies(placementPolicies);
     deploymentMessage.setDeploymentType(deploymentType);
@@ -242,10 +260,12 @@ public class DeploymentServiceImpl implements DeploymentService {
 
   private DeploymentType inferDeploymentType(Map<String, NodeTemplate> nodes) {
     for (NodeTemplate node : nodes.values()) {
-      if (toscaService.isOfToscaType(node, ToscaConstants.Nodes.CHRONOS)) {
+      if (toscaService.isOfToscaType(node, ToscaConstants.Nodes.Types.CHRONOS)) {
         return DeploymentType.CHRONOS;
-      } else if (toscaService.isOfToscaType(node, ToscaConstants.Nodes.MARATHON)) {
+      } else if (toscaService.isOfToscaType(node, ToscaConstants.Nodes.Types.MARATHON)) {
         return DeploymentType.MARATHON;
+      } else if (toscaService.isOfToscaType(node, ToscaConstants.Nodes.Types.QCG)) {
+        return DeploymentType.QCG;
       }
     }
     return DeploymentType.TOSCA;
@@ -257,6 +277,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         return DeploymentType.CHRONOS;
       case MARATHON:
         return DeploymentType.MARATHON;
+      case QCG:
+        return DeploymentType.QCG;
       case HEAT:
       case IM:
       default:
@@ -324,7 +346,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     throwIfNotOwned(deployment);
 
     if (deployment.getDeploymentProvider() == DeploymentProvider.CHRONOS
-        || deployment.getDeploymentProvider() == DeploymentProvider.MARATHON) {
+        || deployment.getDeploymentProvider() == DeploymentProvider.MARATHON
+        || deployment.getDeploymentProvider() == DeploymentProvider.QCG) {
       throw new BadRequestException(String.format("%s deployments cannot be updated.",
           deployment.getDeploymentProvider().toString()));
     }
@@ -358,22 +381,11 @@ public class DeploymentServiceImpl implements DeploymentService {
     boolean isHybrid = toscaService.isHybridDeployment(parsingResult);
     deploymentMessage.setHybrid(isHybrid);
 
-    Map<String, PlacementPolicy> placementPolicies =
+    Map<String, ToscaPolicy> placementPolicies =
         toscaService.extractPlacementPolicies(parsingResult);
     deploymentMessage.setPlacementPolicies(placementPolicies);
 
-    Map<String, OneData> odRequirements = toscaService
-        .extractOneDataRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setOneDataRequirements(odRequirements);
-
-    Map<String, Dynafed> dyanfedRequirements = toscaService
-        .extractDyanfedRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
-
-    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
-
-    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
-    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
+    populateFromRequestData(request, parsingResult,  deploymentMessage);
 
     ProcessInstance pi = wfService
         .createProcessInstanceBuilder()
@@ -411,8 +423,8 @@ public class DeploymentServiceImpl implements DeploymentService {
       List<NodeTemplate> parentNodes =
           relationships.stream().map(graph::getEdgeSource).collect(Collectors.toList());
 
-      int nodeCount = toscaService.getCount(node).orElse(1);
-      Set<Resource> resources = IntStream
+      long nodeCount = toscaService.getCount(node).orElse(1L);
+      Set<Resource> resources = LongStream
           .range(0, nodeCount)
           .mapToObj(i -> {
 

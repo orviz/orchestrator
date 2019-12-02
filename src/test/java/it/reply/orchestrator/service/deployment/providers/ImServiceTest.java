@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package it.reply.orchestrator.service.deployment.providers;
 
-import alien4cloud.model.topology.NodeTemplate;
-import alien4cloud.model.topology.Topology;
 import alien4cloud.tosca.model.ArchiveRoot;
 import alien4cloud.tosca.parser.ParsingException;
 
@@ -36,22 +34,23 @@ import es.upv.i3m.grycap.im.pojo.InfrastructureUris;
 import es.upv.i3m.grycap.im.pojo.ResponseError;
 import es.upv.i3m.grycap.im.pojo.VirtualMachineInfo;
 import es.upv.i3m.grycap.im.rest.client.BodyContentType;
-
 import it.reply.orchestrator.config.properties.OidcProperties;
 import it.reply.orchestrator.controller.ControllerTestUtils;
 import it.reply.orchestrator.dal.entity.Deployment;
 import it.reply.orchestrator.dal.entity.Resource;
 import it.reply.orchestrator.dal.repository.DeploymentRepository;
 import it.reply.orchestrator.dal.repository.ResourceRepository;
-import it.reply.orchestrator.dto.CloudProvider;
 import it.reply.orchestrator.dto.CloudProviderEndpoint;
+import it.reply.orchestrator.dto.cmdb.ComputeService;
+import it.reply.orchestrator.dto.cmdb.CloudServiceType;
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
-import it.reply.orchestrator.dto.workflow.CloudProvidersOrderedIterator;
+import it.reply.orchestrator.dto.workflow.CloudServicesOrderedIterator;
 import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.enums.NodeStates;
 import it.reply.orchestrator.enums.Status;
 import it.reply.orchestrator.enums.Task;
 import it.reply.orchestrator.exception.OrchestratorException;
+import it.reply.orchestrator.exception.service.BusinessWorkflowException;
 import it.reply.orchestrator.exception.service.DeploymentException;
 import it.reply.orchestrator.exception.service.ToscaException;
 import it.reply.orchestrator.function.ThrowingFunction;
@@ -70,6 +69,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.alien4cloud.tosca.model.templates.NodeTemplate;
+import org.alien4cloud.tosca.model.templates.Topology;
+import org.assertj.core.api.AbstractThrowableAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,24 +85,26 @@ import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static it.reply.orchestrator.dto.cmdb.CloudService.OPENSTACK_COMPUTE_SERVICE;
 import static org.mockito.Mockito.*;
 
 @RunWith(JUnitParamsRunner.class)
 public class ImServiceTest {
-  
+
   @InjectMocks
   private ImServiceImpl imService;
 
   @Mock
   private ImClientFactory imClientFactory;
-  
+
   @Spy
   private ToscaServiceImpl toscaService;
 
   @Mock
   private DeploymentRepository deploymentRepository;
-  
+
   @Spy
   @InjectMocks
   private DeploymentStatusHelperImpl deploymentStatusHelper =
@@ -119,7 +123,7 @@ public class ImServiceTest {
   private OAuth2TokenService oauth2TokenService;
 
   @Before
-  public void setup() throws ParsingException {
+  public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
     Mockito
         .when(oauth2TokenService.executeWithClientForResult(
@@ -148,7 +152,7 @@ public class ImServiceTest {
     }
     return infrastructureState;
   }
-  
+
   private List<VirtualMachineInfo> generateVirtualMachineInfo(int vmNum) {
     return IntStream.range(0, vmNum).mapToObj(i -> {
       Map<String, Object> properties = new HashMap<>();
@@ -164,11 +168,20 @@ public class ImServiceTest {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    CloudProvidersOrderedIterator cpi = new CloudProvidersOrderedIterator(Lists.newArrayList(
-        CloudProvider.builder().id("cloud-provider-id").build()
-    ));
-    cpi.next();
-    dm.setCloudProvidersOrderedIterator(cpi);
+
+    ComputeService cs = ComputeService
+        .computeBuilder()
+        .endpoint("http://example.com")
+        .providerId("cloud-provider-id-1")
+        .id("cloud-service-id-1")
+        .type(CloudServiceType.COMPUTE)
+        .endpoint("http://example.com")
+        .serviceType(OPENSTACK_COMPUTE_SERVICE)
+        .hostname("example.com")
+        .build();
+    CloudServicesOrderedIterator csi = new CloudServicesOrderedIterator(Lists.newArrayList(cs));
+    csi.next();
+    dm.setCloudServicesOrderedIterator(csi);
 
     String infrastructureId = UUID.randomUUID().toString();
     InfrastructureUri infrastructureUri =
@@ -202,11 +215,19 @@ public class ImServiceTest {
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
 
-    CloudProvidersOrderedIterator cpi = new CloudProvidersOrderedIterator(Lists.newArrayList(
-        CloudProvider.builder().id("cloud-provider-id").build()
-    ));
-    cpi.next();
-    dm.setCloudProvidersOrderedIterator(cpi);
+    ComputeService cs = ComputeService
+        .computeBuilder()
+        .endpoint("http://example.com")
+        .providerId("cloud-provider-id-1")
+        .id("cloud-service-id-1")
+        .type(CloudServiceType.COMPUTE)
+        .endpoint("http://example.com")
+        .serviceType(OPENSTACK_COMPUTE_SERVICE)
+        .hostname("example.com")
+        .build();
+    CloudServicesOrderedIterator csi = new CloudServicesOrderedIterator(Lists.newArrayList(cs));
+    csi.next();
+    dm.setCloudServicesOrderedIterator(csi);
 
     InfrastructureUri infrastructureUri =
         new InfrastructureUri("http://localhost:8080/infrastructures/");
@@ -250,10 +271,10 @@ public class ImServiceTest {
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
     dm.setKeepLastAttempt(isKeepLastAttempt);
 
-    CloudProvidersOrderedIterator cpi = mock(CloudProvidersOrderedIterator.class);
-    Mockito.when(cpi.hasNext()).thenReturn(!isLastProvider);
+    CloudServicesOrderedIterator csi = mock(CloudServicesOrderedIterator.class);
+    Mockito.when(csi.hasNext()).thenReturn(!isLastProvider);
 
-    dm.setCloudProvidersOrderedIterator(cpi);
+    dm.setCloudServicesOrderedIterator(csi);
 
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
 
@@ -272,11 +293,19 @@ public class ImServiceTest {
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
 
-    CloudProvidersOrderedIterator cpi = new CloudProvidersOrderedIterator(Lists.newArrayList(
-        CloudProvider.builder().id("cloud-provider-id").build()
-    ));
-    cpi.next();
-    dm.setCloudProvidersOrderedIterator(cpi);
+    ComputeService cs = ComputeService
+        .computeBuilder()
+        .endpoint("http://example.com")
+        .providerId("cloud-provider-id-1")
+        .id("cloud-service-id-1")
+        .type(CloudServiceType.COMPUTE)
+        .endpoint("http://example.com")
+        .serviceType(OPENSTACK_COMPUTE_SERVICE)
+        .hostname("example.com")
+        .build();
+    CloudServicesOrderedIterator csi = new CloudServicesOrderedIterator(Lists.newArrayList(cs));
+    csi.next();
+    dm.setCloudServicesOrderedIterator(csi);
 
     ArchiveRoot ar = new ArchiveRoot();
     ImClientErrorException imException =
@@ -291,7 +320,7 @@ public class ImServiceTest {
         .build(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.when(infrastructureManager.createInfrastructureAsync(Mockito.anyString(),
         Mockito.eq(BodyContentType.TOSCA))).thenThrow(imException);
-    
+
     assertThatThrownBy(() -> imService.doDeploy(dm))
         .hasCauseInstanceOf(ImClientException.class);
   }
@@ -306,7 +335,7 @@ public class ImServiceTest {
     InfrastructureState infrastructureState = generateInfrastructureState(States.CONFIGURED, 2);
 
     List<VirtualMachineInfo> info= generateVirtualMachineInfo(2);
-    
+
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
     Mockito.doReturn(infrastructureManager).when(imClientFactory)
         .build(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
@@ -317,7 +346,7 @@ public class ImServiceTest {
         .thenReturn(info.get(0), info.get(1));
     Mockito.when(resourceRepository
             .findByDeployment_id(deployment.getId())).thenReturn(new ArrayList<>(deployment.getResources()));
-    
+
     boolean returnValue = imService.isDeployed(dm);
 
     assertThat(deployment.getTask()).isEqualTo(Task.DEPLOYER);
@@ -388,7 +417,7 @@ public class ImServiceTest {
 
     InfrastructureState infrastructureState = generateInfrastructureState(States.RUNNING, 2);
     List<VirtualMachineInfo> info= generateVirtualMachineInfo(2);
-    
+
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
     Mockito.doReturn(infrastructureManager).when(imClientFactory)
         .build(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
@@ -507,16 +536,31 @@ public class ImServiceTest {
         .extracting(Resource::getState)
         .allMatch(NodeStates.STARTED::equals);
     assertThat(dm.isPollComplete()).isFalse();
-  } 
+  }
+
+  @Test
+  public void doProviderTimeoutSuccessful() {
+    Deployment deployment = ControllerTestUtils.createDeployment(2);
+    deployment.setDeploymentProvider(DeploymentProvider.IM);
+    DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
+
+    AbstractThrowableAssert<?, ? extends Throwable> assertion = assertThatCode(
+        () -> imService.doProviderTimeout(dm));
+    assertion.isInstanceOf(BusinessWorkflowException.class)
+        .hasCauseExactlyInstanceOf(DeploymentException.class)
+        .hasMessage("Error executing request to IM;"
+            + " nested exception is it.reply.orchestrator.exception.service."
+            + "DeploymentException: IM provider timeout during deployment");
+  }
 
   @Test
   public void testDoUndeploySuccess() throws ImClientException {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    
+
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
-    
+
     assertThat(imService.doUndeploy(dm)).isTrue();
   }
 
@@ -525,7 +569,7 @@ public class ImServiceTest {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    
+
     deployment.setEndpoint("endpoint");
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
     Mockito.doReturn(infrastructureManager).when(imClientFactory)
@@ -539,7 +583,7 @@ public class ImServiceTest {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    
+
     deployment.setEndpoint("endpoint");
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
     Mockito.when(deploymentRepository.save(deployment)).thenReturn(deployment);
@@ -549,7 +593,7 @@ public class ImServiceTest {
     Mockito.doThrow(new ImClientErrorException(responseError)).when(infrastructureManager)
         .destroyInfrastructure(Mockito.any(String.class));
     Mockito.doNothing().when(deploymentStatusHelper).updateOnError(Mockito.anyString(), Mockito.anyString());
-    
+
     assertThatThrownBy(() -> imService.doUndeploy(dm)).isInstanceOf(DeploymentException.class);
   }
 
@@ -558,9 +602,9 @@ public class ImServiceTest {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    
+
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
-    
+
     deployment.setEndpoint("endpoint");
     Mockito.when(deploymentRepository.save(deployment)).thenReturn(deployment);
     Mockito.doReturn(infrastructureManager).when(imClientFactory)
@@ -572,7 +616,7 @@ public class ImServiceTest {
 
     Mockito.doThrow(new NullPointerException()).when(infrastructureManager)
         .destroyInfrastructure(Mockito.any(String.class));
-    
+
     assertThatThrownBy(() -> imService.doUndeploy(dm)).isInstanceOf(NullPointerException.class);
   }
 
@@ -606,7 +650,7 @@ public class ImServiceTest {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    
+
     deployment.setEndpoint("www.example.com");
     String infrastructureId = UUID.randomUUID().toString();
     InfrastructureUri infrastructureUri =
@@ -634,7 +678,7 @@ public class ImServiceTest {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    
+
     deployment.setEndpoint("www.example.com");
     String infrastructureId = UUID.randomUUID().toString();
     InfrastructureUri infrastructureUri =
@@ -664,7 +708,7 @@ public class ImServiceTest {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
-    
+
     deployment.setEndpoint("www.example.com");
     String infrastructureId = UUID.randomUUID().toString();
     InfrastructureUri infrastructureUri =
@@ -683,7 +727,7 @@ public class ImServiceTest {
 
     Mockito.doThrow(new ImClientException()).when(infrastructureManager)
         .getInfrastructureState(Mockito.any(String.class));
-    
+
     assertThatThrownBy(() -> imService.isUndeployed(dm)).isInstanceOf(DeploymentException.class);
   }
 
@@ -709,11 +753,19 @@ public class ImServiceTest {
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
 
-    CloudProvidersOrderedIterator cpi = new CloudProvidersOrderedIterator(Lists.newArrayList(
-        CloudProvider.builder().id("cloud-provider-id").build()
-    ));
-    cpi.next();
-    dm.setCloudProvidersOrderedIterator(cpi);
+    ComputeService cs = ComputeService
+        .computeBuilder()
+        .endpoint("http://example.com")
+        .providerId("cloud-provider-id-1")
+        .id("cloud-service-id-1")
+        .type(CloudServiceType.COMPUTE)
+        .endpoint("http://example.com")
+        .serviceType(OPENSTACK_COMPUTE_SERVICE)
+        .hostname("example.com")
+        .build();
+    CloudServicesOrderedIterator csi = new CloudServicesOrderedIterator(Lists.newArrayList(cs));
+    csi.next();
+    dm.setCloudServicesOrderedIterator(csi);
 
     String infrastructureId = UUID.randomUUID().toString();
     InfrastructureUri infrastructureUri =
@@ -757,7 +809,7 @@ public class ImServiceTest {
     InfrastructureState infrastructureState = generateInfrastructureState(States.CONFIGURED, 1);
     Mockito.when(infrastructureManager.getInfrastructureState(deployment.getEndpoint()))
         .thenReturn(infrastructureState);
-    
+
     assertThat(imService.doUpdate(dm, "newTemplate")).isTrue();
 
   }
@@ -768,11 +820,19 @@ public class ImServiceTest {
     deployment.setDeploymentProvider(DeploymentProvider.IM);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
 
-    CloudProvidersOrderedIterator cpi = new CloudProvidersOrderedIterator(Lists.newArrayList(
-        CloudProvider.builder().id("cloud-provider-id").build()
-    ));
-    cpi.next();
-    dm.setCloudProvidersOrderedIterator(cpi);
+    ComputeService cs = ComputeService
+        .computeBuilder()
+        .endpoint("http://example.com")
+        .providerId("cloud-provider-id-1")
+        .id("cloud-service-id-1")
+        .type(CloudServiceType.COMPUTE)
+        .endpoint("http://example.com")
+        .serviceType(OPENSTACK_COMPUTE_SERVICE)
+        .hostname("example.com")
+        .build();
+    CloudServicesOrderedIterator csi = new CloudServicesOrderedIterator(Lists.newArrayList(cs));
+    csi.next();
+    dm.setCloudServicesOrderedIterator(csi);
 
     String infrastructureId = UUID.randomUUID().toString();
     InfrastructureUri infrastructureUri =
@@ -823,11 +883,11 @@ public class ImServiceTest {
     Mockito.doReturn(resource2).when(resourceRepository).save(resource2);
     Mockito.doReturn(deployment.getTemplate()).when(toscaService)
         .updateTemplate(Mockito.anyString());
-    
+
     InfrastructureState infrastructureState = generateInfrastructureState(States.CONFIGURED, 2);
     Mockito.when(infrastructureManager.getInfrastructureState(deployment.getEndpoint()))
         .thenReturn(infrastructureState);
-    
+
     assertThat(imService.doUpdate(dm, "newTemplate")).isTrue();
   }
 
@@ -924,7 +984,7 @@ public class ImServiceTest {
     Mockito.doReturn(im).when(imClientFactory).build(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.doThrow(new ImClientErrorException(new ResponseError("message", 404))).when(im)
         .getInfrastructureState(deployment.getEndpoint());
-    
+
     assertThatThrownBy(() -> imService.doUpdate(dm, "newTemplate"))
         .isInstanceOf(DeploymentException.class);
 

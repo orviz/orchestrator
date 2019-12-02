@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package it.reply.orchestrator.service.deployment.providers;
 
-import alien4cloud.model.components.OutputDefinition;
-import alien4cloud.model.topology.NodeTemplate;
-import alien4cloud.model.topology.RelationshipTemplate;
-import alien4cloud.model.topology.Topology;
 import alien4cloud.tosca.model.ArchiveRoot;
 
 import com.google.common.collect.Lists;
@@ -31,28 +27,38 @@ import it.reply.orchestrator.dal.entity.OidcTokenId;
 import it.reply.orchestrator.dal.entity.Resource;
 import it.reply.orchestrator.dal.repository.ResourceRepository;
 import it.reply.orchestrator.dto.CloudProviderEndpoint;
-import it.reply.orchestrator.dto.cmdb.MarathonServiceData.MarathonServiceProperties;
+import it.reply.orchestrator.dto.cmdb.MarathonService;
+import it.reply.orchestrator.dto.cmdb.MarathonService.MarathonServiceProperties;
 import it.reply.orchestrator.dto.deployment.DeploymentMessage;
 import it.reply.orchestrator.dto.mesos.MesosContainer;
+import it.reply.orchestrator.dto.mesos.MesosContainer.Type;
 import it.reply.orchestrator.dto.mesos.MesosPortMapping;
 import it.reply.orchestrator.dto.mesos.marathon.MarathonApp;
+import it.reply.orchestrator.dto.vault.VaultSecret;
 import it.reply.orchestrator.enums.DeploymentProvider;
+import it.reply.orchestrator.exception.VaultServiceNotAvailableException;
+import it.reply.orchestrator.exception.service.BusinessWorkflowException;
 import it.reply.orchestrator.exception.service.DeploymentException;
 import it.reply.orchestrator.function.ThrowingConsumer;
 import it.reply.orchestrator.function.ThrowingFunction;
 import it.reply.orchestrator.service.IndigoInputsPreProcessorService;
 import it.reply.orchestrator.service.IndigoInputsPreProcessorService.RuntimeProperties;
 import it.reply.orchestrator.service.ToscaService;
+import it.reply.orchestrator.service.VaultService;
 import it.reply.orchestrator.service.deployment.providers.factory.MarathonClientFactory;
 import it.reply.orchestrator.service.security.OAuth2TokenService;
 import it.reply.orchestrator.utils.CommonUtils;
 import it.reply.orchestrator.utils.ToscaConstants;
+import it.reply.orchestrator.utils.ToscaUtils;
+import it.reply.orchestrator.utils.WorkflowConstants.ErrorCode;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,8 +83,14 @@ import mesosphere.marathon.client.model.v2.LocalVolume;
 import mesosphere.marathon.client.model.v2.Network;
 import mesosphere.marathon.client.model.v2.Port;
 import mesosphere.marathon.client.model.v2.PortDefinition;
+import mesosphere.marathon.client.model.v2.SecretSource;
 import mesosphere.marathon.client.model.v2.Volume;
 
+import org.alien4cloud.tosca.model.definitions.OutputDefinition;
+import org.alien4cloud.tosca.model.templates.NodeTemplate;
+import org.alien4cloud.tosca.model.templates.RelationshipTemplate;
+import org.alien4cloud.tosca.model.templates.Topology;
+import org.alien4cloud.tosca.normative.types.BooleanType;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -88,6 +100,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.vault.authentication.TokenAuthentication;
 
 @Service
 @DeploymentProviderQualifier(DeploymentProvider.MARATHON)
@@ -115,6 +128,9 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
   @Autowired
   private OAuth2TokenService oauth2TokenService;
 
+  @Autowired
+  private VaultService vaultService;
+
   protected <R> R executeWithClientForResult(CloudProviderEndpoint cloudProviderEndpoint,
       @Nullable OidcTokenId requestedWithToken,
       ThrowingFunction<Marathon, R, MarathonException> function) {
@@ -130,7 +146,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
         client -> consumer.asFunction().apply(client));
   }
 
-  protected Group createGroup(Deployment deployment) {
+  protected Group createGroup(Deployment deployment, OidcTokenId requestedWithToken) {
     ArchiveRoot ar = toscaService
         .prepareTemplate(deployment.getTemplate(), deployment.getParameters());
 
@@ -148,7 +164,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
 
     List<NodeTemplate> orderedMarathonApps = CommonUtils
         .iteratorToStream(orderIterator)
-        .filter(node -> toscaService.isOfToscaType(node, ToscaConstants.Nodes.MARATHON))
+        .filter(node -> toscaService.isOfToscaType(node, ToscaConstants.Nodes.Types.MARATHON))
         .collect(Collectors.toList());
 
     Group group = new Group();
@@ -162,7 +178,8 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
       resources.forEach(resource -> resource.setIaasId(marathonTask.getId()));
       marathonTask.setInstances(resources.size());
 
-      App marathonApp = generateExternalTaskRepresentation(marathonTask);
+      App marathonApp = generateExternalTaskRepresentation(marathonTask, deployment.getId(),
+          requestedWithToken);
       apps.add(marathonApp);
     }
     group.setApps(apps);
@@ -170,15 +187,33 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
   }
 
   @Override
+  public MarathonApp buildTask(DirectedMultigraph<NodeTemplate, RelationshipTemplate> graph,
+      NodeTemplate taskNode, String taskId) {
+    MarathonApp task = super.buildTask(graph, taskNode, taskId);
+
+    ToscaUtils
+        .extractScalar(taskNode.getProperties(), "enable_https", BooleanType.class)
+        .ifPresent(task::setEnableHttps);
+
+    ToscaUtils
+        .extractMap(taskNode.getProperties(), "secrets", String.class::cast)
+        .ifPresent(task::setSecrets);
+
+    return task;
+  }
+
+  @Override
   public boolean doDeploy(DeploymentMessage deploymentMessage) {
     Deployment deployment = getDeployment(deploymentMessage);
+    final OidcTokenId requestedWithToken = deploymentMessage.getRequestedWithToken();
 
-    Group group = createGroup(deployment);
+    Group group = createGroup(deployment, requestedWithToken);
 
     String groupId = deployment.getId();
 
-    MarathonServiceProperties marathonProperties = marathonClientFactory
-        .getFrameworkProperties(deploymentMessage)
+    MarathonServiceProperties marathonProperties = deploymentMessage
+        .getCloudServicesOrderedIterator()
+        .currentService(MarathonService.class)
         .getProperties();
 
     CommonUtils
@@ -212,8 +247,10 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
 
     LOG.info("Creating Marathon App Group for deployment {} with definition:\n{}",
         deployment.getId(), group);
-    final OidcTokenId requestedWithToken = deploymentMessage.getRequestedWithToken();
     CloudProviderEndpoint cloudProviderEndpoint = deployment.getCloudProviderEndpoint();
+    vaultService.getServiceUri()
+        .map(URI::toString)
+        .ifPresent(cloudProviderEndpoint::setVaultEndpoint);
     executeWithClient(cloudProviderEndpoint, requestedWithToken,
         client -> client.createGroup(group));
     return true;
@@ -290,16 +327,34 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
   @Override
   public boolean doUndeploy(DeploymentMessage deploymentMessage) {
     Deployment deployment = getDeployment(deploymentMessage);
-
-    String groupId = deployment.getId();
-    final OidcTokenId requestedWithToken = deploymentMessage.getRequestedWithToken();
     CloudProviderEndpoint cloudProviderEndpoint = deployment.getCloudProviderEndpoint();
-    try {
-      executeWithClient(cloudProviderEndpoint, requestedWithToken,
-          client -> client.deleteGroup(groupId, true));
-    } catch (MarathonException ex) {
-      if (HttpStatus.NOT_FOUND.value() != ex.getStatus()) {
-        throw ex;
+    if (cloudProviderEndpoint != null) {
+      String groupId = deployment.getId();
+      final OidcTokenId requestedWithToken = deploymentMessage.getRequestedWithToken();
+      try {
+        executeWithClient(cloudProviderEndpoint, requestedWithToken,
+            client -> client.deleteGroup(groupId, true));
+      } catch (MarathonException ex) {
+        if (HttpStatus.NOT_FOUND.value() != ex.getStatus()) {
+          throw ex;
+        }
+      }
+      //delete secrets if present
+      String vaultUri = cloudProviderEndpoint.getVaultEndpoint();
+      if (StringUtils.isNotEmpty(vaultUri)) {
+        URI uri = URI.create(vaultUri);
+        TokenAuthentication vaultToken = vaultService.retrieveToken(uri, requestedWithToken);
+        //search for vault entries
+        String spath = "secret/private/" + deployment.getId();
+        List<String> depentries = vaultService.listSecrets(uri, vaultToken, spath);
+        //remove vault entries if present
+        for (String depentry:depentries) {
+          List<String> entries = vaultService.listSecrets(uri, vaultToken, spath + "/"
+              + depentry);
+          for (String entry:entries) {
+            vaultService.deleteSecret(uri, vaultToken, spath + "/" + depentry + "/" + entry);
+          }
+        }
       }
     }
     return true;
@@ -334,7 +389,13 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
   }
 
   @Override
+  @Deprecated
   protected App generateExternalTaskRepresentation(MarathonApp marathonTask) {
+    throw new UnsupportedOperationException();
+  }
+
+  protected App generateExternalTaskRepresentation(MarathonApp marathonTask, String deploymentId,
+      OidcTokenId requestedWithToken) {
     App app = new App();
     String id = marathonTask.getId();
     if (!APP_NAME_VALIDATOR.matcher(id).matches()) {
@@ -350,7 +411,41 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
     app.setMem(marathonTask.getMemSize());
     app.setUris(marathonTask.getUris());
     app.setLabels(marathonTask.getLabels());
-    app.setEnv(new HashMap<>(marathonTask.getEnv()));
+
+    Map<String, Object> marathonEnv = new HashMap<>(marathonTask.getEnv());
+
+    // handle secrets
+    if (!marathonTask.getSecrets().isEmpty()) {
+      try {
+        TokenAuthentication vaultToken = vaultService.retrieveToken(requestedWithToken);
+
+        Map<String, SecretSource> secrets = new HashMap<>();
+
+        for (Map.Entry<String, String> entry : marathonTask.getSecrets().entrySet()) {
+          Map<String, String> enventry = new HashMap<>();
+          enventry.put("secret", entry.getKey());
+          marathonEnv.put(entry.getKey(), enventry);
+          SecretSource source = new SecretSource();
+          source.setSource(entry.getKey() + "@value");
+          secrets.put(entry.getKey(), source);
+
+          //write secret on service
+          String spath = "secret/private/" + deploymentId + "/" + marathonTask.getId() + "/"
+              + entry.getKey();
+
+          vaultService.writeSecret(vaultToken, spath, new VaultSecret(entry.getValue()));
+
+        }
+        app.setSecrets(secrets);
+      } catch (VaultServiceNotAvailableException ex) {
+        LOG.warn("Vault service not enabled but secret present in template for deployment {}",
+            deploymentId);
+        throw new BusinessWorkflowException(ErrorCode.RUNTIME_ERROR,
+            "Secrets support not enabled", ex);
+      }
+    }
+
+    app.setEnv(marathonEnv);
     app.setInstances(marathonTask.getInstances());
     boolean useGpu = Optional
         .ofNullable(marathonTask.getGpus())
@@ -380,15 +475,15 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
           container.setDocker(docker);
           docker.setImage(mesosContainer.getImage());
           docker.setForcePullImage(mesosContainer.isForcePullImage());
-          docker.setPrivileged(mesosContainer.isPriviliged());
+          docker.setPrivileged(mesosContainer.isPrivileged());
           List<Port> ports = mesosContainer
               .getPortMappings()
               .stream()
               .map(this::generatePort)
               .collect(Collectors.toList());
 
-          if (mesosContainer.getType() == MesosContainer.Type.DOCKER && !useGpu) {
-            container.setType(MesosContainer.Type.DOCKER.getName());
+          if (mesosContainer.getType() == Type.DOCKER && !useGpu) {
+            container.setType(Type.DOCKER.getName());
             docker.setPortMappings(ports);
             //// HARDCODED BITS //////
             docker.setNetwork("BRIDGE");
@@ -409,8 +504,21 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
                   return portDefinition;
                 }).collect(Collectors.toList()));
           }
+          if (ports.size() > 0) {
+            marathonApp.getLabels().put("HAPROXY_GROUP", "external");
+            if (marathonTask.isEnableHttps()) {
+              for (int cp = 0; cp < ports.size(); cp++) {
+                marathonApp.getLabels().put(
+                    String.format("HAPROXY_%d_BACKEND_HEAD", cp),
+                    "\nbackend {backend}\n  balance {balance}\n  mode http\n  "
+                    + "http-request add-header X-Forwarded-Proto https\n");
+                marathonApp.getLabels().put(
+                    String.format("HAPROXY_%d_SSL_CERT", cp),
+                    "/etc/ssl/cert.pem");
+              }
+            }
+          }
         });
-
   }
 
   private Port generatePort(MesosPortMapping portMapping) {
@@ -513,11 +621,13 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
 
       List<NodeTemplate> orderedMarathonApps = CommonUtils
           .iteratorToStream(orderIterator)
-          .filter(node -> toscaService.isOfToscaType(node, ToscaConstants.Nodes.MARATHON))
+          .filter(node -> toscaService.isOfToscaType(node, ToscaConstants.Nodes.Types.MARATHON))
           .collect(Collectors.toList());
 
-      MarathonServiceProperties marathonProperties =
-          marathonClientFactory.getFrameworkProperties(deploymentMessage).getProperties();
+      MarathonServiceProperties marathonProperties = deploymentMessage
+          .getCloudServicesOrderedIterator()
+          .currentService(MarathonService.class)
+          .getProperties();
       RuntimeProperties runtimeProperties = new RuntimeProperties();
       for (NodeTemplate marathonNode : orderedMarathonApps) {
 
@@ -560,7 +670,33 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
 
   @Override
   public void cleanFailedDeploy(DeploymentMessage deploymentMessage) {
-    // DO NOTHING
+    doUndeploy(deploymentMessage);
+  }
+
+  @Override
+  public void doProviderTimeout(DeploymentMessage deploymentMessage) throws DeploymentException {
+    Deployment deployment = getDeployment(deploymentMessage);
+    Group group = getPolulatedGroup(deploymentMessage, deployment);
+    Collection<App> apps = Optional.ofNullable(group.getApps()).orElseGet(ArrayList::new);
+    StringBuilder sb = new StringBuilder();
+    Iterator<App> iterator = apps.iterator();
+    while (iterator.hasNext()) {
+      App app = iterator.next();
+      if (app.getLastTaskFailure() != null && !StringUtils.isEmpty(app.getLastTaskFailure()
+          .getMessage())) {
+        sb.append(app.getLastTaskFailure().getMessage());
+        sb.append('\n');
+      }
+    }
+    if (sb.length() > 0) {
+      sb.insert(0, "Deployment timeout: ");
+    } else {
+      sb.append("Deployment timeout");
+    }
+
+    throw new BusinessWorkflowException(ErrorCode.CLOUD_PROVIDER_ERROR,
+        "Error executing request to Marathon service",
+        new DeploymentException(sb.toString()));
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2018 Santer Reply S.p.A.
+ * Copyright © 2015-2019 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,25 @@
 package it.reply.orchestrator.service;
 
 import it.reply.orchestrator.config.properties.CmdbProperties;
-import it.reply.orchestrator.dto.CloudProvider;
+import it.reply.orchestrator.dto.cmdb.CloudProvider;
 import it.reply.orchestrator.dto.cmdb.CloudService;
-import it.reply.orchestrator.dto.cmdb.CmdbHasManyList;
-import it.reply.orchestrator.dto.cmdb.CmdbRow;
+import it.reply.orchestrator.dto.cmdb.CmdbIdentifiable;
+import it.reply.orchestrator.dto.cmdb.ComputeService;
+import it.reply.orchestrator.dto.cmdb.Flavor;
 import it.reply.orchestrator.dto.cmdb.Image;
-import it.reply.orchestrator.dto.cmdb.ImageData;
-import it.reply.orchestrator.dto.cmdb.Provider;
-import it.reply.orchestrator.dto.cmdb.Type;
+import it.reply.orchestrator.dto.cmdb.Tenant;
+import it.reply.orchestrator.dto.cmdb.wrappers.CmdbDataWrapper;
+import it.reply.orchestrator.dto.cmdb.wrappers.CmdbHasManyList;
+import it.reply.orchestrator.dto.cmdb.wrappers.CmdbRow;
 import it.reply.orchestrator.exception.service.DeploymentException;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.UriBuilder;
@@ -52,13 +55,50 @@ import org.springframework.web.client.RestTemplate;
 @EnableConfigurationProperties(CmdbProperties.class)
 public class CmdbServiceImpl implements CmdbService {
 
-  private static final ParameterizedTypeReference<CmdbHasManyList<CmdbRow<CloudService>>> 
-      CLOUD_SERVICE_LIST_RESPONSE_TYPE = 
-          new ParameterizedTypeReference<CmdbHasManyList<CmdbRow<CloudService>>>() {};
+  private static final ParameterizedTypeReference<CmdbDataWrapper<CloudProvider>>
+      PROVIDER_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<CloudProvider>>() {
+      };
 
-  private static final ParameterizedTypeReference<CmdbHasManyList<CmdbRow<Image>>>
-      IMAGE_LIST_RESPONSE_TYPE =
-          new ParameterizedTypeReference<CmdbHasManyList<CmdbRow<Image>>>() {};
+  private static final ParameterizedTypeReference<CmdbHasManyList<CloudService>>
+      CLOUD_SERVICES_LIST_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbHasManyList<CloudService>>() {
+      };
+
+  private static final ParameterizedTypeReference<CmdbDataWrapper<CloudService>>
+      CLOUD_SERVICE_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<CloudService>>() {
+      };
+
+  private static final ParameterizedTypeReference<CmdbHasManyList<Image>>
+      IMAGES_LIST_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbHasManyList<Image>>() {
+      };
+
+  private static final ParameterizedTypeReference<CmdbDataWrapper<Image>>
+      IMAGE_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<Image>>() {
+      };
+
+  private static final ParameterizedTypeReference<CmdbHasManyList<Flavor>>
+      FLAVORS_LIST_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbHasManyList<Flavor>>() {
+      };
+
+  private static final ParameterizedTypeReference<CmdbDataWrapper<Flavor>>
+      FLAVOR_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<Flavor>>() {
+      };
+
+  private static final ParameterizedTypeReference<CmdbHasManyList<Tenant>>
+      TENANTS_LIST_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbHasManyList<Tenant>>() {
+      };
+
+  private static final ParameterizedTypeReference<CmdbDataWrapper<Tenant>>
+      TENANT_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<Tenant>>() {
+      };
 
   private CmdbProperties cmdbProperties;
 
@@ -67,6 +107,48 @@ public class CmdbServiceImpl implements CmdbService {
   public CmdbServiceImpl(CmdbProperties cmdbProperties, RestTemplateBuilder restTemplateBuilder) {
     this.cmdbProperties = cmdbProperties;
     this.restTemplate = restTemplateBuilder.build();
+  }
+
+  private <T extends CmdbIdentifiable> T unwrap(CmdbDataWrapper<T> wrapped) {
+    String id = wrapped.getId();
+    T unwrapped = wrapped.getData();
+    unwrapped.setId(id);
+    return unwrapped;
+  }
+
+  private <T extends CmdbIdentifiable> T get(URI from,
+      ParameterizedTypeReference<CmdbDataWrapper<T>> type) {
+    return unwrap(restTemplate
+        .exchange(from, HttpMethod.GET, null, type)
+        .getBody());
+  }
+
+  private <T extends CmdbIdentifiable> List<T> getAll(URI from,
+      ParameterizedTypeReference<CmdbHasManyList<T>> type) {
+    return restTemplate
+        .exchange(from, HttpMethod.GET, null, type)
+        .getBody()
+        .getRows()
+        .stream()
+        .map(CmdbRow::getDoc)
+        .map(this::unwrap)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public CloudProvider getProviderById(String providerId) {
+
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getProviderByIdPath())
+        .build(providerId)
+        .normalize();
+
+    try {
+      return get(requestUri, PROVIDER_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error loading info for provider <" + providerId + "> from CMDB.", ex);
+    }
   }
 
   @Override
@@ -78,64 +160,11 @@ public class CmdbServiceImpl implements CmdbService {
         .normalize();
 
     try {
-      return restTemplate.getForEntity(requestUri, CloudService.class).getBody();
-    } catch (RestClientException ex) {
-      throw new DeploymentException("Error loading info for service <" + serviceId + "> from CMDB.",
-          ex);
-    }
-  }
-
-  @Override
-  public Provider getProviderById(String providerId) {
-
-    URI requestUri = UriBuilder
-        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getProviderByIdPath())
-        .build(providerId)
-        .normalize();
-
-    try {
-      return restTemplate.getForEntity(requestUri, Provider.class).getBody();
+      return get(requestUri, CLOUD_SERVICE_RESPONSE_TYPE);
     } catch (RestClientException ex) {
       throw new DeploymentException(
-          "Error loading info for provider <" + providerId + "> from CMDB.", ex);
-    }
-  }
-
-  @Override
-  public Image getImageById(String imageId) {
-
-    URI requestUri = UriBuilder
-        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getImageByIdPath())
-        .build(imageId)
-        .normalize();
-
-    try {
-      return restTemplate.getForEntity(requestUri, Image.class).getBody();
-    } catch (RestClientException ex) {
-      throw new DeploymentException("Error loading info for image <" + imageId + "> from CMDB.",
+          "Error loading info for service <" + serviceId + "> from CMDB.",
           ex);
-    }
-  }
-
-  @Override
-  public List<Image> getImagesByService(String serviceId) {
-
-    URI requestUri = UriBuilder
-        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getImagesByServiceIdPath())
-        .build(serviceId)
-        .normalize();
-
-    try {
-      return restTemplate
-          .exchange(requestUri, HttpMethod.GET, null, IMAGE_LIST_RESPONSE_TYPE)
-          .getBody()
-          .getRows()
-          .stream()
-          .map(CmdbRow::getDoc)
-          .collect(Collectors.toList());
-    } catch (RestClientException ex) {
-      throw new DeploymentException(
-          "Error loading images list for service <" + serviceId + "> from CMDB.", ex);
     }
   }
 
@@ -148,13 +177,7 @@ public class CmdbServiceImpl implements CmdbService {
         .normalize();
 
     try {
-      return restTemplate
-          .exchange(requestUri, HttpMethod.GET, null, CLOUD_SERVICE_LIST_RESPONSE_TYPE)
-          .getBody()
-          .getRows()
-          .stream()
-          .map(CmdbRow::getDoc)
-          .collect(Collectors.toList());
+      return getAll(requestUri, CLOUD_SERVICES_LIST_RESPONSE_TYPE);
     } catch (RestClientException ex) {
       throw new DeploymentException(
           "Error loading services list for provider <" + providerId + "> from CMDB.", ex);
@@ -162,47 +185,157 @@ public class CmdbServiceImpl implements CmdbService {
   }
 
   @Override
-  public CloudProvider fillCloudProviderInfo(CloudProvider cp) {
+  public Image getImageById(String imageId) {
+
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getImageByIdPath())
+        .build(imageId)
+        .normalize();
+
+    try {
+      return get(requestUri, IMAGE_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException("Error loading info for image <" + imageId + "> from CMDB.",
+          ex);
+    }
+  }
+
+  @Override
+  public List<Image> getImagesByTenant(String tenantId) {
+
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getImagesByTenantIdPath())
+        .build(tenantId)
+        .normalize();
+
+    try {
+      return getAll(requestUri, IMAGES_LIST_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error loading images list for tenant <" + tenantId + "> from CMDB.", ex);
+    }
+  }
+
+  @Override
+  public Flavor getFlavorById(String flavorId) {
+
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getFlavorByIdPath())
+        .build(flavorId)
+        .normalize();
+
+    try {
+      return get(requestUri, FLAVOR_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error loading info for flavor <" + flavorId + "> from CMDB.",
+          ex);
+    }
+  }
+
+  @Override
+  public List<Flavor> getFlavorsByTenant(String tenantId) {
+
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getFlavorsByTenantIdPath())
+        .build(tenantId)
+        .normalize();
+
+    try {
+      return getAll(requestUri, FLAVORS_LIST_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error loading flavor list for tenant <" + tenantId + "> from CMDB.", ex);
+    }
+  }
+
+  @Override
+  public CloudProvider fillCloudProviderInfo(String providerId,
+      Set<String> servicesWithSla, String organisation) {
     // Get provider's data
-    cp.setCmdbProviderData(getProviderById(cp.getId()));
-
-    Map<String, CloudService> allServices = getServicesByProvider(cp.getId())
+    CloudProvider provider = getProviderById(providerId);
+    Map<String, CloudService> services = getServicesByProvider(providerId)
         .stream()
-        .collect(Collectors.toMap(CloudService::getId, cs -> cs));
-    // Get provider's services' data
-    cp
-        .getCmdbProviderServices()
-        .replaceAll((serviceId, service) -> Optional
-            .ofNullable(allServices.get(serviceId))
-            .orElseGet(() -> getServiceById(serviceId)));
+        .filter(cs -> servicesWithSla.contains(cs.getId()))
+        .map(cloudService -> {
+          if (cloudService instanceof ComputeService) {
+            String prId = cloudService.getProviderId();
+            String serviceId = cloudService.getId();
+            ComputeService computeService = (ComputeService) cloudService;
+            List<Tenant> serviceTenants = getTenantsByService(serviceId);
+            List<Tenant> organisationTenants = getTenantsByOrganisation(organisation);
+            List<Tenant> tenantList = serviceTenants.stream()
+                .distinct()
+                .filter(organisationTenants::contains)
+                .collect(Collectors.toList());
+            List<Image> imageList = new ArrayList<>();
+            List<Flavor> flavorList = new ArrayList<>();
+            for (Tenant tenant : tenantList) {
+              imageList.addAll(getImagesByTenant(tenant.getId()));
+              flavorList.addAll(getFlavorsByTenant(tenant.getId()));
+            }
+            LOG.debug("Image list for service <{}> of provider <{}>: <{}>",
+                Arrays.toString(imageList.toArray()), serviceId, prId);
+            computeService.setImages(imageList);
+            LOG.debug("Flavor list for service <{}> of provider <{}>: <{}>",
+                Arrays.toString(flavorList.toArray()), serviceId, prId);
+            computeService.setFlavors(flavorList);
+          }
+          return cloudService;
+        })
+        .collect(Collectors.toMap(CloudService::getId, Function.identity()));
 
-    // put the oneData provider services, even if they were not present (because no SLA was
-    // associated)
-    allServices
-        .values()
-        .stream()
-        .filter(cloudService -> cloudService.isMarathonComputeProviderService() || cloudService
-            .isChronosComputeProviderService() || cloudService.getData().getType() == Type.STORAGE)
-        .forEach(serviceWithoutSla -> cp
-            .getCmdbProviderServices()
-            .put(serviceWithoutSla.getId(), serviceWithoutSla));
+    provider.setServices(services);
+    return provider;
+  }
 
-    // Get images for compute services
-    cp
-        .getCmbdProviderServicesByType(Type.COMPUTE)
-        .stream()
-        .filter(Objects::nonNull)
-        .forEach(computeService -> {
-          List<ImageData> imageList = getImagesByService(computeService.getId())
-              .stream()
-              .map(e -> e.getData())
-              .collect(Collectors.toList());
-          LOG.debug("Image list for service <{}> of provider <{}>: <{}>",
-              Arrays.toString(imageList.toArray()), computeService.getId(), cp.getId());
-          cp.addCmdbCloudServiceImages(computeService.getId(), imageList);
-        });
+  @Override
+  public List<Tenant> getTenantsByService(String serviceId) {
 
-    return cp;
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getTenantsByServiceIdPath())
+        .build(serviceId)
+        .normalize();
+
+    try {
+      return getAll(requestUri, TENANTS_LIST_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error loading tenant list for service <" + serviceId + "> from CMDB.", ex);
+    }
+  }
+
+  @Override
+  public List<Tenant> getTenantsByOrganisation(String organisationId) {
+
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getTenantsByOrganizationIdPath())
+        .build(organisationId)
+        .normalize();
+
+    try {
+      return getAll(requestUri, TENANTS_LIST_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error loading tenant list for organisation <" + organisationId + "> from CMDB.", ex);
+    }
+  }
+
+  @Override
+  public Tenant getTenantById(String tenantId) {
+
+    URI requestUri = UriBuilder
+        .fromUri(cmdbProperties.getUrl() + cmdbProperties.getTenantByIdPath())
+        .build(tenantId)
+        .normalize();
+
+    try {
+      return get(requestUri, TENANT_RESPONSE_TYPE);
+    } catch (RestClientException ex) {
+      throw new DeploymentException(
+          "Error loading info for tenant <" + tenantId + "> from CMDB.",
+          ex);
+    }
   }
 
 }
