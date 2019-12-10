@@ -44,29 +44,9 @@ public class ImProperties implements InitializingBean {
   @NonNull
   private URI url;
 
-  @Nullable
-  private String imAuthHeader;
-
-  @NotNull
-  @NonNull
-  private Map<String, String> iaasAuthHeaders = new HashMap<>();
-
-  public Optional<String> getIaasHeader(String computeServiceId) {
-    Preconditions.checkNotNull(computeServiceId);
-    return Optional.ofNullable(iaasAuthHeaders.get(computeServiceId));
-  }
-
-  public Optional<String> getImAuthHeader() {
-    return Optional.ofNullable(imAuthHeader);
-  }
-
   @Override
   public void afterPropertiesSet() throws Exception {
     Preconditions.checkNotNull(url);
-    iaasAuthHeaders.forEach((key, value) -> {
-      Preconditions.checkNotNull(key);
-      Preconditions.checkNotNull(value);
-    });
 
   }
 

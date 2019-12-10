@@ -22,8 +22,6 @@ import it.reply.orchestrator.dto.CloudProviderEndpoint.IaaSType;
 import it.reply.orchestrator.dto.RankCloudProvidersMessage;
 import it.reply.orchestrator.dto.cmdb.CloudProvider;
 import it.reply.orchestrator.dto.cmdb.CloudService;
-import it.reply.orchestrator.dto.policies.CredentialsAwareSlaPlacementPolicy;
-import it.reply.orchestrator.dto.policies.ToscaPolicy;
 import it.reply.orchestrator.dto.ranker.RankedCloudService;
 import it.reply.orchestrator.dto.workflow.CloudServicesOrderedIterator;
 import it.reply.orchestrator.enums.DeploymentProvider;
@@ -96,27 +94,10 @@ public class CloudProviderEndpointServiceImpl {
    *     true if the deployment id hybrid
    * @return the {@link CloudProviderEndpoint}
    */
-  public CloudProviderEndpoint getCloudProviderEndpoint(CloudService computeService,
-      Map<String, ToscaPolicy> placementPolicies, boolean isHybrid) {
+  public CloudProviderEndpoint getCloudProviderEndpoint(CloudService computeService,  boolean isHybrid) {
 
     String imEndpoint = null;
     CloudProviderEndpointBuilder cpe = CloudProviderEndpoint.builder();
-
-    ///////////////////////////////
-    // TODO Improve and move somewhere else
-    placementPolicies
-        .values()
-        .stream()
-        .filter(CredentialsAwareSlaPlacementPolicy.class::isInstance)
-        .map(CredentialsAwareSlaPlacementPolicy.class::cast)
-        .filter(policy -> policy.getServicesId().contains(computeService.getId()))
-        .findFirst()
-        .ifPresent(policy -> {
-          cpe.username(policy.getUsername());
-          cpe.password(policy.getPassword());
-          cpe.tenant(policy.getTenant());
-        });
-    ///////////////////////////////
 
     final IaaSType iaasType;
     if (computeService.isOpenStackComputeProviderService()) {

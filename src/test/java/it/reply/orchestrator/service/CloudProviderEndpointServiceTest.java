@@ -248,7 +248,7 @@ public class CloudProviderEndpointServiceTest {
     }
 
     CloudProviderEndpoint actual = cloudProviderEndpointServiceImpl
-        .getCloudProviderEndpoint(cloudService, new HashMap<>(), hybrid);
+        .getCloudProviderEndpoint(cloudService, hybrid);
     assertThat(expected.build()).isEqualTo(actual);
   }
 
@@ -286,7 +286,7 @@ public class CloudProviderEndpointServiceTest {
         .build();
 
     assertThatCode(() -> cloudProviderEndpointServiceImpl
-        .getCloudProviderEndpoint(cloudService, new HashMap<>(), false))
+        .getCloudProviderEndpoint(cloudService, false))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Unknown Cloud Provider type: " + cloudService);
   }

@@ -136,8 +136,7 @@ public class UpdateDeploymentTest extends BaseDeployCommandTest<UpdateDeployment
 
     CloudProviderEndpoint chosenCloudProviderEndpoint = dm.getChosenCloudProviderEndpoint();
     dm.setChosenCloudProviderEndpoint(null);
-    when(cloudProviderEndpointServiceImpl.getCloudProviderEndpoint(cs,
-        rankCloudProvidersMessage.getPlacementPolicies(), false))
+    when(cloudProviderEndpointServiceImpl.getCloudProviderEndpoint(cs, false))
         .thenReturn(chosenCloudProviderEndpoint);
 
     ExecutionEntity execution = new ExecutionEntityBuilder()

@@ -26,6 +26,7 @@ import feign.slf4j.Slf4jLogger;
 import it.infn.ba.indigo.chronos.client.Chronos;
 import it.infn.ba.indigo.chronos.client.utils.ChronosException;
 import it.reply.orchestrator.dto.cmdb.ChronosService;
+import it.reply.orchestrator.service.deployment.providers.CredentialProviderService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,7 +39,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class ChronosClientFactory extends MesosFrameworkClientFactory<ChronosService, Chronos> {
 
-  @Override
+
+public ChronosClientFactory(CredentialProviderService credProvServ) {
+		super(credProvServ);
+	}
+
+@Override
   public Chronos build(String chronosEndpoint, RequestInterceptor authInterceptor) {
     LOG.info("Generating Chronos client with endpoint {}", chronosEndpoint);
 

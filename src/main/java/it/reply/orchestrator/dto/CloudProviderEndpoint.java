@@ -39,7 +39,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@ToString(exclude = "password")
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class CloudProviderEndpoint {
@@ -74,15 +73,6 @@ public class CloudProviderEndpoint {
   @Nullable
   @JsonProperty
   private String region;
-
-  @Nullable
-  private String username;
-
-  @Nullable
-  private String password;
-
-  @Nullable
-  private String tenant;
 
   @Nullable
   @JsonProperty

@@ -31,6 +31,10 @@ public class VaultProperties {
 
   @Nullable
   private URI url;
+  
+  private String path = "/services_credential/";
+  
+  private String role;
 
 }
 

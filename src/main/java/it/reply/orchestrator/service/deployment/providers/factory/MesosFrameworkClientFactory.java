@@ -21,11 +21,14 @@ import feign.auth.BasicAuthRequestInterceptor;
 
 import it.reply.orchestrator.dto.CloudProviderEndpoint;
 import it.reply.orchestrator.dto.cmdb.MesosFrameworkService;
+import it.reply.orchestrator.dto.security.GenericCredential;
+import it.reply.orchestrator.service.deployment.providers.CredentialProviderService;
 
 import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
@@ -42,14 +45,20 @@ public abstract class MesosFrameworkClientFactory<V extends MesosFrameworkServic
    *     the access token
    * @return the new client
    */
+	@Autowired
+	private CredentialProviderService credProvServ;
+	
   public T build(CloudProviderEndpoint cloudProviderEndpoint, String accessToken) {
     final RequestInterceptor requestInterceptor;
-    if (cloudProviderEndpoint.getUsername() != null
-        || cloudProviderEndpoint.getPassword() != null) {
-      Objects.requireNonNull(cloudProviderEndpoint.getUsername(), "Username must be provided");
-      Objects.requireNonNull(cloudProviderEndpoint.getPassword(), "Password must be provided");
-      requestInterceptor = new BasicAuthRequestInterceptor(cloudProviderEndpoint.getUsername(),
-          cloudProviderEndpoint.getPassword());
+
+		// ********** Get credential from vault Service
+    GenericCredential imCred = credProvServ.credentialProvider(cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredential.class);
+    // ********** Get credential from vault Service
+		
+    if (imCred.getUsername() != null || imCred.getPassword() != null) {
+      Objects.requireNonNull(imCred.getUsername(), "Username must be provided");
+      Objects.requireNonNull(imCred.getPassword(), "Password must be provided");
+      requestInterceptor = new BasicAuthRequestInterceptor(imCred.getUsername(), imCred.getPassword());
     } else {
       Objects.requireNonNull(accessToken, "Access Token must not be null");
       requestInterceptor = requestTemplate -> {
