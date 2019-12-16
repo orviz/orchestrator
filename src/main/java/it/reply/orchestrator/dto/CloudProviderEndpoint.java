@@ -44,15 +44,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class CloudProviderEndpoint {
 
   public enum IaaSType {
-    OPENSTACK,
-    OPENNEBULA,
-    OCCI,
-    AWS,
-    OTC,
-    AZURE,
-    CHRONOS,
-    MARATHON,
-    QCG;
+    OPENSTACK, OPENNEBULA, OCCI, AWS, OTC, AZURE, CHRONOS, MARATHON, QCG;
   }
 
   @Nullable

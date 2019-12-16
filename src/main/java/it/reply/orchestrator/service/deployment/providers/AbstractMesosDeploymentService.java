@@ -60,12 +60,9 @@ public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S>
   /**
    * Builds a MesosTask.
    *
-   * @param graph
-   *          the graph of with all nodes
-   * @param taskNode
-   *          the node representing the task
-   * @param taskId
-   *          the id of the task
+   * @param graph the graph of with all nodes
+   * @param taskNode the node representing the task
+   * @param taskId the id of the task
    * @return the Mesos task
    */
   public T buildTask(DirectedMultigraph<NodeTemplate, RelationshipTemplate> graph,
@@ -122,11 +119,9 @@ public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S>
 
     String imageName = Optional
         .ofNullable(image.getArtifactRef())
-        .orElseThrow(() ->
-            new IllegalArgumentException(
-                "<file> field for <image> artifact in node <" + taskNode.getName()
-                    + "> must be provided")
-        );
+        .orElseThrow(() -> new IllegalArgumentException(
+            "<file> field for <image> artifact in node <" + taskNode.getName()
+                + "> must be provided"));
 
     container.setImage(imageName);
 
@@ -158,9 +153,8 @@ public abstract class AbstractMesosDeploymentService<T extends MesosTask<T>, S>
         .ifPresent(container::setVolumes);
 
     ToscaUtils
-        .extractList(containerCapability.getProperties(), "publish_ports", l ->
-            this.generatePortMapping((Map<String, Object>) l)
-        )
+        .extractList(containerCapability.getProperties(), "publish_ports",
+            l -> this.generatePortMapping((Map<String, Object>) l))
         .ifPresent(portMappings -> task
             .getContainer()
             .orElseThrow(

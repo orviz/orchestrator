@@ -94,7 +94,8 @@ public class PrefilterCloudProvidersTest extends
         .thenReturn(deployment);
 
     ExecutionEntity execution = new ExecutionEntityBuilder()
-        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE,
+            rankCloudProvidersMessage)
         .build();
 
     assertThatCode(() -> command.execute(execution))
@@ -136,7 +137,8 @@ public class PrefilterCloudProvidersTest extends
         .thenReturn(Maps.newHashMap(Boolean.FALSE, new HashMap<>()));
 
     ExecutionEntity execution = new ExecutionEntityBuilder()
-        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE,
+            rankCloudProvidersMessage)
         .build();
 
     assertThatCode(() -> command.execute(execution))
@@ -171,13 +173,15 @@ public class PrefilterCloudProvidersTest extends
         .thenReturn(new HashMap<>());
 
     ExecutionEntity execution = new ExecutionEntityBuilder()
-        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE,
+            rankCloudProvidersMessage)
         .build();
 
     assertThatThrownBy(() -> command.execute(execution))
         .isInstanceOf(WorkflowException.class)
         .hasCauseInstanceOf(OrchestratorException.class)
-        .hasMessage("Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: Only a single placement policy is supported");
+        .hasMessage(
+            "Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: Only a single placement policy is supported");
   }
 
   @Test
@@ -207,13 +211,16 @@ public class PrefilterCloudProvidersTest extends
         .thenReturn(new HashMap<>());
 
     ExecutionEntity execution = new ExecutionEntityBuilder()
-        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE,
+            rankCloudProvidersMessage)
         .build();
 
     assertThatThrownBy(() -> command.execute(execution))
         .isInstanceOf(WorkflowException.class)
         .hasCauseInstanceOf(OrchestratorException.class)
-        .hasMessage("Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: No SLA with id " + slaId + " available");
+        .hasMessage(
+            "Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: No SLA with id "
+                + slaId + " available");
   }
 
   @Test
@@ -241,13 +248,15 @@ public class PrefilterCloudProvidersTest extends
         .thenReturn(new HashMap<>());
 
     ExecutionEntity execution = new ExecutionEntityBuilder()
-        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE,
+            rankCloudProvidersMessage)
         .build();
 
     assertThatThrownBy(() -> command.execute(execution))
         .isInstanceOf(WorkflowException.class)
         .hasCauseInstanceOf(OrchestratorException.class)
-        .hasMessage("Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: Only SLA placement policies are supported");
+        .hasMessage(
+            "Error filtering Cloud Providers; nested exception is it.reply.orchestrator.exception.OrchestratorException: Only SLA placement policies are supported");
   }
 
   @Test
@@ -276,7 +285,8 @@ public class PrefilterCloudProvidersTest extends
                 Maps.newHashMap(new NodeTemplate(), Image.builder().build())));
 
     ExecutionEntity execution = new ExecutionEntityBuilder()
-        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE, rankCloudProvidersMessage)
+        .withMockedVariable(WorkflowConstants.Param.RANK_CLOUD_PROVIDERS_MESSAGE,
+            rankCloudProvidersMessage)
         .build();
 
     assertThatCode(() -> command.execute(execution))

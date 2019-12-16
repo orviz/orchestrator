@@ -40,8 +40,7 @@ import org.springframework.test.context.junit4.rules.SpringMethodRule;
         Alien4CloudConfig.class,
         ToscaServiceImpl.class,
     },
-    properties = "alien4cloud.elasticSearch.clusterName=es-cluster-test"
-)
+    properties = "alien4cloud.elasticSearch.clusterName=es-cluster-test")
 public abstract class ToscaParserAwareTest {
 
   @ClassRule

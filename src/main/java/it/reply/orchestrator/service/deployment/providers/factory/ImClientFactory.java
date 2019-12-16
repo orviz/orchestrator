@@ -117,9 +117,11 @@ public class ImClientFactory {
         .withToken(accessToken);
   }
 
-  protected AmazonEc2Credentials getAwsAuthHeader(CloudProviderEndpoint cloudProviderEndpoint, String accessToken) {
+  protected AmazonEc2Credentials getAwsAuthHeader(CloudProviderEndpoint cloudProviderEndpoint,
+      String accessToken) {
     // Get credential from vault Service
-    GenericCredential imCred = credProvServ.credentialProvider(cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredential.class);
+    GenericCredential imCred = credProvServ.credentialProvider(
+        cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredential.class);
 
     return cloudProviderEndpoint
         .getIaasHeaderId()
@@ -129,8 +131,11 @@ public class ImClientFactory {
         .withPassword(imCred.getPassword());
   }
 
-  protected AzureCredentials getAzureAuthHeader(CloudProviderEndpoint cloudProviderEndpoint, String accessToken) {
-    GenericCredentialWithTenant imCred = credProvServ.credentialProvider(cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredentialWithTenant.class);
+  protected AzureCredentials getAzureAuthHeader(CloudProviderEndpoint cloudProviderEndpoint,
+      String accessToken) {
+    GenericCredentialWithTenant imCred =
+        credProvServ.credentialProvider(cloudProviderEndpoint.getCpComputeServiceId(), accessToken,
+            GenericCredentialWithTenant.class);
 
     return cloudProviderEndpoint
         .getIaasHeaderId()
@@ -142,7 +147,7 @@ public class ImClientFactory {
   }
 
   protected String getImAuthHeader(@Nullable String accessToken) {
-     if (oidcProperties.isEnabled()) {
+    if (oidcProperties.isEnabled()) {
       String header = ImCredentials
           .buildCredentials()
           .withToken(accessToken)
@@ -157,13 +162,16 @@ public class ImClientFactory {
     }
   }
 
-  private OpenStackCredentials getOtcAuthHeader(CloudProviderEndpoint cloudProviderEndpoint, String accessToken) {
+  private OpenStackCredentials getOtcAuthHeader(CloudProviderEndpoint cloudProviderEndpoint,
+      String accessToken) {
     String endpoint = cloudProviderEndpoint.getCpEndpoint();
     Matcher endpointMatcher = OS_ENDPOINT_PATTERN.matcher(endpoint);
     if (!endpointMatcher.matches()) {
       throw new DeploymentException("Wrong OS endpoint format: " + endpoint);
     } else {
-      GenericCredentialWithTenant imCred = credProvServ.credentialProvider(cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredentialWithTenant.class);
+      GenericCredentialWithTenant imCred =
+          credProvServ.credentialProvider(cloudProviderEndpoint.getCpComputeServiceId(),
+              accessToken, GenericCredentialWithTenant.class);
       String username = imCred.getUsername();
       String password = imCred.getPassword();
       String tenant = imCred.getTenant();
@@ -203,42 +211,40 @@ public class ImClientFactory {
     String computeServiceId = cloudProviderEndpoint.getCpComputeServiceId();
     String iaasHeader;
     oidcProperties.runIfSecurityDisabled(() -> {
-        throw new OrchestratorException("No Authentication info provided for compute service "
-            + computeServiceId + " and OAuth2 authentication is disabled");
-      });
-      switch (iaasType) {
-        case OPENSTACK:
-          iaasHeader = getOpenStackAuthHeader(cloudProviderEndpoint,
-              CommonUtils.checkNotNull(accessToken)).serialize();
-          break;
-        case OPENNEBULA:
-          iaasHeader = getOpenNebulaAuthHeader(cloudProviderEndpoint,
-              CommonUtils.checkNotNull(accessToken)).serialize();
-          break;
-        case AWS:
-          iaasHeader = getAwsAuthHeader(cloudProviderEndpoint, accessToken).serialize();
-          break;
-        case OTC:
-          iaasHeader = getOtcAuthHeader(cloudProviderEndpoint, accessToken).serialize();
-          break;
-        case AZURE:
-          iaasHeader = getAzureAuthHeader(cloudProviderEndpoint,accessToken).serialize();
-          break;
-        default:
-          throw new IllegalArgumentException(
-              String.format("Unsupported provider type <%s>", iaasType));
-      }
-    
+      throw new OrchestratorException("No Authentication info provided for compute service "
+          + computeServiceId + " and OAuth2 authentication is disabled");
+    });
+    switch (iaasType) {
+      case OPENSTACK:
+        iaasHeader = getOpenStackAuthHeader(cloudProviderEndpoint,
+            CommonUtils.checkNotNull(accessToken)).serialize();
+        break;
+      case OPENNEBULA:
+        iaasHeader = getOpenNebulaAuthHeader(cloudProviderEndpoint,
+            CommonUtils.checkNotNull(accessToken)).serialize();
+        break;
+      case AWS:
+        iaasHeader = getAwsAuthHeader(cloudProviderEndpoint, accessToken).serialize();
+        break;
+      case OTC:
+        iaasHeader = getOtcAuthHeader(cloudProviderEndpoint, accessToken).serialize();
+        break;
+      case AZURE:
+        iaasHeader = getAzureAuthHeader(cloudProviderEndpoint, accessToken).serialize();
+        break;
+      default:
+        throw new IllegalArgumentException(
+            String.format("Unsupported provider type <%s>", iaasType));
+    }
+
     return iaasHeader;
   }
 
   /**
    * Generates a Infrastructure Manager client.
    *
-   * @param cloudProviderEndpoints
-   *          the cloud providers information on which IM will authenticate
-   * @param accessToken
-   *          the optional OAuth2 token
+   * @param cloudProviderEndpoints the cloud providers information on which IM will authenticate
+   * @param accessToken the optional OAuth2 token
    * @return the generated client
    */
   @SneakyThrows(ImClientException.class)

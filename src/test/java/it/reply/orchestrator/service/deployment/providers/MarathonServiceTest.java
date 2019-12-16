@@ -283,7 +283,7 @@ public class MarathonServiceTest extends ToscaParserAwareTest {
   }
 
   @Test
-  @Parameters({"true", "false"})
+  @Parameters({ "true", "false" })
   public void doProviderTimeoutSuccessful(boolean hasTaskFailure) throws IOException {
     Deployment deployment = generateDeployment();
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
@@ -329,10 +329,10 @@ public class MarathonServiceTest extends ToscaParserAwareTest {
               + "DeploymentException: Deployment timeout");
     } else {
       assertion.isInstanceOf(BusinessWorkflowException.class)
-      .hasCauseExactlyInstanceOf(DeploymentException.class)
-      .hasMessage("Error executing request to Marathon service;"
-          + " nested exception is it.reply.orchestrator.exception.service."
-          + "DeploymentException: Deployment timeout: Task Failure Message\n");
+          .hasCauseExactlyInstanceOf(DeploymentException.class)
+          .hasMessage("Error executing request to Marathon service;"
+              + " nested exception is it.reply.orchestrator.exception.service."
+              + "DeploymentException: Deployment timeout: Task Failure Message\n");
     }
   }
 

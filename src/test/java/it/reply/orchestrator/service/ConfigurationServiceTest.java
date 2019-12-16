@@ -94,14 +94,14 @@ public class ConfigurationServiceTest {
 
   private SystemEndpoints createTestEndpoint() {
     return SystemEndpoints
-      .builder()
-      .cprUrl(CPR_URL)
-      .slamUrl(SLAM_URL)
-      .cmdbUrl(CMDB_URL)
-      .imUrl(IM_URL)
-      .monitoringUrl(MONITORING_URL)
-      .vaultUrl(VAULT_URL)
-      .build();
+        .builder()
+        .cprUrl(CPR_URL)
+        .slamUrl(SLAM_URL)
+        .cmdbUrl(CMDB_URL)
+        .imUrl(IM_URL)
+        .monitoringUrl(MONITORING_URL)
+        .vaultUrl(VAULT_URL)
+        .build();
   }
 
 }

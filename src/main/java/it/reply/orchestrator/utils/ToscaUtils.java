@@ -45,8 +45,7 @@ public class ToscaUtils {
    * If the object is a {@link PropertyValue}, it returns the wrapped value, otherwise it returns
    * the object itself.
    *
-   * @param wrappedObject
-   *     the wrapped object
+   * @param wrappedObject the wrapped object
    * @return the unwrapped object
    */
   public Object unwrapPropertyValue(Object wrappedObject) {
@@ -60,8 +59,7 @@ public class ToscaUtils {
   /**
    * It wraps an object inside an {@link AbstractPropertyValue}.
    *
-   * @param v
-   *     the original object
+   * @param v the original object
    * @return the wrapped object
    */
   public AbstractPropertyValue wrapToPropertyValue(Object v) {
@@ -86,12 +84,9 @@ public class ToscaUtils {
   /**
    * It extracts a scalar value from a properties map and parses it.
    *
-   * @param properties
-   *     the properties map
-   * @param key
-   *     the key of the property
-   * @param clazz
-   *     the {@link IPropertyType} expected
+   * @param properties the properties map
+   * @param key the key of the property
+   * @param clazz the {@link IPropertyType} expected
    * @return the parsed property
    */
   public <T extends IPropertyType<V>, V> Optional<V> extractScalar(
@@ -105,10 +100,8 @@ public class ToscaUtils {
   /**
    * It parses a {@link String} into a scalar value.
    *
-   * @param value
-   *     the String to parse
-   * @param clazz
-   *     the {@link IPropertyType} expected
+   * @param value the String to parse
+   * @param clazz the {@link IPropertyType} expected
    * @return the parsed value
    */
   public <T extends IPropertyType<V>, V> V parseScalar(String value, Class<T> clazz) {
@@ -130,12 +123,9 @@ public class ToscaUtils {
    * It extracts an optional {@link List} from a properties map and applies a mapping function on
    * every value before returning.
    *
-   * @param properties
-   *     the properties map
-   * @param key
-   *     the key of the property
-   * @param mapper
-   *     the mapping function
+   * @param properties the properties map
+   * @param key the key of the property
+   * @param mapper the mapping function
    * @return the parsed list
    */
   public <V> Optional<List<V>> extractList(Map<String, AbstractPropertyValue> properties,
@@ -151,12 +141,9 @@ public class ToscaUtils {
    * It extracts an optional {@link Map} from a properties map and applies a mapping function on
    * every value before returning.
    *
-   * @param properties
-   *     the properties map
-   * @param key
-   *     the key of the property
-   * @param mapper
-   *     the mapping function
+   * @param properties the properties map
+   * @param key the key of the property
+   * @param mapper the mapping function
    * @return the parsed map
    */
   public <V> Optional<Map<String, V>> extractMap(Map<String, AbstractPropertyValue> properties,

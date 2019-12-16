@@ -56,12 +56,13 @@ public class ExecutionEntityBuilder {
   }
 
   private Object handleMessages(Object value) {
-//    if (value instanceof BaseWorkflowMessage) {
-//      return JsonUtils.toJsonNode(value);
-//    } else {
+    // if (value instanceof BaseWorkflowMessage) {
+    // return JsonUtils.toJsonNode(value);
+    // } else {
     return value;
-//    }
+    // }
   }
+
   public ExecutionEntity build() {
     return execution;
   }

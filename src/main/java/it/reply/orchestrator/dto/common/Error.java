@@ -44,12 +44,9 @@ public class Error {
   /**
    * Generate an Error from an exception and a {@link HttpStatus}.
    *
-   * @param exception
-   *          the exception
-   * @param message
-   *          the message
-   * @param status
-   *          the HttpStatus
+   * @param exception the exception
+   * @param message the message
+   * @param status the HttpStatus
    */
   @Builder
   protected Error(@Nullable Exception exception, @Nullable String message,

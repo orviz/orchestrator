@@ -57,9 +57,9 @@ import org.springframework.stereotype.Service;
 public class MarathonClientFactory extends
     MesosFrameworkClientFactory<MarathonService, Marathon> {
 
-public MarathonClientFactory(CredentialProviderService credProvServ) {
-		super(credProvServ);
-	}
+  public MarathonClientFactory(CredentialProviderService credProvServ) {
+    super(credProvServ);
+  }
 
   private static class DeserializingMarathonErrorDecoder implements ErrorDecoder {
 

@@ -40,11 +40,11 @@ import org.springframework.stereotype.Service;
 public class ChronosClientFactory extends MesosFrameworkClientFactory<ChronosService, Chronos> {
 
 
-public ChronosClientFactory(CredentialProviderService credProvServ) {
-		super(credProvServ);
-	}
+  public ChronosClientFactory(CredentialProviderService credProvServ) {
+    super(credProvServ);
+  }
 
-@Override
+  @Override
   public Chronos build(String chronosEndpoint, RequestInterceptor authInterceptor) {
     LOG.info("Generating Chronos client with endpoint {}", chronosEndpoint);
 

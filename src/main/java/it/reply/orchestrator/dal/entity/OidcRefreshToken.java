@@ -44,7 +44,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 @Entity
 @Getter
 @Setter
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"issuer", "subject", "clients_id"})})
+@Table(
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "issuer", "subject", "clients_id" }) })
 @NoArgsConstructor
 @SuppressWarnings("null")
 public class OidcRefreshToken extends UuidIdentifiable {
@@ -52,10 +53,8 @@ public class OidcRefreshToken extends UuidIdentifiable {
   /**
    * Generate a OidcRefreshToken from a token id and a grant.
    *
-   * @param grant
-   *          the grant
-   * @param id
-   *          the token identifier
+   * @param grant the grant
+   * @param id the token identifier
    * @return the new OidcRefreshToken
    */
   public static OidcRefreshToken createFromAccessGrant(AccessGrant grant, OidcTokenId id) {
@@ -75,8 +74,7 @@ public class OidcRefreshToken extends UuidIdentifiable {
   /**
    * Updates the refresh token using the information contained in the access grant.
    *
-   * @param grant
-   *          the access grant
+   * @param grant the access grant
    */
   public void updateFromAccessGrant(AccessGrant grant) {
     setValue(grant.getRefreshToken());

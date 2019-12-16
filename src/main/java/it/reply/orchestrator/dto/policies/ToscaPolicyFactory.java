@@ -30,8 +30,7 @@ public class ToscaPolicyFactory {
   /**
    * Generate a ToscaPolicy from a {@link PolicyTemplate PolicyTemplate}.
    *
-   * @param policyTemplate
-   *     the TOSCA placement policy
+   * @param policyTemplate the TOSCA placement policy
    * @return the new ToscaPolicy
    */
   public static ToscaPolicy fromToscaType(PolicyTemplate policyTemplate) {

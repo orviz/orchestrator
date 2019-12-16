@@ -56,15 +56,13 @@ public class CommonUtils {
       Float.class,
       Integer.class,
       Long.class,
-      Short.class
-  );
+      Short.class);
 
   /**
    * Verify that a <code>@Nullable</code> reference is effectively non null and cast it to a
    * <code>@NonNull</code> reference. If the reference is instead null, a NPE is thrown
    *
-   * @param reference
-   *          the nullable reference
+   * @param reference the nullable reference
    * @return the non null reference
    */
   @NonNull
@@ -80,10 +78,8 @@ public class CommonUtils {
    * <code>@NonNull</code> reference. If the reference is instead null, the <code>@NonNull</code>
    * default value is returned
    *
-   * @param reference
-   *          the <code>@Nullable</code> reference
-   * @param defaultValue
-   *          the <code>@NonNull</code> default value
+   * @param reference the <code>@Nullable</code> reference
+   * @param defaultValue the <code>@NonNull</code> default value
    * @return the <code>@NonNull</code> reference
    */
   @NonNull
@@ -100,10 +96,8 @@ public class CommonUtils {
    * <code>@NonNull</code> reference. If the reference is instead null, the <code>@NonNull</code> a
    * default value will be generated through the provided supplier and returned.
    *
-   * @param reference
-   *          the <code>@Nullable</code> reference
-   * @param defaultValueSupplier
-   *          the <code>@NonNull</code> default value supplier
+   * @param reference the <code>@Nullable</code> reference
+   * @param defaultValueSupplier the <code>@NonNull</code> default value supplier
    * @return the <code>@NonNull</code> reference
    */
   @NonNull
@@ -127,8 +121,7 @@ public class CommonUtils {
   /**
    * Cast, if present, the object wrapped inside an {@link Optional}.
    *
-   * @param optionalObject
-   *          the wrapped object
+   * @param optionalObject the wrapped object
    * @return the casted object wrapped in a Optional
    */
   @SuppressWarnings("unchecked") // no escape from Java erasure
@@ -146,8 +139,7 @@ public class CommonUtils {
    * Generate a <b>sequential</b> and <b>ordered</b> {@link Stream} from the remaining element of a
    * {@link Iterator}.
    *
-   * @param iterator
-   *          the iterator from which generate the stream
+   * @param iterator the iterator from which generate the stream
    * @return the stream
    */
   public static <E> Stream<E> iteratorToStream(Iterator<E> iterator) {
@@ -178,10 +170,8 @@ public class CommonUtils {
    * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</tt> on the result of the provided
    * mapping function.
    *
-   * @param stream
-   *          the stream to filter
-   * @param mapper
-   *          the mapping function on which evaluate the uniqueness
+   * @param stream the stream to filter
+   * @param mapper the mapping function on which evaluate the uniqueness
    * @return the filtered stream
    */
   public static <T, V> Stream<T> distinct(Stream<T> stream, Function<T, V> mapper) {
@@ -201,10 +191,8 @@ public class CommonUtils {
    * {@code IllegalStateException} is thrown when the collection operation is performed.
    * </p>
    *
-   * @param keyMapper
-   *          a mapping function to produce keys
-   * @param valueMapper
-   *          a mapping function to produce values
+   * @param keyMapper a mapping function to produce keys
+   * @param valueMapper a mapping function to produce values
    * @return a {@code Collector} which collects elements into a {@code Map} whose keys and values
    *         are the result of applying mapping functions to the input elements
    */

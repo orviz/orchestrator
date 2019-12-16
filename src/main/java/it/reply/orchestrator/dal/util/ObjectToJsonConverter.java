@@ -26,8 +26,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class ObjectToJsonConverter extends AbstractToJsonConverter<@Nullable Object> {
 
   private static final TypeReference<@Nullable Object> REFERENCE =
-      new TypeReference<@Nullable Object>() {
-      };
+      new TypeReference<@Nullable Object>() {};
 
   public ObjectToJsonConverter() {
     super(REFERENCE);

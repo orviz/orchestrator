@@ -37,7 +37,7 @@ public class DeployTest extends BaseDeployCommandTest<Deploy> {
   }
 
   @Test
-  @Parameters({"true", "false"})
+  @Parameters({ "true", "false" })
   public void testDeploy(boolean complete) throws Exception {
     DeploymentMessage dm = new DeploymentMessage();
     ExecutionEntity execution = new ExecutionEntityBuilder()

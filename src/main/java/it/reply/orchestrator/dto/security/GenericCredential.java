@@ -14,16 +14,16 @@ import lombok.Data;
 @Data
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class GenericCredential implements GenericCredentialInterface{
+public class GenericCredential implements GenericCredentialInterface {
 
-	@JsonProperty("username")
-	@NonNull
-	@NotNull
-	private String username;
+  @JsonProperty("username")
+  @NonNull
+  @NotNull
+  private String username;
 
-	@JsonProperty("password")
-	@NonNull
-	@NotNull
-	private String password;
-		
+  @JsonProperty("password")
+  @NonNull
+  @NotNull
+  private String password;
+
 }

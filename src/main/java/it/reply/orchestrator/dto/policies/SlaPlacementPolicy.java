@@ -63,8 +63,7 @@ public class SlaPlacementPolicy extends GenericToscaPolicy {
   protected SlaPlacementPolicy(
       @NonNull String type,
       @NonNull Set<String> targets,
-      @NonNull String slaId
-  ) {
+      @NonNull String slaId) {
     super(type, targets);
     this.slaId = Objects.requireNonNull(slaId);
     servicesId = new ArrayList<>();
@@ -72,8 +71,7 @@ public class SlaPlacementPolicy extends GenericToscaPolicy {
 
   public SlaPlacementPolicy(
       @NonNull Set<String> targets,
-      @NonNull String slaId
-  ) {
+      @NonNull String slaId) {
     this(Types.SLA_PLACEMENT, targets, slaId);
   }
 
