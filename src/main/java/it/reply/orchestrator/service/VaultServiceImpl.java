@@ -59,12 +59,9 @@ public class VaultServiceImpl implements VaultService {
   /**
    * Creates a new {@link VaultServiceImpl}.
    *
-   * @param vaultProperties
-   *     the vaultProperties
-   * @param oauth2TokenService
-   *     the oauth2TokenService
-   * @param restTemplateBuilder
-   *     the restTemplateBuilder
+   * @param vaultProperties the vaultProperties
+   * @param oauth2TokenService the oauth2TokenService
+   * @param restTemplateBuilder the restTemplateBuilder
    */
   public VaultServiceImpl(VaultProperties vaultProperties,
       OAuth2TokenService oauth2TokenService,
@@ -201,7 +198,7 @@ public class VaultServiceImpl implements VaultService {
   public String getServicePath() {
     return vaultProperties.getPath();
   }
-  
+
   /**
    * Retrieve the vault token from the IAM token with entity ID using passed Vault server URI.
    */
@@ -215,11 +212,11 @@ public class VaultServiceImpl implements VaultService {
       VaultToken token = restTemplate
           .postForObject(uri, login, VaultTokenResponse.class)
           .getToken();
-      
+
       String entityId = restTemplate
           .postForObject(uri, login, VaultTokenResponseExtended.class)
           .getEntityId();
-      
+
       return new TokenAuthenticationExtended(token, entityId);
     } catch (HttpClientErrorException ex) {
       if (ex.getRawStatusCode() == 400) {

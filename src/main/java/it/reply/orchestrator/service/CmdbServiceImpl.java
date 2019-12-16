@@ -55,50 +55,38 @@ import org.springframework.web.client.RestTemplate;
 @EnableConfigurationProperties(CmdbProperties.class)
 public class CmdbServiceImpl implements CmdbService {
 
-  private static final ParameterizedTypeReference<CmdbDataWrapper<CloudProvider>>
-      PROVIDER_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbDataWrapper<CloudProvider>>() {
-      };
+  private static final ParameterizedTypeReference<
+      CmdbDataWrapper<CloudProvider>> PROVIDER_RESPONSE_TYPE =
+          new ParameterizedTypeReference<CmdbDataWrapper<CloudProvider>>() {};
 
-  private static final ParameterizedTypeReference<CmdbHasManyList<CloudService>>
-      CLOUD_SERVICES_LIST_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbHasManyList<CloudService>>() {
-      };
+  private static final ParameterizedTypeReference<
+      CmdbHasManyList<CloudService>> CLOUD_SERVICES_LIST_RESPONSE_TYPE =
+          new ParameterizedTypeReference<CmdbHasManyList<CloudService>>() {};
 
-  private static final ParameterizedTypeReference<CmdbDataWrapper<CloudService>>
-      CLOUD_SERVICE_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbDataWrapper<CloudService>>() {
-      };
+  private static final ParameterizedTypeReference<
+      CmdbDataWrapper<CloudService>> CLOUD_SERVICE_RESPONSE_TYPE =
+          new ParameterizedTypeReference<CmdbDataWrapper<CloudService>>() {};
 
-  private static final ParameterizedTypeReference<CmdbHasManyList<Image>>
-      IMAGES_LIST_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbHasManyList<Image>>() {
-      };
+  private static final ParameterizedTypeReference<
+      CmdbHasManyList<Image>> IMAGES_LIST_RESPONSE_TYPE =
+          new ParameterizedTypeReference<CmdbHasManyList<Image>>() {};
 
-  private static final ParameterizedTypeReference<CmdbDataWrapper<Image>>
-      IMAGE_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbDataWrapper<Image>>() {
-      };
+  private static final ParameterizedTypeReference<CmdbDataWrapper<Image>> IMAGE_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<Image>>() {};
 
-  private static final ParameterizedTypeReference<CmdbHasManyList<Flavor>>
-      FLAVORS_LIST_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbHasManyList<Flavor>>() {
-      };
+  private static final ParameterizedTypeReference<
+      CmdbHasManyList<Flavor>> FLAVORS_LIST_RESPONSE_TYPE =
+          new ParameterizedTypeReference<CmdbHasManyList<Flavor>>() {};
 
-  private static final ParameterizedTypeReference<CmdbDataWrapper<Flavor>>
-      FLAVOR_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbDataWrapper<Flavor>>() {
-      };
+  private static final ParameterizedTypeReference<CmdbDataWrapper<Flavor>> FLAVOR_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<Flavor>>() {};
 
-  private static final ParameterizedTypeReference<CmdbHasManyList<Tenant>>
-      TENANTS_LIST_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbHasManyList<Tenant>>() {
-      };
+  private static final ParameterizedTypeReference<
+      CmdbHasManyList<Tenant>> TENANTS_LIST_RESPONSE_TYPE =
+          new ParameterizedTypeReference<CmdbHasManyList<Tenant>>() {};
 
-  private static final ParameterizedTypeReference<CmdbDataWrapper<Tenant>>
-      TENANT_RESPONSE_TYPE =
-      new ParameterizedTypeReference<CmdbDataWrapper<Tenant>>() {
-      };
+  private static final ParameterizedTypeReference<CmdbDataWrapper<Tenant>> TENANT_RESPONSE_TYPE =
+      new ParameterizedTypeReference<CmdbDataWrapper<Tenant>>() {};
 
   private CmdbProperties cmdbProperties;
 

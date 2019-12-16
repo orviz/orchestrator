@@ -30,15 +30,12 @@ import org.junit.Test;
 public class WorkflowListIteratorTest {
 
   private static final WorkflowListIterator<String> EMPTY_LIST = new WorkflowListIterator<String>(
-      new ArrayList<>()) {
-  };
+      new ArrayList<>()) {};
 
   private static final WorkflowListIterator<String> ONE_ELEMENT = new WorkflowListIterator<String>(
-      Lists.newArrayList("one")) {
-  };
+      Lists.newArrayList("one")) {};
   private static final WorkflowListIterator<String> TWO_ELEMENTS = new WorkflowListIterator<String>(
-      Lists.newArrayList("one", "two")) {
-  };
+      Lists.newArrayList("one", "two")) {};
 
   @Before
   public void init() {

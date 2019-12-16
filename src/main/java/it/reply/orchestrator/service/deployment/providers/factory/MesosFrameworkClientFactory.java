@@ -36,29 +36,27 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public abstract class MesosFrameworkClientFactory<V extends MesosFrameworkService, T> {
 
+  @Autowired
+  private CredentialProviderService credProvServ;
+
   /**
    * Generate a new Mesos framework client.
    *
-   * @param cloudProviderEndpoint
-   *     the framework endpoint
-   * @param accessToken
-   *     the access token
+   * @param cloudProviderEndpoint the framework endpoint
+   * @param accessToken the access token
    * @return the new client
    */
-	@Autowired
-	private CredentialProviderService credProvServ;
-	
   public T build(CloudProviderEndpoint cloudProviderEndpoint, String accessToken) {
     final RequestInterceptor requestInterceptor;
 
-		// ********** Get credential from vault Service
-    GenericCredential imCred = credProvServ.credentialProvider(cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredential.class);
-    // ********** Get credential from vault Service
-		
+    GenericCredential imCred = credProvServ.credentialProvider(
+        cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredential.class);
+
     if (imCred.getUsername() != null || imCred.getPassword() != null) {
       Objects.requireNonNull(imCred.getUsername(), "Username must be provided");
       Objects.requireNonNull(imCred.getPassword(), "Password must be provided");
-      requestInterceptor = new BasicAuthRequestInterceptor(imCred.getUsername(), imCred.getPassword());
+      requestInterceptor =
+          new BasicAuthRequestInterceptor(imCred.getUsername(), imCred.getPassword());
     } else {
       Objects.requireNonNull(accessToken, "Access Token must not be null");
       requestInterceptor = requestTemplate -> {

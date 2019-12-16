@@ -33,8 +33,7 @@ public class JwtUtils {
   /**
    * Parse a String in a {@link JWT}.
    *
-   * @param jwtToken
-   *          the string to parse
+   * @param jwtToken the string to parse
    * @return the parsed JWT
    */
   public static JWT parseJwt(String jwtToken) {
@@ -48,8 +47,7 @@ public class JwtUtils {
   /**
    * Extract the claims from a {@link JWT}.
    *
-   * @param jwtToken
-   *          the JWT token
+   * @param jwtToken the JWT token
    * @return the JWT's claims
    */
   public static JWTClaimsSet getJwtClaimsSet(JWT jwtToken) {
@@ -64,8 +62,7 @@ public class JwtUtils {
   /**
    * Extract the issuer claim from a {@link JWT}.
    *
-   * @param jwtToken
-   *          the JWT token
+   * @param jwtToken the JWT token
    * @return the issuer claim
    */
   public static String getIssuer(JWT jwtToken) {
@@ -77,8 +74,7 @@ public class JwtUtils {
   /**
    * Extract the subject claim from a {@link JWT}.
    *
-   * @param jwtToken
-   *          the JWT token
+   * @param jwtToken the JWT token
    * @return the subject claim
    */
   public static String getSubject(JWT jwtToken) {
@@ -90,8 +86,7 @@ public class JwtUtils {
   /**
    * Extract the jti claim from a {@link JWT}.
    *
-   * @param jwtToken
-   *          the JWT token
+   * @param jwtToken the JWT token
    * @return the jti claim
    */
   public static String getJti(JWT jwtToken) {
@@ -107,8 +102,7 @@ public class JwtUtils {
   /**
    * Checks if a {@link JWT} is expired.
    *
-   * @param jwtToken
-   *          the JWT token
+   * @param jwtToken the JWT token
    * @return true if the JWT is expired, false otherwise
    */
   public static boolean isJtwTokenExpired(JWT jwtToken) {

@@ -55,13 +55,10 @@ public class JsonUtils {
   /**
    * Deserialize an object from a String.
    *
-   * @param serializedObject
-   *          the object serialized as String.
-   * @param typeReference
-   *          the TypeReference of the object
+   * @param serializedObject the object serialized as String.
+   * @param typeReference the TypeReference of the object
    * @return the deserialized object
-   * @throws JsonProcessingException
-   *           in case of deserialization exceptions
+   * @throws JsonProcessingException in case of deserialization exceptions
    */
   public static <T> @NonNull T deserialize(@NonNull String serializedObject,
       TypeReference<T> typeReference) throws JsonProcessingException {
@@ -76,13 +73,10 @@ public class JsonUtils {
   /**
    * Deserialize an object from a String.
    *
-   * @param serializedObject
-   *          the object serialized as String.
-   * @param typeReference
-   *          the Class of the object
+   * @param serializedObject the object serialized as String.
+   * @param typeReference the Class of the object
    * @return the deserialized object
-   * @throws JsonProcessingException
-   *           in case of deserialization exceptions
+   * @throws JsonProcessingException in case of deserialization exceptions
    */
   public static <T> @NonNull T deserialize(@NonNull String serializedObject,
       Class<T> typeReference) throws JsonProcessingException {

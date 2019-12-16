@@ -31,7 +31,7 @@ import org.springframework.vault.support.VaultResponse;
 public interface VaultService {
 
   public Optional<URI> getServiceUri();
-  
+
   public String getServicePath();
 
   public VaultResponse writeSecret(ClientAuthentication token, String path, Object secret);

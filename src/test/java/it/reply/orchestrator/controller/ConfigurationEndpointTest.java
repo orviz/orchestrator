@@ -46,7 +46,8 @@ public class ConfigurationEndpointTest extends WebAppConfigurationAwareIT {
 
   @Test
   public void getConfiguration() throws Exception {
-    mockMvc.perform(get("/configuration").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+    mockMvc.perform(get("/configuration").accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
   }
 
 }

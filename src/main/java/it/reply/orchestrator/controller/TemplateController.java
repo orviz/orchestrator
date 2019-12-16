@@ -35,8 +35,7 @@ public class TemplateController {
   /**
    * Get the template by deploymentId.
    *
-   * @param uuid
-   *          the uuid of the deployment
+   * @param uuid the uuid of the deployment
    * @return the template
    */
   @RequestMapping(value = "/deployments/{deploymentId}/template", method = RequestMethod.GET)

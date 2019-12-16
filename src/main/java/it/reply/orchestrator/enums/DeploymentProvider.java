@@ -18,10 +18,6 @@ package it.reply.orchestrator.enums;
 
 public enum DeploymentProvider {
 
-  IM,
-  HEAT,
-  CHRONOS,
-  MARATHON,
-  QCG;
+  IM, HEAT, CHRONOS, MARATHON, QCG;
 
 }

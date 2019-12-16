@@ -68,12 +68,9 @@ public class OneDataServiceImpl implements OneDataService {
   /**
    * Generate a new {@link OneDataServiceImpl}.
    *
-   * @param oneDataProperties
-   *     the oneDataProperties
-   * @param restTemplateBuilder
-   *     the restTemplateBuilder
-   * @param oauth2TokenService
-   *     the oauth2TokenService
+   * @param oneDataProperties the oneDataProperties
+   * @param restTemplateBuilder the restTemplateBuilder
+   * @param oauth2TokenService the oauth2TokenService
    */
   public OneDataServiceImpl(OneDataProperties oneDataProperties,
       RestTemplateBuilder restTemplateBuilder,

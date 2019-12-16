@@ -297,9 +297,9 @@ public class ToscaServiceImpl implements ToscaService {
   public ArchiveRoot parseAndValidateTemplate(String toscaTemplate, Map<String, Object> inputs) {
     ArchiveRoot ar = parseTemplate(toscaTemplate);
     Optional
-      .ofNullable(ar.getTopology())
-      .map(Topology::getInputs)
-      .ifPresent(topologyInputs -> validateUserInputs(topologyInputs, inputs));
+        .ofNullable(ar.getTopology())
+        .map(Topology::getInputs)
+        .ifPresent(topologyInputs -> validateUserInputs(topologyInputs, inputs));
     return ar;
   }
 
@@ -412,8 +412,9 @@ public class ToscaServiceImpl implements ToscaService {
   @Override
   public Map<NodeTemplate, Image> extractImageRequirements(ArchiveRoot parsingResult) {
 
-    Map<String, Function<ImageBuilder, Function<String, ImageBuilder>>>
-        capabilityPropertiesMapping = new HashMap<>();
+    Map<String,
+        Function<ImageBuilder, Function<String, ImageBuilder>>> capabilityPropertiesMapping =
+            new HashMap<>();
 
     capabilityPropertiesMapping.put("image",
         imageMetadataBuilder -> imageMetadataBuilder::imageName);
@@ -473,8 +474,9 @@ public class ToscaServiceImpl implements ToscaService {
   @Override
   public Map<NodeTemplate, Flavor> extractFlavorRequirements(ArchiveRoot parsingResult) {
 
-    Map<String, Function<FlavorBuilder, Function<String, FlavorBuilder>>>
-        capabilityPropertiesMapping = new HashMap<>();
+    Map<String,
+        Function<FlavorBuilder, Function<String, FlavorBuilder>>> capabilityPropertiesMapping =
+            new HashMap<>();
 
     capabilityPropertiesMapping.put("instance_type",
         flavorMetadataBuilder -> flavorMetadataBuilder::flavorName);
@@ -484,10 +486,8 @@ public class ToscaServiceImpl implements ToscaService {
             .numCpus(Integer.parseInt(numCpus)));
 
     capabilityPropertiesMapping.put("disk_size",
-        flavorMetadataBuilder ->
-            (String diskSize) -> flavorMetadataBuilder
-                .diskSize(ToscaUtils.parseScalar(diskSize, SizeType.class).convert("GB"))
-    );
+        flavorMetadataBuilder -> (String diskSize) -> flavorMetadataBuilder
+            .diskSize(ToscaUtils.parseScalar(diskSize, SizeType.class).convert("GB")));
 
     capabilityPropertiesMapping.put("mem_size",
         flavorMetadataBuilder -> (String memSize) -> flavorMetadataBuilder
@@ -791,8 +791,7 @@ public class ToscaServiceImpl implements ToscaService {
         new Filter<>(Image::getGpuDriverVersion, String::equalsIgnoreCase),
         new Filter<>(Image::getCudaSupport, (a, b) -> !a || (b != null ? b : false)),
         new Filter<>(Image::getCudaVersion, String::equalsIgnoreCase),
-        new Filter<>(Image::getCuDnnVersion, String::equalsIgnoreCase)
-    );
+        new Filter<>(Image::getCuDnnVersion, String::equalsIgnoreCase));
 
     Stream<Image> imageStream = cloudProviderServiceImages.stream();
 
@@ -842,8 +841,7 @@ public class ToscaServiceImpl implements ToscaService {
         new Filter<>(Flavor::getDiskSize, (a, b) -> b >= a),
         new Filter<>(Flavor::getNumGpus, (a, b) -> b >= a),
         new Filter<>(Flavor::getGpuVendor, String::equalsIgnoreCase),
-        new Filter<>(Flavor::getGpuModel, String::equalsIgnoreCase)
-    );
+        new Filter<>(Flavor::getGpuModel, String::equalsIgnoreCase));
     Stream<Flavor> flavorStream = cloudProviderServiceFlavors.stream();
 
     boolean filteredOnSomeField = false;
@@ -911,8 +909,7 @@ public class ToscaServiceImpl implements ToscaService {
         .stream()
         .anyMatch(node -> ToscaUtils
             .extractScalar(node.getProperties(), "hybrid", BooleanType.class)
-            .orElse(false)
-        );
+            .orElse(false));
   }
 
   @Override
@@ -1049,8 +1046,8 @@ public class ToscaServiceImpl implements ToscaService {
     List<Object> items =
         getNodeCapabilityByName(nodeTemplate, SCALABLE_CAPABILITY_NAME)
             .flatMap(capability -> ToscaUtils
-                .extractList(capability.getProperties(), REMOVAL_LIST_PROPERTY_NAME)
-            ).orElseGet(Collections::emptyList);
+                .extractList(capability.getProperties(), REMOVAL_LIST_PROPERTY_NAME))
+            .orElseGet(Collections::emptyList);
 
     List<String> removalList = new ArrayList<>();
     for (Object item : items) {
@@ -1076,21 +1073,18 @@ public class ToscaServiceImpl implements ToscaService {
         .forEach((name, node) -> {
           if (isOfToscaType(node, Nodes.Types.ONEDATA_SPACE)) {
             String space = ToscaUtils.extractScalar(node.getProperties(), "space")
-                .orElseThrow(() ->
-                    new ToscaException(
-                        "Space name for node " + node.getName() + " must be provided")
-                );
+                .orElseThrow(() -> new ToscaException(
+                    "Space name for node " + node.getName() + " must be provided"));
             OneDataBuilder oneDataBuilder = OneData
                 .builder()
                 .serviceSpace(false)
                 .space(space);
             ToscaUtils.extractScalar(node.getProperties(), "token")
                 .ifPresent(oneDataBuilder::token);
-            ToscaUtils.extractList(node.getProperties(), "oneproviders", v ->
-                OneDataProviderInfo
-                    .builder()
-                    .endpoint((String) v)
-                    .build())
+            ToscaUtils.extractList(node.getProperties(), "oneproviders", v -> OneDataProviderInfo
+                .builder()
+                .endpoint((String) v)
+                .build())
                 .ifPresent(oneDataBuilder::oneproviders);
             ToscaUtils.extractScalar(node.getProperties(), "onezone")
                 .ifPresent(oneDataBuilder::onezone);
@@ -1118,11 +1112,10 @@ public class ToscaServiceImpl implements ToscaService {
         .forEach(node -> {
           if (isOfToscaType(node, Nodes.Types.DYNAFED)) {
             DynafedBuilder dynafedBuilder = Dynafed.builder();
-            ToscaUtils.extractList(node.getProperties(), "files", v ->
-                Dynafed.File
-                    .builder()
-                    .endpoint((String) v)
-                    .build())
+            ToscaUtils.extractList(node.getProperties(), "files", v -> Dynafed.File
+                .builder()
+                .endpoint((String) v)
+                .build())
                 .ifPresent(dynafedBuilder::files);
             result.put(node.getName(), dynafedBuilder.build());
           }
@@ -1183,6 +1176,7 @@ public class ToscaServiceImpl implements ToscaService {
 
   /**
    * Set a new capability at the specified node.
+   *
    * @param node the node to add the new capability
    * @param typeCapability the type of the capability
    * @param nameCapability the name of the capability
@@ -1202,6 +1196,7 @@ public class ToscaServiceImpl implements ToscaService {
 
   /**
    * Set a new requirement at the specified node.
+   *
    * @param node the node to add the new requirement
    * @param nameRequirement name of the requirement
    * @param targetRequirement target of the requirement

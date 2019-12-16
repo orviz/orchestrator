@@ -36,8 +36,7 @@ public interface DeploymentProviderService {
    * boolean indicating the result or the failure. <br/>
    * It should also handle the deployment status update internally.
    *
-   * @param deploymentMessage
-   *          the deployment message.
+   * @param deploymentMessage the deployment message.
    * @return <tt>true</tt> if no error happened (<b>this does not mean the deployment is
    *         complete</b>, see above), <tt>false</tt> otherwise.
    */
@@ -52,11 +51,9 @@ public interface DeploymentProviderService {
    * The method should handle node status update internally, but can throw a DeploymentException to
    * notify an unexpected error during the status check. <br/>
    *
-   * @param deploymentMessage
-   *          the deployment message.
+   * @param deploymentMessage the deployment message.
    * @return <tt>true</tt> if the deployment is ready, <tt>false</tt> otherwise.
-   * @throws DeploymentException
-   *           if the deployment fails.
+   * @throws DeploymentException if the deployment fails.
    */
   public boolean isDeployed(DeploymentMessage deploymentMessage);
 
@@ -81,8 +78,7 @@ public interface DeploymentProviderService {
    * boolean indicating the result or the failure. <br/>
    * It should also handle the deployment status update internally.
    *
-   * @param deploymentMessage
-   *          the deployment message.
+   * @param deploymentMessage the deployment message.
    * @return <tt>true</tt> if no error happened (<b>this does not mean the undeployment is
    *         complete</b>, see above), <tt>false</tt> otherwise.
    */
@@ -97,11 +93,9 @@ public interface DeploymentProviderService {
    * The method should handle node status update internally, but can throw a DeploymentException to
    * notify an unexpected error during the status check. <br/>
    *
-   * @param deploymentMessage
-   *          the deployment message.
+   * @param deploymentMessage the deployment message.
    * @return <tt>true</tt> if the deployment is deleted, <tt>false</tt> otherwise.
-   * @throws DeploymentException
-   *           if the deployment fails.
+   * @throws DeploymentException if the deployment fails.
    */
   public boolean isUndeployed(DeploymentMessage deploymentMessage);
 

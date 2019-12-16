@@ -39,10 +39,8 @@ public class JobMessageListener implements IgniteBiPredicate<UUID, String> {
   /**
    * Creates a new JobMessageListener.
    *
-   * @param processEngineConfiguration
-   *          the ProcessEngineConfiguration to use
-   * @param ignite
-   *          the Ignite instance to use
+   * @param processEngineConfiguration the ProcessEngineConfiguration to use
+   * @param ignite the Ignite instance to use
    */
   public JobMessageListener(ProcessEngineConfiguration processEngineConfiguration, Ignite ignite) {
     this.jobServiceConfiguration = (JobServiceConfiguration) processEngineConfiguration

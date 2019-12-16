@@ -83,16 +83,15 @@ public class OAuth2TokenService {
    * Get the current OAuth2 token.
    *
    * @return the OAuth2 token.
-   * @throws IllegalStateException
-   *           if the security is disabled, the user is not authenticated or the call is made of an
-   *           HTTP session.
+   * @throws IllegalStateException if the security is disabled, the user is not authenticated or the
+   *         call is made of an HTTP session.
    */
   public String getOAuth2TokenFromCurrentAuth() {
     return getOAuth2TokenFromAutentication(getCurrentAuthentication());
   }
 
-  public static List<String>
-      getOAuth2ClientsFromAutentication(IndigoOAuth2Authentication authentication) {
+  public static List<String> getOAuth2ClientsFromAutentication(
+      IndigoOAuth2Authentication authentication) {
     return Lists.newArrayList(authentication.getOAuth2Request().getClientId());
   }
 
@@ -103,8 +102,7 @@ public class OAuth2TokenService {
   /**
    * Retrieve the CLUES IAM information from the OAuth2 access token.
    *
-   * @param accessToken
-   *          the accessToken
+   * @param accessToken the accessToken
    * @return the CLUES IAM information
    */
   public Optional<OidcClientProperties> getCluesInfo(String accessToken) {
@@ -175,8 +173,7 @@ public class OAuth2TokenService {
   /**
    * Gets the user's organization from the token ID.
    *
-   * @param oidcTokenId
-   *     the token ID
+   * @param oidcTokenId the token ID
    * @return the user's organization
    */
   public String getOrganization(OidcTokenId oidcTokenId) {
@@ -208,8 +205,7 @@ public class OAuth2TokenService {
   /**
    * Refresh an access token and put it into the cache.
    *
-   * @param id
-   *          the id of the token
+   * @param id the id of the token
    * @return the exchanged grant
    */
   public String getRefreshedAccessToken(OidcTokenId id) {
@@ -225,15 +221,11 @@ public class OAuth2TokenService {
   /**
    * Execute a {@link ThrowingFunction}, handling the OAuth2 token.
    *
-   * @param oidcTokenId
-   *     the token ID
-   * @param function
-   *     the {@link ThrowingFunction}
-   * @param tokenRefreshEvaluator
-   *     function evaluating whether a refresh token needs to be retrieved
+   * @param oidcTokenId the token ID
+   * @param function the {@link ThrowingFunction}
+   * @param tokenRefreshEvaluator function evaluating whether a refresh token needs to be retrieved
    * @return the {@link ThrowingFunction} result
-   * @throws E
-   *     the exception thrown by the {@link ThrowingFunction}
+   * @throws E the exception thrown by the {@link ThrowingFunction}
    */
   public <R, E extends Exception> R executeWithClientForResult(
       @Nullable OidcTokenId oidcTokenId,
@@ -259,14 +251,10 @@ public class OAuth2TokenService {
   /**
    * Execute a {@link ThrowingConsumer}, handling the OAuth2 token.
    *
-   * @param oidcTokenId
-   *     the token ID
-   * @param consumer
-   *     the {@link ThrowingConsumer}
-   * @param tokenRefreshEvaluator
-   *     function evaluating whether a refresh token needs to be retrieved
-   * @throws E
-   *     the exception thrown by the {@link ThrowingConsumer}
+   * @param oidcTokenId the token ID
+   * @param consumer the {@link ThrowingConsumer}
+   * @param tokenRefreshEvaluator function evaluating whether a refresh token needs to be retrieved
+   * @throws E the exception thrown by the {@link ThrowingConsumer}
    */
   public <E extends Exception> void executeWithClient(
       @Nullable OidcTokenId oidcTokenId,

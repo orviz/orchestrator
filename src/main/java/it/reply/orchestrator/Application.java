@@ -27,6 +27,12 @@ public class Application {
 
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+
+    System.setProperty("http.proxyHost", "proxy.reply.it");
+    System.setProperty("http.proxyPort", "8080");
+    System.setProperty("https.proxyHost", "proxy.reply.it");
+    System.setProperty("https.proxyPort", "8080");
+
     SpringApplication.run(Application.class, args);
   }
 

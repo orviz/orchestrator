@@ -51,26 +51,16 @@ public class ComputeService extends CloudService {
   /**
    * Generate a new ComputeService.
    *
-   * @param id
-   *     the id
-   * @param serviceType
-   *     the serviceType
-   * @param endpoint
-   *     the endpoint
-   * @param providerId
-   *     the providerId
-   * @param type
-   *     the type
-   * @param publicService
-   *     the publicService
-   * @param region
-   *     the region
-   * @param hostname
-   *     the hostname
-   * @param images
-   *     the images
-   * @param flavors
-   *     the flavors
+   * @param id the id
+   * @param serviceType the serviceType
+   * @param endpoint the endpoint
+   * @param providerId the providerId
+   * @param type the type
+   * @param publicService the publicService
+   * @param region the region
+   * @param hostname the hostname
+   * @param images the images
+   * @param flavors the flavors
    */
   @Builder(builderMethodName = "computeBuilder")
   public ComputeService(
@@ -86,7 +76,7 @@ public class ComputeService extends CloudService {
       @NonNull List<Image> images,
       @NonNull List<Flavor> flavors) {
     super(id, serviceType, endpoint, providerId, type, publicService, region, hostname,
-            parentServiceId);
+        parentServiceId);
     this.images = CommonUtils.notNullOrDefaultValue(images, ArrayList::new);
     this.flavors = CommonUtils.notNullOrDefaultValue(flavors, ArrayList::new);
   }
