@@ -53,9 +53,12 @@ public class CustomOAuth2Template {
   /**
    * * Creates a new OAuth2Template.
    *
-   * @param serverConfiguration the authorization server configuration
-   * @param clientConfiguration the client configuration
-   * @param builder the RestTemplate builder
+   * @param serverConfiguration
+   *          the authorization server configuration
+   * @param clientConfiguration
+   *          the client configuration
+   * @param builder
+   *          the RestTemplate builder
    */
   public CustomOAuth2Template(@NonNull ServerConfiguration serverConfiguration,
       @NonNull RegisteredClient clientConfiguration, @NonNull RestTemplateBuilder builder,
@@ -72,8 +75,10 @@ public class CustomOAuth2Template {
   /**
    * Exchange an access token for a new grant.
    *
-   * @param accessToken the access token to exchange
-   * @param scopes the scope to request
+   * @param accessToken
+   *          the access token to exchange
+   * @param scopes
+   *          the scope to request
    * @return the new grant
    */
   public AccessGrant exchangeToken(String accessToken, Set<String> scopes) {
@@ -88,8 +93,10 @@ public class CustomOAuth2Template {
   /**
    * Get a new access token (and maybe a refresh token) from an existing refresh token.
    *
-   * @param refreshToken the refresh token to use
-   * @param scopes the scope to request
+   * @param refreshToken
+   *          the refresh token to use
+   * @param scopes
+   *          the scope to request
    * @return the new grant
    */
   public AccessGrant refreshToken(String refreshToken, Set<String> scopes) {
@@ -104,7 +111,8 @@ public class CustomOAuth2Template {
   /**
    * Introspect an access token or a refresh token.
    *
-   * @param token the token
+   * @param token
+   *          the token
    * @return the introspection response
    */
   public TokenIntrospectionResponse introspectToken(String token) {

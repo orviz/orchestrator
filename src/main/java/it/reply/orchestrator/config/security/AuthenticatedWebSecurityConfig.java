@@ -165,7 +165,7 @@ public class AuthenticatedWebSecurityConfig extends BaseWebSecurityConfig {
 
     CustomOAuth2ExceptionRenderer exceptionRenderer = new CustomOAuth2ExceptionRenderer();
     exceptionRenderer
-        .setMessageConverters(Lists.newArrayList(new MappingJackson2HttpMessageConverter()));
+      .setMessageConverters(Lists.newArrayList(new MappingJackson2HttpMessageConverter()));
 
     OAuth2AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
     authenticationEntryPoint.setExceptionRenderer(exceptionRenderer);

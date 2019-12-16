@@ -59,9 +59,12 @@ public class VaultServiceImpl implements VaultService {
   /**
    * Creates a new {@link VaultServiceImpl}.
    *
-   * @param vaultProperties the vaultProperties
-   * @param oauth2TokenService the oauth2TokenService
-   * @param restTemplateBuilder the restTemplateBuilder
+   * @param vaultProperties
+   *     the vaultProperties
+   * @param oauth2TokenService
+   *     the oauth2TokenService
+   * @param restTemplateBuilder
+   *     the restTemplateBuilder
    */
   public VaultServiceImpl(VaultProperties vaultProperties,
       OAuth2TokenService oauth2TokenService,
@@ -197,41 +200,6 @@ public class VaultServiceImpl implements VaultService {
   @Override
   public String getServicePath() {
     return vaultProperties.getPath();
-  }
-
-  /**
-   * Retrieve the vault token from the IAM token with entity ID using passed Vault server URI.
-   */
-
-  public TokenAuthenticationExtended retrieveTokenExtendedToRemove(URI uri, String accessToken) {
-    uri = VaultEndpoint.from(uri).createUri("auth/jwt/login");
-    Map<String, String> login = new HashMap<>();
-    login.put("jwt", accessToken);
-    login.put("role", vaultProperties.getRole());
-    try {
-      VaultToken token = restTemplate
-          .postForObject(uri, login, VaultTokenResponse.class)
-          .getToken();
-
-      String entityId = restTemplate
-          .postForObject(uri, login, VaultTokenResponseExtended.class)
-          .getEntityId();
-
-      return new TokenAuthenticationExtended(token, entityId);
-    } catch (HttpClientErrorException ex) {
-      if (ex.getRawStatusCode() == 400) {
-        String errorCause = VaultResponses.getError(ex.getResponseBodyAsString());
-        if (errorCause != null) {
-          if (errorCause.contains("expired")) {
-            throw new VaultJwtTokenExpiredException(
-                "Unable to retrieve token for Vault: IAM access token is expired");
-          } else {
-            LOG.warn("Got response 400 with error cause:\n{}", errorCause);
-          }
-        }
-      }
-      throw ex;
-    }
   }
 
 }

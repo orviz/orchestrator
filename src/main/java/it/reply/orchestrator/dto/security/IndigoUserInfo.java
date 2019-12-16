@@ -58,7 +58,8 @@ public class IndigoUserInfo extends DefaultUserInfo {
   /**
    * Create an IndigoUserInfo copying the fields from a {@link UserInfo} object.
    *
-   * @param other the {@link UserInfo} to copy from.
+   * @param other
+   *          the {@link UserInfo} to copy from.
    */
   public IndigoUserInfo(UserInfo other) {
     this.setSub(other.getSub());
@@ -107,7 +108,8 @@ public class IndigoUserInfo extends DefaultUserInfo {
   /**
    * Create a {@link UserInfo} from its JSON representation.
    *
-   * @param obj {@link JsonObject} containing the JSON representation.
+   * @param obj
+   *          {@link JsonObject} containing the JSON representation.
    * @return the UserInfo.
    */
   public static UserInfo fromJson(JsonObject obj) {

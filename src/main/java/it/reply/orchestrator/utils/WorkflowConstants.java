@@ -69,6 +69,5 @@ public class WorkflowConstants {
     public static final String DEPLOY = "deploy";
     public static final String CLEAN_FAILED_DEPLOY = "cleanFailedDeploy";
     public static final String CLEAN_FAILED_UPDATE = "cleanFailedUpdate";
-    public static final String PROVIDER_TIMEOUT = "providerTimeout";
   }
 }

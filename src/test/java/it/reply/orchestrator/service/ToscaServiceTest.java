@@ -101,8 +101,7 @@ public class ToscaServiceTest extends ToscaParserAwareTest {
   public void getRemovalList() throws IOException, ParsingException {
     List<String> expectedRemovalList = Arrays.asList("to-be-deleted-1", "to-be-deleted-2");
     String template =
-        TestUtil
-            .getFileContentAsString(TEMPLATES_BASE_DIR + "galaxy_tosca_clues_removal_list.yaml");
+        TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "galaxy_tosca_clues_removal_list.yaml");
     NodeTemplate node = toscaService.getArchiveRootFromTemplate(template).getResult().getTopology()
         .getNodeTemplates().get("torque_wn");
     List<String> removalList = toscaService.getRemovalList(node);
@@ -112,8 +111,7 @@ public class ToscaServiceTest extends ToscaParserAwareTest {
   @Test
   public void checkUserInputDefaultReplaced() throws Exception {
     String template =
-        TestUtil.getFileContentAsString(
-            TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_default_replaced.yaml");
+        TestUtil.getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_default_replaced.yaml");
     Map<String, Object> inputs = new HashMap<String, Object>();
     ArchiveRoot ar = toscaService.prepareTemplate(template, inputs);
     AbstractPropertyValue numCpus = ar.getTopology().getNodeTemplates().get("my_server")
@@ -126,8 +124,7 @@ public class ToscaServiceTest extends ToscaParserAwareTest {
   public void checkUserInputReplacedInNodeArtifactsRelationshipsCapabilitiesProperties()
       throws Exception {
     String template =
-        TestUtil.getFileContentAsString(
-            TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_replaced_all_types.yaml");
+        TestUtil.getFileContentAsString(TEMPLATES_INPUT_BASE_DIR + "tosca_inputs_replaced_all_types.yaml");
     Map<String, Object> inputs = new HashMap<String, Object>();
     inputs.put("input_urls", Arrays.asList("http://a.it", "http://b.it"));
     inputs.put("output_filenames", "test1, test2");
@@ -142,7 +139,8 @@ public class ToscaServiceTest extends ToscaParserAwareTest {
     // Node's properties
     assertEquals(
         inputs.get("command"),
-        ToscaUtils.extractScalar(chronosJob.getProperties(), "command").get());
+        ToscaUtils.extractScalar(chronosJob.getProperties(), "command").get()
+    );
     // Validate list replacement (little bit hard-coded... should be improved)
     List<String> uris = ToscaUtils
         .extractList(chronosJob.getProperties(), "uris", String.class::cast).get();
@@ -168,10 +166,12 @@ public class ToscaServiceTest extends ToscaParserAwareTest {
     assertEquals(
         inputs.get("cpus"),
         ToscaUtils.extractScalar(dockerCapability.getProperties(), "num_cpus", FloatType.class)
-            .get());
+            .get()
+    );
     assertEquals(
         inputs.get("mem"),
-        ToscaUtils.extractScalar(dockerCapability.getProperties(), "mem_size").get());
+        ToscaUtils.extractScalar(dockerCapability.getProperties(), "mem_size").get()
+    );
 
     // FIXME: Also test relationships' properties
   }
@@ -314,47 +314,37 @@ public class ToscaServiceTest extends ToscaParserAwareTest {
     }
   }
 
-  @Test
-  public void checkHybridDeploymentSetting() throws Exception {
-    String template =
-        TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "tosca_hybrid_before_create.yaml");
-    ArchiveRoot ar = toscaService.getArchiveRootFromTemplate(template).getResult();
-    ArchiveRoot arNew = toscaService.setHybridDeployment(ar);
+	@Test
+	public void checkHybridDeploymentSetting() throws Exception {
+		String template = TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "tosca_hybrid_before_create.yaml");
+		ArchiveRoot ar = toscaService.getArchiveRootFromTemplate(template).getResult();
+		ArchiveRoot arNew = toscaService.setHybridDeployment(ar);
 
-    Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.CentralPoint"))
-        .size().isOne();
-    NodeTemplate centralPointNode = arNew.getTopology().getNodeTemplates().get("indigovr_cp");
-    Assertions.assertThat(centralPointNode.getRelationships().get("host").getTarget())
-        .isEqualTo("lrms_server");
+		Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.CentralPoint")).size().isOne();
+		NodeTemplate centralPointNode = arNew.getTopology().getNodeTemplates().get("indigovr_cp");
+		Assertions.assertThat(centralPointNode.getRelationships().get("host").getTarget()).isEqualTo("lrms_server");
 
-    template =
-        TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "tosca_hybrid_before_create2.yaml");
-    ar = toscaService.getArchiveRootFromTemplate(template).getResult();
-    arNew = toscaService.setHybridDeployment(ar);
+		template = TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "tosca_hybrid_before_create2.yaml");
+		ar = toscaService.getArchiveRootFromTemplate(template).getResult();
+		arNew = toscaService.setHybridDeployment(ar);
 
-    Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.CentralPoint"))
-        .size().isOne();
-    centralPointNode = arNew.getTopology().getNodeTemplates().get("indigovr_cp");
-    Assertions.assertThat(centralPointNode.getRelationships().get("host").getTarget())
-        .isEqualTo("lrms_server");
-  }
+		Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.CentralPoint")).size().isOne();
+		centralPointNode = arNew.getTopology().getNodeTemplates().get("indigovr_cp");
+		Assertions.assertThat(centralPointNode.getRelationships().get("host").getTarget()).isEqualTo("lrms_server");
+	}
 
 
-  @Test
-  public void checkHybridUpdateDeploymentSetting() throws Exception {
-    String template =
-        TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "tosca_hybrid_before_update.yaml");
-    ArchiveRoot ar = toscaService.getArchiveRootFromTemplate(template).getResult();
-    ArchiveRoot arNew = toscaService.setHybridUpdateDeployment(ar);
+	@Test
+	public void checkHybridUpdateDeploymentSetting() throws Exception {
+		String template = TestUtil.getFileContentAsString(TEMPLATES_BASE_DIR + "tosca_hybrid_before_update.yaml");
+		ArchiveRoot ar = toscaService.getArchiveRootFromTemplate(template).getResult();
+		ArchiveRoot arNew = toscaService.setHybridUpdateDeployment(ar);
 
-    Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.CentralPoint"))
-        .size().isOne();
-    Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.Client")).size()
-        .isOne();
+		Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.CentralPoint")).size().isOne();
+		Assertions.assertThat(toscaService.getNodesOfType(arNew, "tosca.nodes.indigo.VR.Client")).size().isOne();
 
-    NodeTemplate indigoVRNode = arNew.getTopology().getNodeTemplates().get("indigovr_client");
-    Assertions.assertThat(indigoVRNode.getRelationships().get("central_point").getTarget())
-        .isEqualTo("indigovr_cp");
-  }
+		NodeTemplate indigoVRNode = arNew.getTopology().getNodeTemplates().get("indigovr_client");
+		Assertions.assertThat(indigoVRNode.getRelationships().get("central_point").getTarget()).isEqualTo("indigovr_cp");
+	}
 
 }

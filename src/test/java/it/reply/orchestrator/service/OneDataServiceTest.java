@@ -176,8 +176,8 @@ public class OneDataServiceTest {
 
     assertThatThrownBy(
         () -> oneDataService.getSpaceDetailsFromId(defaultOneZoneEndpoint, onedataToken, spaceId))
-            .isInstanceOf(DeploymentException.class)
-            .hasCauseInstanceOf(HttpStatusCodeException.class);
+        .isInstanceOf(DeploymentException.class)
+        .hasCauseInstanceOf(HttpStatusCodeException.class);
     mockServer.verify();
   }
 
@@ -199,7 +199,7 @@ public class OneDataServiceTest {
 
     assertThat(
         oneDataService.getProviderDetailsFromId(defaultOneZoneEndpoint, onedataToken, providerId))
-            .isEqualTo(providerDetail);
+        .isEqualTo(providerDetail);
     mockServer.verify();
   }
 
@@ -219,8 +219,8 @@ public class OneDataServiceTest {
     assertThatThrownBy(
         () -> oneDataService
             .getProviderDetailsFromId(defaultOneZoneEndpoint, onedataToken, providerId))
-                .isInstanceOf(DeploymentException.class)
-                .hasCauseInstanceOf(HttpStatusCodeException.class);
+            .isInstanceOf(DeploymentException.class)
+            .hasCauseInstanceOf(HttpStatusCodeException.class);
     mockServer.verify();
   }
 
@@ -252,8 +252,8 @@ public class OneDataServiceTest {
 
     assertThatThrownBy(
         () -> oneDataService.getOneDataTokens(defaultOneZoneEndpoint, oidcTokenId))
-            .isInstanceOf(DeploymentException.class)
-            .hasCauseInstanceOf(HttpStatusCodeException.class);
+        .isInstanceOf(DeploymentException.class)
+        .hasCauseInstanceOf(HttpStatusCodeException.class);
     mockServer.verify();
   }
 
@@ -285,8 +285,8 @@ public class OneDataServiceTest {
 
     assertThatThrownBy(
         () -> oneDataService.generateOneDataToken(defaultOneZoneEndpoint, oidcTokenId))
-            .isInstanceOf(DeploymentException.class)
-            .hasCauseInstanceOf(HttpStatusCodeException.class);
+        .isInstanceOf(DeploymentException.class)
+        .hasCauseInstanceOf(HttpStatusCodeException.class);
     mockServer.verify();
   }
 
@@ -324,7 +324,7 @@ public class OneDataServiceTest {
     }
   }
 
-  @Parameters({ "true", "false" })
+  @Parameters({"true", "false"})
   @Test
   public void testAddProviderInfoForServiceSpace(boolean isSmartScheduling)
       throws IOException {
@@ -350,13 +350,13 @@ public class OneDataServiceTest {
       OneDataProviderInfo providerInfo = generateOneDataProviderInfo(2, 2);
       assertThat(oneData
           .getOneproviders())
-              .hasSize(1)
-              .contains(providerInfo);
+          .hasSize(1)
+          .contains(providerInfo);
     } else {
       assertThat(oneData
           .getOneproviders()).extracting(OneDataProviderInfo::getEndpoint)
-              .hasSize(2)
-              .contains("provider-1.example.com", "provider-2.example.com");
+          .hasSize(2)
+          .contains("provider-1.example.com", "provider-2.example.com");
     }
 
     mockServer.verify();
@@ -396,13 +396,13 @@ public class OneDataServiceTest {
     if (isSmartScheduling) {
       assertThat(oneData
           .getOneproviders())
-              .hasSize(1)
-              .contains(providerInfo);
+          .hasSize(1)
+          .contains(providerInfo);
     } else {
       assertThat(oneData
           .getOneproviders()).extracting(OneDataProviderInfo::getEndpoint)
-              .hasSize(2)
-              .contains("provider-1.example.com", "provider-2.example.com");
+          .hasSize(2)
+          .contains("provider-1.example.com", "provider-2.example.com");
     }
     mockServer.verify();
   }
@@ -442,16 +442,16 @@ public class OneDataServiceTest {
       assertThatCode(
           () -> oneDataService
               .populateProviderInfo(oneData, cloudProviders, oidcTokenId, deploymentId))
-                  .isInstanceOf(DeploymentException.class)
-                  .hasMessage(
-                      "Requested OneProvider %s not registered in CMDB hence not eligible for smart scheduling",
-                      "provider-2.example.com");
+          .isInstanceOf(DeploymentException.class)
+          .hasMessage(
+              "Requested OneProvider %s not registered in CMDB hence not eligible for smart scheduling",
+              "provider-2.example.com");
     } else {
       oneDataService.populateProviderInfo(oneData, cloudProviders, oidcTokenId, deploymentId);
       assertThat(oneData
           .getOneproviders().stream().map(OneDataProviderInfo::getEndpoint))
-              .hasSize(1)
-              .contains("provider-2.example.com");
+          .hasSize(1)
+          .contains("provider-2.example.com");
     }
     mockServer.verify();
   }
@@ -471,8 +471,8 @@ public class OneDataServiceTest {
     assertThatCode(
         () -> oneDataService
             .populateProviderInfo(oneData, cloudProviders, oidcTokenId, deploymentId))
-                .isInstanceOf(DeploymentException.class)
-                .hasMessage("No OneProviders available for the space %s", "space-name-1");
+        .isInstanceOf(DeploymentException.class)
+        .hasMessage("No OneProviders available for the space %s", "space-name-1");
     mockServer.verify();
   }
 
@@ -495,9 +495,9 @@ public class OneDataServiceTest {
     assertThatCode(
         () -> oneDataService
             .populateProviderInfo(oneData, cloudProviders, oidcTokenId, deploymentId))
-                .isInstanceOf(DeploymentException.class)
-                .hasMessage("These requested OneProviders are not supporting the space %s:\n%s",
-                    "space-name-1", Arrays.toString(new String[] { "provider-2.example.com" }));
+        .isInstanceOf(DeploymentException.class)
+        .hasMessage("These requested OneProviders are not supporting the space %s:\n%s",
+            "space-name-1", Arrays.toString(new String[]{"provider-2.example.com"}));
     mockServer.verify();
   }
 

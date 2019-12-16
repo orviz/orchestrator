@@ -18,8 +18,7 @@ package it.reply.orchestrator.service.commands;
 
 import it.reply.orchestrator.dto.deployment.BaseWorkflowMessage;
 
-public abstract class BaseWorkflowCommandTest<M extends BaseWorkflowMessage,
-    T extends BaseWorkflowCommand<M>> extends
+public abstract class BaseWorkflowCommandTest<M extends BaseWorkflowMessage, T extends BaseWorkflowCommand<M>> extends
     BaseJavaDelegateTest<T> {
 
   public BaseWorkflowCommandTest(T command) {

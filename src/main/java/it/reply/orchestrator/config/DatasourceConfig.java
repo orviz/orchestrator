@@ -193,8 +193,8 @@ public class DatasourceConfig implements BeanClassLoaderAware {
   }
 
   @Bean
-  public PlatformTransactionManagerCustomizer<
-      JtaTransactionManager> jtaTransactionManagerCustomizer() {
+  public PlatformTransactionManagerCustomizer<JtaTransactionManager>
+      jtaTransactionManagerCustomizer() {
     return transactionManager -> transactionManager.setAllowCustomIsolationLevels(true);
   }
 

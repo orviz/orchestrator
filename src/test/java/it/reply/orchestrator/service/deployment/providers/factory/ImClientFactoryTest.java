@@ -69,11 +69,12 @@ public class ImClientFactoryTest {
 
   private static String paasImUrl = "https://im.url";
 
-  private static final String iamToken = new PlainJWT(new JWTClaimsSet.Builder()
+  private static final String iamToken = new PlainJWT(new JWTClaimsSet
+      .Builder()
       .subject("subject")
       .issuer("https://example.com")
       .build())
-          .serialize();
+      .serialize();
 
   private static String imTokenAuthHeader =
       "id = im ; type = InfrastructureManager ; token = " + iamToken;

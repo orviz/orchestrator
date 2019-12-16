@@ -51,12 +51,17 @@ public class WorkflowConfig extends ProcessEngineAutoConfiguration {
   /**
    * Generates a SpringProcessEngineConfiguration.
    *
-   * @param dataSource the Datasource to use
-   * @param platformTransactionManager the PlatformTransactionManager to use
-   * @param asyncExecutorProvider the AsyncExecutor to use
-   * @param entityManagerFactory the EntityManagerFactory to use
+   * @param dataSource
+   *          the Datasource to use
+   * @param platformTransactionManager
+   *          the PlatformTransactionManager to use
+   * @param asyncExecutorProvider
+   *          the AsyncExecutor to use
+   * @param entityManagerFactory
+   *          the EntityManagerFactory to use
    * @return the generated SpringProcessEngineConfiguration
-   * @throws IOException when I/O exception of some sort has occurred during initialization
+   * @throws IOException
+   *           when I/O exception of some sort has occurred during initialization
    */
   @Bean
   @DependsOn("workflowLiquibase")

@@ -203,7 +203,7 @@ public class PrefilterCloudProviders extends BaseRankCloudProvidersCommand {
       Set<CloudService> servicesToDiscard) {
 
     if (placementPolicies.size() > 1) {
-      // TODO relax this constraint
+      //TODO relax this constraint
       throw new OrchestratorException("Only a single placement policy is supported");
     }
 
@@ -286,7 +286,7 @@ public class PrefilterCloudProviders extends BaseRankCloudProvidersCommand {
     if (isSecretsRequired && !marathonService.getProperties().isSecretSupport()) {
       LOG.debug(
           "Discarded Marathon service {} of provider {} because it doesn't support Secrets",
-          marathonService.getId(), marathonService.getProviderId());
+              marathonService.getId(), marathonService.getProviderId());
       addServiceToDiscard(servicesToDiscard, marathonService);
     }
   }

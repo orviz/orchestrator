@@ -33,12 +33,14 @@ import lombok.ToString;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "processId", "requestId" }, callSuper = true)
-@ToString(of = { "processId", "requestId" }, callSuper = true)
+@EqualsAndHashCode(of = {"processId", "requestId"}, callSuper = true)
+@ToString(of = {"processId", "requestId"}, callSuper = true)
 public class WorkflowReference extends UuidIdentifiable {
 
   public enum Action {
-    CREATE, UPDATE, DELETE
+    CREATE,
+    UPDATE,
+    DELETE
   }
 
   @Column(name = "process_id", unique = true, nullable = false, updatable = false)
@@ -58,9 +60,12 @@ public class WorkflowReference extends UuidIdentifiable {
   /**
    * Generate a WorkflowReference.
    *
-   * @param processId the processId
-   * @param requestId the requestId
-   * @param action the action
+   * @param processId
+   *     the processId
+   * @param requestId
+   *     the requestId
+   * @param action
+   *     the action
    */
   public WorkflowReference(String processId, String requestId, Action action) {
     this.processId = processId;

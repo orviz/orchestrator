@@ -41,7 +41,8 @@ public class DeploymentProviderServiceRegistry {
    * Creates the DeploymentProviderServiceRegistry from all the DeploymentProviderServices
    * registered in the Spring {@link ApplicationContext}.
    *
-   * @param services the registered DeploymentProviderServices
+   * @param services
+   *          the registered DeploymentProviderServices
    */
   public DeploymentProviderServiceRegistry(DeploymentRepository deploymentRepository,
       DeploymentProviderService[] services) {
@@ -72,7 +73,8 @@ public class DeploymentProviderServiceRegistry {
   /**
    * Returns the {@link DeploymentProviderService} corresponding to the {@link DeploymentProvider}.
    *
-   * @param deploymentProvider the DeploymentProvider
+   * @param deploymentProvider
+   *          the DeploymentProvider
    * @return the DeploymentProviderService
    */
   public DeploymentProviderService getDeploymentProviderService(

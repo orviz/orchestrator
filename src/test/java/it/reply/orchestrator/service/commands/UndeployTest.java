@@ -38,7 +38,7 @@ public class UndeployTest extends BaseDeployCommandTest<Undeploy> {
 
 
   @Test
-  @Parameters({ "true", "false" })
+  @Parameters({"true", "false"})
   public void testUndeploy(boolean complete) throws Exception {
     DeploymentMessage dm = new DeploymentMessage();
     ExecutionEntity execution = new ExecutionEntityBuilder()

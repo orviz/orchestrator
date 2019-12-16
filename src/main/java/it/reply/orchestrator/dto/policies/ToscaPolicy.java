@@ -28,7 +28,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     property = "type",
-    defaultImpl = GenericToscaPolicy.class)
+    defaultImpl = GenericToscaPolicy.class
+)
 @JsonSubTypes({
     @JsonSubTypes.Type(
         value = SlaPlacementPolicy.class,

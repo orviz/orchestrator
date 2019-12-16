@@ -43,8 +43,6 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   // Max value allowed by SQL
   // private static final Instant MAX_TIMEOUT = Instant.parse("9999-12-31T23:59:59.999Z");
   private static final Instant MAX_TIMEOUT = Instant.parse("2038-01-19T03:14:07.999Z");
-  private static final Integer MAX_PROVIDER_TIMEOUT = 14400;
-  private static final String TIME_FORMAT = "PT%dM";
 
   @NonNull
   @NotNull
@@ -53,7 +51,8 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   /**
    * Sets the Deployment timeout.
    *
-   * @param timeoutMins the timeout in Minutes
+   * @param timeoutMins
+   *          the timeout in Minutes
    */
   public void setTimeoutInMins(Integer timeoutMins) {
     this.timeout = Optional
@@ -74,22 +73,6 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   private boolean deleteComplete;
   private boolean pollComplete;
   private boolean skipPollInterval;
-
-  @NonNull
-  @NotNull
-  private String providerTimeout = String.format(TIME_FORMAT, MAX_PROVIDER_TIMEOUT);
-
-  /**
-   * Sets the Deployment per provider timeout.
-   *
-   * @param timeoutMins the timeout in Minutes
-   */
-  public void setProviderTimeoutInMins(Integer timeoutMins) {
-    this.providerTimeout = Optional
-        .ofNullable(timeoutMins)
-        .map(value -> String.format(TIME_FORMAT, value))
-        .orElse(String.format(TIME_FORMAT, MAX_PROVIDER_TIMEOUT));
-  }
 
   @Nullable
   private CloudServicesOrderedIterator cloudServicesOrderedIterator;

@@ -104,7 +104,8 @@ public class AccessGrant implements Serializable {
   /**
    * Check if the grant is expiring in the specified {@link TemporalAmount}.
    *
-   * @param temporalAmount the temporalAmount for the expiration evaluation
+   * @param temporalAmount
+   *     the temporalAmount for the expiration evaluation
    * @return true if expired, false otherwise
    */
   @JsonIgnore

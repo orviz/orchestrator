@@ -42,8 +42,10 @@ public class HistoryJobMessageListener implements IgniteBiPredicate<UUID, String
   /**
    * Creates a new HistoryJobMessageListener.
    *
-   * @param processEngineConfiguration the ProcessEngineConfiguration to use
-   * @param ignite the Ignite instance to use
+   * @param processEngineConfiguration
+   *          the ProcessEngineConfiguration to use
+   * @param ignite
+   *          the Ignite instance to use
    */
   public HistoryJobMessageListener(ProcessEngineConfiguration processEngineConfiguration,
       Ignite ignite) {

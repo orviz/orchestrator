@@ -58,8 +58,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import javax.annotation.Nullable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.alien4cloud.tosca.model.templates.NodeTemplate;
@@ -164,33 +162,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
   }
 
-  private void populateFromRequestData(DeploymentRequest request,
-      ArchiveRoot parsingResult, DeploymentMessage deploymentMessage) {
-    Map<String, OneData> odRequirements = toscaService
-        .extractOneDataRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setOneDataRequirements(odRequirements);
-
-    Map<String, Dynafed> dyanfedRequirements = toscaService
-        .extractDyanfedRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
-
-    @Nullable
-    Integer timeoutInMins = request.getTimeoutMins();
-    @Nullable
-    Integer providerTimeoutInMins = request.getProviderTimeoutMins();
-
-    if (timeoutInMins != null && providerTimeoutInMins != null
-        && providerTimeoutInMins > timeoutInMins) {
-      throw new BadRequestException("ProviderTimeout must be <= Timeout");
-    }
-
-    deploymentMessage.setTimeoutInMins(timeoutInMins);
-    deploymentMessage.setProviderTimeoutInMins(providerTimeoutInMins);
-
-    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
-    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
-  }
-
   @Override
   @Transactional
   public Deployment createDeployment(DeploymentRequest request) {
@@ -220,7 +191,18 @@ public class DeploymentServiceImpl implements DeploymentService {
     // Build deployment message
     DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, deploymentType);
 
-    populateFromRequestData(request, parsingResult, deploymentMessage);
+    Map<String, OneData> odRequirements = toscaService
+        .extractOneDataRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setOneDataRequirements(odRequirements);
+
+    Map<String, Dynafed> dyanfedRequirements = toscaService
+        .extractDyanfedRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
+
+    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
+
+    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
+    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
 
     Map<String, ToscaPolicy> placementPolicies = toscaService
         .extractPlacementPolicies(parsingResult);
@@ -385,7 +367,18 @@ public class DeploymentServiceImpl implements DeploymentService {
         toscaService.extractPlacementPolicies(parsingResult);
     deploymentMessage.setPlacementPolicies(placementPolicies);
 
-    populateFromRequestData(request, parsingResult, deploymentMessage);
+    Map<String, OneData> odRequirements = toscaService
+        .extractOneDataRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setOneDataRequirements(odRequirements);
+
+    Map<String, Dynafed> dyanfedRequirements = toscaService
+        .extractDyanfedRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
+
+    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
+
+    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
+    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
 
     ProcessInstance pi = wfService
         .createProcessInstanceBuilder()

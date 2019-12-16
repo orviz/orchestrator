@@ -32,7 +32,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(of = "oidcEntityId", callSuper = false)
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "issuer", "subject" }) })
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"issuer", "subject"})})
 @Entity
 public class OidcEntity extends UuidIdentifiable {
 

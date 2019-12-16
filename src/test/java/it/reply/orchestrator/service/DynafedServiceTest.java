@@ -120,10 +120,9 @@ public class DynafedServiceTest {
 
     assertThatCode(
         () -> dynafedService.populateDyanfedData(dyanfedRequirement, cloudProviders, oidcTokenId))
-            .isInstanceOf(DeploymentException.class)
-            .hasMessageStartingWith(
-                "Error retrieving metalink of file " + dynafedBasePath + fileName)
-            .hasCauseInstanceOf(HttpStatusCodeException.class);
+        .isInstanceOf(DeploymentException.class)
+        .hasMessageStartingWith("Error retrieving metalink of file " + dynafedBasePath + fileName)
+        .hasCauseInstanceOf(HttpStatusCodeException.class);
 
     mockServer.verify();
   }
@@ -205,9 +204,9 @@ public class DynafedServiceTest {
 
     assertThatCode(
         () -> dynafedService.populateDyanfedData(dyanfedRequirement, cloudProviders, oidcTokenId))
-            .isInstanceOf(DeploymentException.class)
-            .hasMessage("No registered storage service available for file %s",
-                dynafedBasePath + fileName);
+        .isInstanceOf(DeploymentException.class)
+        .hasMessage("No registered storage service available for file %s",
+            dynafedBasePath + fileName);
 
     mockServer.verify();
   }

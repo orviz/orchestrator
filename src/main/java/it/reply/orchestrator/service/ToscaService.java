@@ -53,9 +53,11 @@ public interface ToscaService {
    * Obtain the string TOSCA template representation from the in-memory representation. <br/>
    * <b>WARNING: Some nodes or properties might be missing!! Use at your own risk!</b>
    *
-   * @param archiveRoot the {@link ArchiveRoot} from which serialize the TOSCA template
+   * @param archiveRoot
+   *          the {@link ArchiveRoot} from which serialize the TOSCA template
    * @return the serialized TOSCA template
-   * @throws IOException if there is an error serializing the template
+   * @throws IOException
+   *           if there is an error serializing the template
    */
   public String getTemplateFromTopology(ArchiveRoot archiveRoot);
 
@@ -63,9 +65,12 @@ public interface ToscaService {
    * Adds the parameters needed for 'tosca.nodes.indigo.ElasticCluster' nodes (deployment_id,
    * orchestrator_url).
    *
-   * @param parsingResult .
-   * @param deploymentId .
-   * @param oauthToken .
+   * @param parsingResult
+   *          .
+   * @param deploymentId
+   *          .
+   * @param oauthToken
+   *          .
    */
   public void addElasticClusterParameters(ArchiveRoot parsingResult, String deploymentId,
       String oauthToken);
@@ -74,9 +79,12 @@ public interface ToscaService {
    * Replace images data in 'tosca.capabilities.indigo.OperatingSystem' capabilities in the TOSCA
    * template with the provider-specific identifier.
    *
-   * @param deploymentProvider the deployment provider.
-   * @param parsingResult the in-memory TOSCA template.
-   * @param computeService the chosen cloud compute service data.
+   * @param deploymentProvider
+   *          the deployment provider.
+   * @param parsingResult
+   *          the in-memory TOSCA template.
+   * @param computeService
+   *          the chosen cloud compute service data.
    */
   public void contextualizeAndReplaceImages(ArchiveRoot parsingResult,
       ComputeService computeService, DeploymentProvider deploymentProvider);
@@ -85,8 +93,10 @@ public interface ToscaService {
    * Find matches for images data in 'tosca.capabilities.indigo.OperatingSystem' capabilities in the
    * TOSCA template with the provider-specific identifier.
    *
-   * @param parsingResult the in-memory TOSCA template.
-   * @param computeService the chosen cloud compute service data.
+   * @param parsingResult
+   *          the in-memory TOSCA template.
+   * @param computeService
+   *          the chosen cloud compute service data.
    */
   public Map<Boolean, Map<NodeTemplate, Image>> contextualizeImages(ArchiveRoot parsingResult,
       ComputeService computeService);
@@ -94,10 +104,13 @@ public interface ToscaService {
   /**
    * Verifies that all the template's required inputs are present in the user's input list.
    *
-   * @param templateInputs the templates's defined inputs.
-   * @param inputs the user's input list.
-   * @throws ToscaException in case a required input is not present in the user's input or if the
-   *         user's input value doesn't match the defined input type.
+   * @param templateInputs
+   *          the templates's defined inputs.
+   * @param inputs
+   *          the user's input list.
+   * @throws ToscaException
+   *           in case a required input is not present in the user's input or if the user's input
+   *           value doesn't match the defined input type.
    */
   public void validateUserInputs(Map<String, PropertyDefinition> templateInputs,
       Map<String, Object> inputs);
@@ -106,9 +119,12 @@ public interface ToscaService {
    * Replaces TOSCA input functions with the actual input values (user's input values or default
    * ones).
    *
-   * @param archiveRoot the in-memory TOSCA template.
-   * @param inputs the user's inputs to the template.
-   * @throws ToscaException if the input replacement fails TODO.
+   * @param archiveRoot
+   *          the in-memory TOSCA template.
+   * @param inputs
+   *          the user's inputs to the template.
+   * @throws ToscaException
+   *           if the input replacement fails TODO.
    */
   public void replaceInputFunctions(ArchiveRoot archiveRoot, Map<String, Object> inputs);
 
@@ -116,36 +132,45 @@ public interface ToscaService {
    * Parse the TOSCA template (string) and get the in-memory representation.<br/>
    * This also checks for validation errors.
    *
-   * @param toscaTemplate the TOSCA template as string.
+   * @param toscaTemplate
+   *          the TOSCA template as string.
    * @return an {@link ArchiveRoot} representing the template.
-   * @throws IOException if an I/O error occurs (converting the string to a CSAR zipped archive
-   *         internally).
-   * @throws ParsingException if parsing errors occur.
-   * @throws ToscaException if validation errors occur.
+   * @throws IOException
+   *           if an I/O error occurs (converting the string to a CSAR zipped archive internally).
+   * @throws ParsingException
+   *           if parsing errors occur.
+   * @throws ToscaException
+   *           if validation errors occur.
    */
   public ArchiveRoot parseTemplate(String toscaTemplate);
 
   /**
    * As for {@link #parseTemplate(String)} but also validates user's inputs.
    *
-   * @param toscaTemplate the TOSCA template as string.
+   * @param toscaTemplate
+   *          the TOSCA template as string.
    * @return an {@link ArchiveRoot} representing the template.
-   * @throws IOException if an I/O error occurs (converting the string to a CSAR zipped archive
-   *         internally).
-   * @throws ParsingException if parsing errors occur.
-   * @throws ToscaException if validation errors occur.
+   * @throws IOException
+   *           if an I/O error occurs (converting the string to a CSAR zipped archive internally).
+   * @throws ParsingException
+   *           if parsing errors occur.
+   * @throws ToscaException
+   *           if validation errors occur.
    */
   public ArchiveRoot parseAndValidateTemplate(String toscaTemplate, Map<String, Object> inputs);
 
   /**
    * As for {@link #parseAndValidateTemplate(String, Map)} but also replaces the user's inputs.
    *
-   * @param toscaTemplate the TOSCA template as string.
+   * @param toscaTemplate
+   *          the TOSCA template as string.
    * @return an {@link ArchiveRoot} representing the template.
-   * @throws IOException if an I/O error occurs (converting the string to a CSAR zipped archive
-   *         internally).
-   * @throws ParsingException if parsing errors occur.
-   * @throws ToscaException if validation errors occur.
+   * @throws IOException
+   *           if an I/O error occurs (converting the string to a CSAR zipped archive internally).
+   * @throws ParsingException
+   *           if parsing errors occur.
+   * @throws ToscaException
+   *           if validation errors occur.
    */
   public ArchiveRoot prepareTemplate(String toscaTemplate, Map<String, Object> inputs);
 
@@ -160,9 +185,12 @@ public interface ToscaService {
    * Finds all the nodes associated to the given {@link NodeTemplate} with a capability with the
    * given name.
    *
-   * @param nodes the template's node map.
-   * @param nodeTemplate the origin node.
-   * @param capabilityName the name of the capability.
+   * @param nodes
+   *          the template's node map.
+   * @param nodeTemplate
+   *          the origin node.
+   * @param capabilityName
+   *          the name of the capability.
    * @return a map with the nodes (and their names) associated to the origin node with given
    *         capability.
    */
@@ -176,7 +204,8 @@ public interface ToscaService {
   /**
    * Get the list of resources to be removed.
    *
-   * @param nodeTemplate {@link NodeTemplate}
+   * @param nodeTemplate
+   *          {@link NodeTemplate}
    * @return the list of resources to be removed or an empty list
    */
   public List<String> getRemovalList(NodeTemplate nodeTemplate);
@@ -188,8 +217,10 @@ public interface ToscaService {
   /**
    * Extracts OneData requirements (i.e. space, favorite providers, etc) from the TOSCA template.
    *
-   * @param archiveRoot an {@link ArchiveRoot} representing the template.
-   * @param inputs the user's input list.
+   * @param archiveRoot
+   *          an {@link ArchiveRoot} representing the template.
+   * @param inputs
+   *          the user's input list.
    * @return a Map of {@link OneData} requirement, index by node name.<br/>
    *         <b>WARNING:</b> (TEMPORARY) currently OneData nodes are not supported; thus the name
    *         used are hard-coded and are either 'input', 'output' or 'service'.
@@ -203,7 +234,8 @@ public interface ToscaService {
   /**
    * Extracts the placement policies from the TOSCA template.
    *
-   * @param archiveRoot an {@link ArchiveRoot} representing the template.
+   * @param archiveRoot
+   *          an {@link ArchiveRoot} representing the template.
    * @return the list of placementPolicies
    */
   public @NonNull Map<String, ToscaPolicy> extractPlacementPolicies(ArchiveRoot archiveRoot);

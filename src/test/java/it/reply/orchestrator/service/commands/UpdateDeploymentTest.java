@@ -127,7 +127,7 @@ public class UpdateDeploymentTest extends BaseDeployCommandTest<UpdateDeployment
 
     when(cloudProviderEndpointServiceImpl
         .generateCloudProvidersOrderedIterator(rankCloudProvidersMessage, null))
-            .thenReturn(new CloudServicesOrderedIterator(Lists.newArrayList(cs)));
+        .thenReturn(new CloudServicesOrderedIterator(Lists.newArrayList(cs)));
     when(deploymentRepository.findOne(deployment.getId()))
         .thenReturn(deployment);
     doNothing()
@@ -136,7 +136,8 @@ public class UpdateDeploymentTest extends BaseDeployCommandTest<UpdateDeployment
 
     CloudProviderEndpoint chosenCloudProviderEndpoint = dm.getChosenCloudProviderEndpoint();
     dm.setChosenCloudProviderEndpoint(null);
-    when(cloudProviderEndpointServiceImpl.getCloudProviderEndpoint(cs, false))
+    when(cloudProviderEndpointServiceImpl.getCloudProviderEndpoint(cs,
+        rankCloudProvidersMessage.getPlacementPolicies(), false))
         .thenReturn(chosenCloudProviderEndpoint);
 
     ExecutionEntity execution = new ExecutionEntityBuilder()

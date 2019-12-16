@@ -103,10 +103,14 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Generate a ResponseWrapper.
      *
-     * @param request the request
-     * @param response the response
-     * @param maxPayloadLength the max payload request to parse
-     * @param responseTime the response time
+     * @param request
+     *          the request
+     * @param response
+     *          the response
+     * @param maxPayloadLength
+     *          the max payload request to parse
+     * @param responseTime
+     *          the response time
      */
     public ResponseWrapper(HttpServletRequest request, HttpServletResponse response,
         int maxPayloadLength, Set<String> headersToOmit, double responseTime) {
@@ -146,8 +150,10 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Set the uri from a base uri and a query string.
      *
-     * @param uri the base uri without query param
-     * @param queryString the string containing the query param
+     * @param uri
+     *          the base uri without query param
+     * @param queryString
+     *          the string containing the query param
      */
     public void setUriFromRequest(String uri, String queryString) {
       StringBuilder sb = new StringBuilder(uri);
@@ -159,7 +165,8 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Set the client ip from a {@link HttpServletRequest}.
      *
-     * @param request the request
+     * @param request
+     *          the request
      */
     public void setClientIpFromRequest(HttpServletRequest request) {
       safeTrimmedString(request.getRemoteAddr()).ifPresent(this::setClientIp);
@@ -168,7 +175,8 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Set the session from a {@link HttpServletRequest}.
      *
-     * @param request the request
+     * @param request
+     *          the request
      */
     public void setSessionFromRequest(HttpServletRequest request) {
       Optional.ofNullable(request.getSession(false))
@@ -179,7 +187,8 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Set the user from a {@link HttpServletRequest}.
      *
-     * @param request the request
+     * @param request
+     *          the request
      */
     public void setUserFromRequest(HttpServletRequest request) {
       safeTrimmedString(request.getRemoteUser()).ifPresent(this::setUser);
@@ -188,7 +197,8 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Set the headers from a {@link HttpServletRequest}.
      *
-     * @param request the request
+     * @param request
+     *          the request
      */
     public void setHeadersFromRequest(HttpServletRequest request,
         @NonNull Set<String> headersToOmit) {
@@ -205,8 +215,10 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Set the payload from a {@link HttpServletRequest}.
      *
-     * @param request the request
-     * @param maxPayloadLength the max payload length to parse
+     * @param request
+     *          the request
+     * @param maxPayloadLength
+     *          the max payload length to parse
      */
     public void setPayloadFromRequest(HttpServletRequest request, int maxPayloadLength) {
       if (isIncludePayload(maxPayloadLength)) {
@@ -232,8 +244,10 @@ public class CustomRequestLoggingFilter extends OncePerRequestFilter {
     /**
      * Generate an AbstractWrapper.
      *
-     * @param request the request
-     * @param maxPayloadLength the max payload request to parse
+     * @param request
+     *          the request
+     * @param maxPayloadLength
+     *          the max payload request to parse
      */
     public AbstractWrapper(HttpServletRequest request, int maxPayloadLength,
         Set<String> headersToOmit) {
