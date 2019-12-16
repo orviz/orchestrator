@@ -65,9 +65,12 @@ public class IndigoInputsPreProcessorService {
   /**
    * Process the get inputs functions of a topology to inject actual input provided by the user.
    *
-   * @param archiveRoot the in-memory TOSCA template.
-   * @param inputs the user's inputs to the template.
-   * @throws ToscaException if the input replacement fails.
+   * @param archiveRoot
+   *          the in-memory TOSCA template.
+   * @param inputs
+   *          the user's inputs to the template.
+   * @throws ToscaException
+   *           if the input replacement fails.
    */
   public void processGetInput(ArchiveRoot archiveRoot, Map<String, Object> inputs) {
     Optional.ofNullable(archiveRoot).map(ArchiveRoot::getTopology).ifPresent(topology -> {
@@ -82,7 +85,7 @@ public class IndigoInputsPreProcessorService {
 
       functions.put(ToscaFunctionConstants.GET_INPUT, (FunctionPropertyValue function,
           String propertyName) -> processGetInputFunction(function, templateInputs, inputs,
-              propertyName));
+          propertyName));
 
       processFunctions(topology, functions, processedFunctions);
     });
@@ -91,9 +94,12 @@ public class IndigoInputsPreProcessorService {
   /**
    * Process the outputs of a topology.
    *
-   * @param archiveRoot the in-memory TOSCA template.
-   * @param inputs the user's inputs to the template.
-   * @param runtimeProperties deployment runtimeProperties.
+   * @param archiveRoot
+   *          the in-memory TOSCA template.
+   * @param inputs
+   *          the user's inputs to the template.
+   * @param runtimeProperties
+   *          deployment runtimeProperties.
    */
   public Map<String, Object> processOutputs(ArchiveRoot archiveRoot, Map<String, Object> inputs,
       RuntimeProperties runtimeProperties) {
@@ -109,19 +115,19 @@ public class IndigoInputsPreProcessorService {
 
       functions.put(ToscaFunctionConstants.GET_ATTRIBUTE, (FunctionPropertyValue function,
           String propertyName) -> processGetAttribute(function, runtimeProperties,
-              propertyName));
+          propertyName));
 
       functions.put(ToscaFunctionConstants.GET_PROPERTY, (FunctionPropertyValue function,
           String propertyName) -> processGetProperty(functions, processedFunctions, function,
-              nodeTemplates,
-              propertyName));
+          nodeTemplates,
+          propertyName));
 
       Map<String, PropertyDefinition> templateInputs =
           CommonUtils.notNullOrDefaultValue(topology.getInputs(), Collections::emptyMap);
 
       functions.put(ToscaFunctionConstants.GET_INPUT, (FunctionPropertyValue function,
           String propertyName) -> processGetInputFunction(function, templateInputs, inputs,
-              propertyName));
+          propertyName));
 
       Map<String, OutputDefinition> outputs =
           CommonUtils.notNullOrDefaultValue(topology.getOutputs(), Collections::emptyMap);
@@ -130,8 +136,8 @@ public class IndigoInputsPreProcessorService {
         try {
           processFunctions(functions, processedFunctions, output.getValue(),
               String.format("outputs[%s][value]", name))
-                  .ifPresent(processedOutput -> processedOutputs
-                      .put(name, ToscaUtils.unwrapPropertyValue(processedOutput)));
+              .ifPresent(processedOutput -> processedOutputs
+                  .put(name, ToscaUtils.unwrapPropertyValue(processedOutput)));
         } catch (RuntimeException ex) {
           processedOutputs.put(name, ex.getMessage());
         }
@@ -143,9 +149,12 @@ public class IndigoInputsPreProcessorService {
   /**
    * Process the functions of a topology.
    *
-   * @param archiveRoot the in-memory TOSCA template.
-   * @param inputs the user's inputs to the template.
-   * @param runtimeProperties deployment runtimeProperties.
+   * @param archiveRoot
+   *     the in-memory TOSCA template.
+   * @param inputs
+   *     the user's inputs to the template.
+   * @param runtimeProperties
+   *     deployment runtimeProperties.
    */
   public void processFunctions(ArchiveRoot archiveRoot, Map<String, Object> inputs,
       RuntimeProperties runtimeProperties) {
@@ -162,19 +171,19 @@ public class IndigoInputsPreProcessorService {
 
           functions.put(ToscaFunctionConstants.GET_ATTRIBUTE, (FunctionPropertyValue function,
               String propertyName) -> processGetAttribute(function, runtimeProperties,
-                  propertyName));
+              propertyName));
 
           functions.put(ToscaFunctionConstants.GET_PROPERTY, (FunctionPropertyValue function,
               String propertyName) -> processGetProperty(functions, processedFunctions, function,
-                  nodeTemplates,
-                  propertyName));
+              nodeTemplates,
+              propertyName));
 
           Map<String, PropertyDefinition> templateInputs =
               CommonUtils.notNullOrDefaultValue(topology.getInputs(), Collections::emptyMap);
 
           functions.put(ToscaFunctionConstants.GET_INPUT, (FunctionPropertyValue function,
               String propertyName) -> processGetInputFunction(function, templateInputs, inputs,
-                  propertyName));
+              propertyName));
 
           processFunctions(topology, functions, processedFunctions);
         });
@@ -242,9 +251,9 @@ public class IndigoInputsPreProcessorService {
                       ToscaFunctionConstants.GET_INPUT, Lists.newArrayList(m.group("inputName")));
                   processFunctions(functions, processedFunctions, inputFunction, String
                       .format("node_templates[%s][artifacts][%s][file]", nodeName, artifactName))
-                          .map(ToscaUtils::unwrapPropertyValue)
-                          .map(Object::toString)
-                          .ifPresent(artifact::setArtifactRef);
+                      .map(ToscaUtils::unwrapPropertyValue)
+                      .map(Object::toString)
+                      .ifPresent(artifact::setArtifactRef);
                 }
               });
 
@@ -317,8 +326,8 @@ public class IndigoInputsPreProcessorService {
     if (optionalProperties == null) {
       return Optional.empty();
     }
-    for (Iterator<Entry<String, Object>> it = optionalProperties.entrySet().iterator(); it
-        .hasNext();) {
+    for (Iterator<Entry<String, Object>> it = optionalProperties.entrySet().iterator();
+        it.hasNext(); ) {
       Entry<String, Object> entry = it.next();
       Optional<Object> processedValue = processFunctions(functions, processedFunctions,
           entry.getValue(),
@@ -341,7 +350,7 @@ public class IndigoInputsPreProcessorService {
       return Optional.empty();
     }
 
-    for (ListIterator<Object> it = optionalProperties.listIterator(); it.hasNext();) {
+    for (ListIterator<Object> it = optionalProperties.listIterator(); it.hasNext(); ) {
       int currentIndex = it.nextIndex();
       Object entry = it.next();
       Optional<Object> processedValue = processFunctions(functions, processedFunctions, entry,
@@ -364,7 +373,8 @@ public class IndigoInputsPreProcessorService {
       return Optional.empty();
     }
     for (Iterator<Entry<String, V>> it = optionalProperties.entrySet()
-        .iterator(); it.hasNext();) {
+        .iterator();
+        it.hasNext(); ) {
       Entry<String, V> entry = it.next();
       Optional<Object> processedValue = processFunctions(functions, processedFunctions,
           entry.getValue(), String.format("%s[%s]", basePath, entry.getKey()));
@@ -411,9 +421,9 @@ public class IndigoInputsPreProcessorService {
     Optional<Object> processedValue = processFunctions(functions, processedFunctions,
         rawStringWithTokens,
         String.format(propertyName + "[token][0]", propertyName))
-            .filter(String.class::isInstance)
-            .map(String.class::cast)
-            .map(s -> s.split(Pattern.quote(stringOfTokenChars))[substringIndex]);
+        .filter(String.class::isInstance)
+        .map(String.class::cast)
+        .map(s -> s.split(Pattern.quote(stringOfTokenChars))[substringIndex]);
     if (processedValue.isPresent()) {
       return processedValue;
     } else {
@@ -475,7 +485,8 @@ public class IndigoInputsPreProcessorService {
             .nullableCollectionToStream(function.getParameters())
             .map(Object::toString)
             .collect(Collectors.joining(", ")),
-        message);
+        message
+    );
   }
 
   protected Optional<Object> processGetProperty(
@@ -549,8 +560,10 @@ public class IndigoInputsPreProcessorService {
     /**
      * Put a list of runtime propeties.
      *
-     * @param list the list
-     * @param basekeys the path chunks associated with the properties
+     * @param list
+     *     the list
+     * @param basekeys
+     *     the path chunks associated with the properties
      * @return this object for chaining
      */
     public RuntimeProperties put(List<?> list, String... basekeys) {
@@ -565,8 +578,10 @@ public class IndigoInputsPreProcessorService {
     /**
      * Put a runtime property.
      *
-     * @param item the property
-     * @param basekeys the path chunks associated with the property
+     * @param item
+     *     the property
+     * @param basekeys
+     *     the path chunks associated with the property
      * @return this object for chaining
      */
     public RuntimeProperties put(Object item, String... basekeys) {

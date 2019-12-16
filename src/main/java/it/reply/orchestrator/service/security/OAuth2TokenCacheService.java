@@ -78,7 +78,8 @@ public class OAuth2TokenCacheService {
   /**
    * Creates a new OAuth2TokenCacheService.
    *
-   * @param ignite the {@link Ignite} instance.
+   * @param ignite
+   *          the {@link Ignite} instance.
    */
   public OAuth2TokenCacheService(@NonNull Ignite ignite) {
 
@@ -99,8 +100,10 @@ public class OAuth2TokenCacheService {
    * Exchanges an access token, puts the refresh token in DB and the exchanged access token in
    * cache.
    *
-   * @param id the ID of the access token in the cache
-   * @param accessToken the access token to exchange
+   * @param id
+   *          the ID of the access token in the cache
+   * @param accessToken
+   *          the access token to exchange
    * @return the received access grant
    */
   public AccessGrant exchangeAccessToken(OidcTokenId id, String accessToken) {

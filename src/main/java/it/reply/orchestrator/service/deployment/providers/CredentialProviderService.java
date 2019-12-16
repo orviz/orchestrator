@@ -18,30 +18,22 @@ public class CredentialProviderService implements CredentialProviderServiceInter
   @Autowired
   private VaultService vaultService;
 
-  /**
-   * Get credentials stored in vault service.
-   *
-   * @param  serviceId  is CpComputeServiceId of cloud provider
-   * @param  accessToken with audience
-   * @param  clazz type of return class
-   * @return GenericCredential or GenericCredentialWithTenant
-   */
-  public <T extends GenericCredentialInterface> T credentialProvider(String serviceId,
-      String accessToken, Class<T> clazz) {
-
-    if (serviceId == null || serviceId.isEmpty()) {
+  public <T extends GenericCredentialInterface> T credentialProvider(String serviceId, String accessToken, Class<T> clazz) {
+    
+    if(serviceId==null || serviceId.isEmpty()) {
       LOG.error("SeriviceId is empty");
     }
     URI uriVault = vaultService.getServiceUri().get();
 
     TokenAuthenticationExtended vaultToken =
         (TokenAuthenticationExtended) vaultService.retrieveToken(uriVault, accessToken);
-
-    String pathVaultComplete = vaultService.getServiceUri().get()
-        + "/v1/secret/data/"
-        + vaultToken.getEntityId()
-        + vaultService.getServicePath()
-        + serviceId;
+    
+    String pathVaultComplete =
+        vaultService.getServiceUri().get() +
+            "/v1/secret/data/" +
+            vaultToken.getEntityId() +
+            vaultService.getServicePath() +
+            serviceId;
 
     return vaultService.readSecret(vaultToken, pathVaultComplete, clazz);
   }

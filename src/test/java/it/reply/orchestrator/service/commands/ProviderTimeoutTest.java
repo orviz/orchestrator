@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JUnitParamsRunner.class)
-public class ProviderTimeoutTest extends BaseDeployCommandTest<ProviderTimeout> {
+public class ProviderTimeoutTest  extends BaseDeployCommandTest<ProviderTimeout> {
 
   public ProviderTimeoutTest() {
     super(new ProviderTimeout());

@@ -115,7 +115,7 @@ public class DeploymentControllerTest {
     OidcEntityId ownerId = new OidcEntityId();
     ownerId.setSubject(UUID.randomUUID().toString());
     ownerId.setIssuer("https://iam-test.indigo-datacloud.eu/");
-    String ownerIdString = ownerId.getSubject() + "@" + ownerId.getIssuer();
+    String ownerIdString = ownerId.getSubject()+"@"+ownerId.getIssuer();
     OidcEntity owner = new OidcEntity();
     owner.setOidcEntityId(ownerId);
     List<Deployment> deployments = ControllerTestUtils.createDeployments(2);
@@ -134,8 +134,7 @@ public class DeploymentControllerTest {
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andDo(document("authentication", requestHeaders(
             headerWithName(HttpHeaders.AUTHORIZATION).description("OAuth2 bearer token"))))
-        .andDo(document("deployments", preprocessRequest(prettyPrint()),
-            preprocessResponse(prettyPrint()),
+        .andDo(document("deployments", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
             requestParameters(parameterWithName("createdBy").description(
                 "Optional parameter to filter the deployments based on who created them. The following values can be used:\n\n* `*OIDC_subject@OIDC_issuer*`: to ask for the deployments of a generic user\n* `*me*`: shortcut to ask for the deployments created by the user making the request")),
 
@@ -436,7 +435,7 @@ public class DeploymentControllerTest {
   }
 
   public Object[] generateTransientPersistenceExceptions() {
-    return new Object[] {
+    return new Object[]{
         Mockito.mock(TransientDataAccessException.class),
         new FlowableOptimisticLockingException(""),
         new PersistenceException(new SQLTransientException(""))

@@ -165,7 +165,7 @@ public class ImServiceImpl extends AbstractDeploymentProviderService {
       String infrastructureId =
           executeWithClientForResult(cloudProviderEndpoints, requestedWithToken,
               client -> client.createInfrastructureAsync(imCustomizedTemplate,
-                  BodyContentType.TOSCA)).getInfrastructureId();
+                BodyContentType.TOSCA)).getInfrastructureId();
       LOG.info("InfrastructureId for deployment <{}> is: {}", deploymentMessage.getDeploymentId(),
           infrastructureId);
       deployment.setEndpoint(infrastructureId);
@@ -350,8 +350,8 @@ public class ImServiceImpl extends AbstractDeploymentProviderService {
     updateResources(deployment, deployment.getStatus());
 
     boolean newResourcesOnDifferentService = !chosenCloudProviderEndpoint
-        .getCpComputeServiceId()
-        .equals(deployment.getCloudProviderEndpoint().getCpComputeServiceId());
+            .getCpComputeServiceId()
+            .equals(deployment.getCloudProviderEndpoint().getCpComputeServiceId());
 
     if (newResourcesOnDifferentService) {
       toscaService.setHybridUpdateDeployment(newAr);

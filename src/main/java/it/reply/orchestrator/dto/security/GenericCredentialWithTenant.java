@@ -11,9 +11,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class GenericCredentialWithTenant extends GenericCredential {
-
-  public GenericCredentialWithTenant(@NonNull String username, @NonNull String password,
-      @NonNull String tenant) {
+  
+  public GenericCredentialWithTenant(@NonNull String username, @NonNull String password, @NonNull String tenant) {
     super(username, password);
     this.tenant = tenant;
   }
@@ -21,7 +20,7 @@ public class GenericCredentialWithTenant extends GenericCredential {
   @JsonProperty("tenant")
   @NonNull
   @NotNull
-  @Getter
+  @Getter 
   private String tenant;
 
 }

@@ -48,18 +48,18 @@ public class MarathonClientFactoryTest {
 
   @Rule
   public MockitoRule rule = MockitoJUnit.rule();
-
+  
   @Rule
   public final SpringMethodRule springMethodRule = new SpringMethodRule();
-
+  
   @ClassRule
   public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
-
+  
   @MockBean
   private CredentialProviderService credProvServ;
 
   private MarathonClientFactory clientFactory;
-
+  
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
@@ -68,20 +68,20 @@ public class MarathonClientFactoryTest {
 
   @Test
   public void testgetClientSuccessful() throws URISyntaxException {
-
+    
     CloudProviderEndpoint cloudProviderEndpoint = CloudProviderEndpoint
         .builder()
         .cpEndpoint("http://example.com")
         .cpComputeServiceId(UUID.randomUUID().toString())
         .iaasType(IaaSType.MARATHON)
         .build();
-
+    
     String serviceId = cloudProviderEndpoint.getCpComputeServiceId();
-
+   
     Mockito
-        .when(credProvServ.credentialProvider(serviceId, "token", GenericCredential.class))
-        .thenReturn(new GenericCredentialWithTenant("username", "password", "tenant"));
-
+    .when(credProvServ.credentialProvider(serviceId, "token", GenericCredential.class))
+    .thenReturn(new GenericCredentialWithTenant("username", "password", "tenant"));
+    
     assertThat(clientFactory.build(cloudProviderEndpoint, "token"))
         .extracting("h.target.url")
         .containsOnly("http://example.com");

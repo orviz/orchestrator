@@ -72,7 +72,8 @@ public class MdcUtils {
   /**
    * Sets the MDC context from the provided Business Key.
    *
-   * @param businessKey the Business Key to use
+   * @param businessKey
+   *          the Business Key to use
    */
   public static void fromBusinessKey(String businessKey) {
     if (businessKey != null) {

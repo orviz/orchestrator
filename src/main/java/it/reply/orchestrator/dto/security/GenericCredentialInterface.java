@@ -1,5 +1,5 @@
 package it.reply.orchestrator.dto.security;
 
-public interface GenericCredentialInterface {
+public interface GenericCredentialInterface{
 
 }

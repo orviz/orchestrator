@@ -184,7 +184,7 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
   }
 
   @Test
-  @Parameters({ "0,0,FRESH", "1,0,SUCCESS", "1,1,SUCCESS", "0,1,FAILURE" })
+  @Parameters({"0,0,FRESH", "1,0,SUCCESS", "1,1,SUCCESS", "0,1,FAILURE"})
   public void getLastState(int successCount, int errorCount, JobState expectedState) {
     Job job = new Job();
     job.setSuccessCount(successCount);
@@ -195,7 +195,7 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
   }
 
   @Test
-  @Parameters({ "true", "false" })
+  @Parameters({"true", "false"})
   public void doDeploy(boolean isLast) throws ChronosException {
     Deployment deployment = ControllerTestUtils.createDeployment();
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
@@ -218,7 +218,7 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
   }
 
   @Test
-  @Parameters({ "true|true", "true|false", "false|true", "false|false" })
+  @Parameters({"true|true", "true|false", "false|true", "false|false"})
   public void isDeployed(boolean isCompleted, boolean isLast) {
     Deployment deployment = ControllerTestUtils.createDeployment();
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
@@ -266,12 +266,12 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
 
     assertThatCode(
         () -> chronosService.checkJobsOnChronos(generateCloudProviderEndpoint(), null, "JobName"))
-            .isInstanceOf(DeploymentException.class)
-            .hasMessage("Chronos job JobName failed to execute");
+        .isInstanceOf(DeploymentException.class)
+        .hasMessage("Chronos job JobName failed to execute");
   }
 
   @Test
-  @Parameters({ "true", "false" })
+  @Parameters({"true", "false"})
   public void createJobOnChronosSuccessful(boolean isScheduled) throws ChronosException {
 
     Job job = new Job();
@@ -299,11 +299,11 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
     assertThatCode(
         () -> chronosService.createJobOnChronos(generateCloudProviderEndpoint(), null,
             new IndigoJob(job, "toscaName")))
-                .isInstanceOf(DeploymentException.class)
-                .hasCauseExactlyInstanceOf(ChronosException.class)
-                .hasMessage(
-                    "Failed to launch job <%s> on Chronos; nested exception is %s (http status: %s)",
-                    "JobName", "some message", 500);
+        .isInstanceOf(DeploymentException.class)
+        .hasCauseExactlyInstanceOf(ChronosException.class)
+        .hasMessage(
+            "Failed to launch job <%s> on Chronos; nested exception is %s (http status: %s)",
+            "JobName", "some message", 500);
   }
 
   @Test
@@ -350,7 +350,7 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
   }
 
   @Test
-  @Parameters({ "true", "false" })
+  @Parameters({"true", "false"})
   public void doUndeploySuccessful(boolean isLast) throws ChronosException {
     Deployment deployment = ControllerTestUtils.createDeployment(isLast ? 1 : 2);
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
@@ -365,7 +365,7 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
   }
 
   @Test
-  @Parameters({ "400|false", "404|false", "500|true" })
+  @Parameters({"400|false", "404|false", "500|true"})
   public void deleteJobsOnChronosWithChronosException(int statusCode, boolean shouldFail)
       throws ChronosException {
 
@@ -377,8 +377,8 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
     if (shouldFail) {
       assertion.isInstanceOf(DeploymentException.class)
           .hasCauseExactlyInstanceOf(ChronosException.class).hasMessage(
-              "Failed to delete job ChronosName on Chronos; nested exception is %s (http status: %s)",
-              "someMessage", statusCode);
+          "Failed to delete job ChronosName on Chronos; nested exception is %s (http status: %s)",
+          "someMessage", statusCode);
     } else {
       assertion.doesNotThrowAnyException();
     }
@@ -433,8 +433,7 @@ public class ChronosServiceTest extends ToscaParserAwareTest {
     topologyIterator.next();
     assertThat(objectMapper.writer(SerializationFeature.INDENT_OUTPUT)
         .writeValueAsString(topologyIterator)).isEqualToNormalizingNewlines(TestUtil
-            .getFileContentAsString(ToscaServiceTest.TEMPLATES_BASE_DIR + "chronos_2_jobs.json")
-            .trim());
+        .getFileContentAsString(ToscaServiceTest.TEMPLATES_BASE_DIR + "chronos_2_jobs.json").trim());
   }
 
   private Deployment generateDeployment() throws IOException {

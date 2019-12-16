@@ -53,7 +53,8 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   /**
    * Sets the Deployment timeout.
    *
-   * @param timeoutMins the timeout in Minutes
+   * @param timeoutMins
+   *          the timeout in Minutes
    */
   public void setTimeoutInMins(Integer timeoutMins) {
     this.timeout = Optional
@@ -82,7 +83,8 @@ public class DeploymentMessage extends BaseWorkflowMessage {
   /**
    * Sets the Deployment per provider timeout.
    *
-   * @param timeoutMins the timeout in Minutes
+   * @param timeoutMins
+   *          the timeout in Minutes
    */
   public void setProviderTimeoutInMins(Integer timeoutMins) {
     this.providerTimeout = Optional

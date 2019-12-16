@@ -339,19 +339,19 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
           throw ex;
         }
       }
-      // delete secrets if present
+      //delete secrets if present
       String vaultUri = cloudProviderEndpoint.getVaultEndpoint();
       if (StringUtils.isNotEmpty(vaultUri)) {
         URI uri = URI.create(vaultUri);
         TokenAuthentication vaultToken = vaultService.retrieveToken(uri, requestedWithToken);
-        // search for vault entries
+        //search for vault entries
         String spath = "secret/private/" + deployment.getId();
         List<String> depentries = vaultService.listSecrets(uri, vaultToken, spath);
-        // remove vault entries if present
-        for (String depentry : depentries) {
+        //remove vault entries if present
+        for (String depentry:depentries) {
           List<String> entries = vaultService.listSecrets(uri, vaultToken, spath + "/"
               + depentry);
-          for (String entry : entries) {
+          for (String entry:entries) {
             vaultService.deleteSecret(uri, vaultToken, spath + "/" + depentry + "/" + entry);
           }
         }
@@ -429,7 +429,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
           source.setSource(entry.getKey() + "@value");
           secrets.put(entry.getKey(), source);
 
-          // write secret on service
+          //write secret on service
           String spath = "secret/private/" + deploymentId + "/" + marathonTask.getId() + "/"
               + entry.getKey();
 
@@ -511,7 +511,7 @@ public class MarathonServiceImpl extends AbstractMesosDeploymentService<Marathon
                 marathonApp.getLabels().put(
                     String.format("HAPROXY_%d_BACKEND_HEAD", cp),
                     "\nbackend {backend}\n  balance {balance}\n  mode http\n  "
-                        + "http-request add-header X-Forwarded-Proto https\n");
+                    + "http-request add-header X-Forwarded-Proto https\n");
                 marathonApp.getLabels().put(
                     String.format("HAPROXY_%d_SSL_CERT", cp),
                     "/etc/ssl/cert.pem");

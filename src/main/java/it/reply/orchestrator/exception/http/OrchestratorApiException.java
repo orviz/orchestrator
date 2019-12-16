@@ -39,8 +39,10 @@ public class OrchestratorApiException extends OrchestratorException {
   /**
    * Creates a OrchestratorApiException.
    *
-   * @param httpStatus the HTTP status code
-   * @param message the message
+   * @param httpStatus
+   *          the HTTP status code
+   * @param message
+   *          the message
    */
   public OrchestratorApiException(HttpStatus httpStatus, String message) {
     super(message);
@@ -51,9 +53,12 @@ public class OrchestratorApiException extends OrchestratorException {
   /**
    * Creates a OrchestratorApiException.
    *
-   * @param httpStatus the HTTP status code
-   * @param message the message
-   * @param ex the cause
+   * @param httpStatus
+   *          the HTTP status code
+   * @param message
+   *          the message
+   * @param ex
+   *          the cause
    */
   public OrchestratorApiException(HttpStatus httpStatus, String message, Throwable ex) {
     super(message, ex);

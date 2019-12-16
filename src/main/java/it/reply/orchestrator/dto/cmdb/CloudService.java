@@ -41,7 +41,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
     use = JsonTypeInfo.Id.NAME,
     property = "service_type",
     visible = true,
-    include = As.EXISTING_PROPERTY)
+    include = As.EXISTING_PROPERTY
+)
 @JsonTypeIdResolver(CloudServiceResolver.class)
 public class CloudService implements CmdbIdentifiable {
 

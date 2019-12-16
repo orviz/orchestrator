@@ -47,8 +47,10 @@ public class CloudProviderEndpointServiceImpl {
   /**
    * Generates the {@link CloudServicesOrderedIterator}.
    *
-   * @param rankCloudProvidersMessage the rankCloudProvidersMessage
-   * @param maxProvidersRetry max num of cloud providers on which iterate
+   * @param rankCloudProvidersMessage
+   *     the rankCloudProvidersMessage
+   * @param maxProvidersRetry
+   *     max num of cloud providers on which iterate
    * @return the iterator
    */
   public CloudServicesOrderedIterator generateCloudProvidersOrderedIterator(
@@ -84,12 +86,15 @@ public class CloudProviderEndpointServiceImpl {
   /**
    * Generates the {@link CloudProviderEndpoint}.
    *
-   * @param computeService the chosen {@link CloudService}
-   * @param isHybrid true if the deployment id hybrid
+   * @param computeService
+   *     the chosen {@link CloudService}
+   * @param placementPolicies
+   *     the placementPolicies
+   * @param isHybrid
+   *     true if the deployment id hybrid
    * @return the {@link CloudProviderEndpoint}
    */
-  public CloudProviderEndpoint getCloudProviderEndpoint(CloudService computeService,
-      boolean isHybrid) {
+  public CloudProviderEndpoint getCloudProviderEndpoint(CloudService computeService,  boolean isHybrid) {
 
     String imEndpoint = null;
     CloudProviderEndpointBuilder cpe = CloudProviderEndpoint.builder();
@@ -139,8 +144,10 @@ public class CloudProviderEndpointServiceImpl {
   /**
    * Infer the deployment provider from the deployment type and the cloud provider.
    *
-   * @param deploymentType the deployment type
-   * @param cloudService the cloud service
+   * @param deploymentType
+   *     the deployment type
+   * @param cloudService
+   *     the cloud service
    * @return the deployment provider
    */
   public DeploymentProvider getDeploymentProvider(DeploymentType deploymentType,

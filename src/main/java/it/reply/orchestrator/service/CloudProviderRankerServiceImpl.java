@@ -40,7 +40,8 @@ import org.springframework.web.client.RestTemplate;
 public class CloudProviderRankerServiceImpl implements CloudProviderRankerService {
 
   private static final ParameterizedTypeReference<List<RankedCloudService>> RESPONSE_TYPE =
-      new ParameterizedTypeReference<List<RankedCloudService>>() {};
+      new ParameterizedTypeReference<List<RankedCloudService>>() {
+      };
 
   private CprProperties cprProperties;
 

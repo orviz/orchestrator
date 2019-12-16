@@ -327,14 +327,11 @@ public class DeploymentServiceTest {
   }
 
   @Test
-  @Parameters({ "nul,nul", "nul,1", "1,nul", "1,1", "1,2", "2,1" })
+  @Parameters({"nul,nul", "nul,1", "1,nul", "1,1", "1,2", "2,1"})
   public void createDeploymentWithTimeoutValuesError(String timeout,
       String providerTimeout) throws Exception {
-    @Nullable
-    Integer iTimeout = (timeout.compareTo("nul") == 0 ? null : Integer.parseInt(timeout));
-    @Nullable
-    Integer iProviderTimeout =
-        (providerTimeout.compareTo("nul") == 0 ? null : Integer.parseInt(providerTimeout));
+    @Nullable Integer iTimeout = (timeout.compareTo("nul") == 0 ? null : Integer.parseInt(timeout));
+    @Nullable Integer iProviderTimeout = (providerTimeout.compareTo("nul") == 0 ? null : Integer.parseInt(providerTimeout));
     DeploymentRequest deploymentRequest = DeploymentRequest
         .builder()
         .template("template")
@@ -508,7 +505,7 @@ public class DeploymentServiceTest {
   @Parameters({
       "CHRONOS",
       "MARATHON",
-      "QCG" })
+      "QCG"})
   public void updateDeploymentBadRequest(DeploymentProvider provider) throws Exception {
 
     String id = UUID.randomUUID().toString();

@@ -38,7 +38,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
     getterVisibility = Visibility.NONE,
     isGetterVisibility = Visibility.NONE,
     setterVisibility = Visibility.NONE,
-    creatorVisibility = Visibility.NONE)
+    creatorVisibility = Visibility.NONE
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString
 @EqualsAndHashCode
@@ -71,9 +72,9 @@ public abstract class WorkflowListIterator<T> implements ResettableListIterator<
   }
 
   /**
-   * Returns the index of the element that would be returned by a subsequent call to
-   * {@link #current}.(Returns -1 if the list iterator have never been traversed in the forward
-   * direction at least one time.)
+   * Returns the index of the element that would be returned by a subsequent call to {@link
+   * #current}.(Returns -1 if the list iterator have never been traversed in the forward direction
+   * at least one time.)
    *
    * @return the index of the element that would be returned by a subsequent call to {@code current}
    */
@@ -87,7 +88,7 @@ public abstract class WorkflowListIterator<T> implements ResettableListIterator<
    * time.)
    *
    * @return {@code true} if the list iterator have been traversed at least one time in the forward
-   *         direction
+   *      direction
    */
   public boolean hasCurrent() {
     return indexInValidRange(currentIndex());
@@ -98,7 +99,8 @@ public abstract class WorkflowListIterator<T> implements ResettableListIterator<
    * element repeatedly.)
    *
    * @return the current element in the list
-   * @throws NoSuchElementException if the iteration has no current element
+   * @throws NoSuchElementException
+   *     if the iteration has no current element
    */
   public T current() {
     if (!hasCurrent()) {

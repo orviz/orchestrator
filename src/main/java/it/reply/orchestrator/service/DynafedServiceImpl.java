@@ -54,8 +54,10 @@ public class DynafedServiceImpl {
   /**
    * Generate a new {@link DynafedServiceImpl}.
    *
-   * @param restTemplateBuilder the restTemplateBuilder
-   * @param oauth2TokenService the oauth2TokenService
+   * @param restTemplateBuilder
+   *     the restTemplateBuilder
+   * @param oauth2TokenService
+   *     the oauth2TokenService
    */
   public DynafedServiceImpl(OAuth2TokenService oauth2TokenService,
       RestTemplateBuilder restTemplateBuilder) {
@@ -66,9 +68,12 @@ public class DynafedServiceImpl {
   /**
    * Populate a {@link Dynafed} requirement.
    *
-   * @param dynafed the requirement to populate
-   * @param cloudProviders the available cloud providers
-   * @param requestedWithToken the token ID
+   * @param dynafed
+   *     the requirement to populate
+   * @param cloudProviders
+   *     the available cloud providers
+   * @param requestedWithToken
+   *     the token ID
    * @return the requirement populated
    */
   public Dynafed populateDyanfedData(Dynafed dynafed,

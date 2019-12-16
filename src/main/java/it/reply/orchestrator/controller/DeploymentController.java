@@ -61,8 +61,10 @@ public class DeploymentController {
   /**
    * Get all deployments.
    *
-   * @param pageable {@Link Pageable}
-   * @param pagedAssembler {@link PagedResourcesAssembler}
+   * @param pageable
+   *          {@Link Pageable}
+   * @param pagedAssembler
+   *          {@link PagedResourcesAssembler}
    * @return {@link DeploymentResource}
    */
   @ResponseStatus(HttpStatus.OK)
@@ -89,7 +91,8 @@ public class DeploymentController {
   /**
    * Create a deployment.
    *
-   * @param request {@link DeploymentRequest}
+   * @param request
+   *          {@link DeploymentRequest}
    * @return {@link DeploymentResource}
    */
   @ResponseStatus(HttpStatus.CREATED)
@@ -105,8 +108,10 @@ public class DeploymentController {
   /**
    * Update the deployment.
    *
-   * @param id the deployment id
-   * @param request {@link DeploymentRequest}
+   * @param id
+   *          the deployment id
+   * @param request
+   *          {@link DeploymentRequest}
    */
   @ResponseStatus(HttpStatus.ACCEPTED)
   @RequestMapping(value = "/deployments/{deploymentId}", method = RequestMethod.PUT,
@@ -120,7 +125,8 @@ public class DeploymentController {
   /**
    * Get the deployment.
    *
-   * @param id the deployment id
+   * @param id
+   *          the deployment id
    * @return {@link DeploymentResource}
    */
   @ResponseStatus(HttpStatus.OK)
@@ -136,7 +142,8 @@ public class DeploymentController {
   /**
    * Delete the deployment.
    *
-   * @param id the deployment id
+   * @param id
+   *          the deployment id
    */
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequestMapping(value = "/deployments/{deploymentId}", method = RequestMethod.DELETE,

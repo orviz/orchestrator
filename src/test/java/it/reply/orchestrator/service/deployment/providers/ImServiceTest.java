@@ -205,8 +205,7 @@ public class ImServiceTest {
     assertThat(deployment.getDeploymentProvider()).isEqualTo(DeploymentProvider.IM);
     assertThat(deployment.getEndpoint()).isEqualTo(infrastructureId);
     assertThat(deployment.getResources()).hasSize(2);
-    assertThat(deployment.getResources()).extracting(Resource::getState)
-        .allMatch(NodeStates.CREATING::equals);
+    assertThat(deployment.getResources()).extracting(Resource::getState).allMatch(NodeStates.CREATING::equals);
     assertThat(returnValue).isTrue();
   }
 
@@ -335,7 +334,7 @@ public class ImServiceTest {
 
     InfrastructureState infrastructureState = generateInfrastructureState(States.CONFIGURED, 2);
 
-    List<VirtualMachineInfo> info = generateVirtualMachineInfo(2);
+    List<VirtualMachineInfo> info= generateVirtualMachineInfo(2);
 
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
     Mockito.doReturn(infrastructureManager).when(imClientFactory)
@@ -343,12 +342,10 @@ public class ImServiceTest {
     Mockito.when(infrastructureManager.getInfrastructureState(deployment.getEndpoint()))
         .thenReturn(infrastructureState);
     Mockito
-        .when(infrastructureManager.getVmInfo(Mockito.eq(deployment.getEndpoint()),
-            Mockito.anyString()))
+        .when(infrastructureManager.getVmInfo(Mockito.eq(deployment.getEndpoint()), Mockito.anyString()))
         .thenReturn(info.get(0), info.get(1));
     Mockito.when(resourceRepository
-        .findByDeployment_id(deployment.getId()))
-        .thenReturn(new ArrayList<>(deployment.getResources()));
+            .findByDeployment_id(deployment.getId())).thenReturn(new ArrayList<>(deployment.getResources()));
 
     boolean returnValue = imService.isDeployed(dm);
 
@@ -419,7 +416,7 @@ public class ImServiceTest {
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
 
     InfrastructureState infrastructureState = generateInfrastructureState(States.RUNNING, 2);
-    List<VirtualMachineInfo> info = generateVirtualMachineInfo(2);
+    List<VirtualMachineInfo> info= generateVirtualMachineInfo(2);
 
     Mockito.when(deploymentRepository.findOne(deployment.getId())).thenReturn(deployment);
     Mockito.doReturn(infrastructureManager).when(imClientFactory)
@@ -450,7 +447,7 @@ public class ImServiceTest {
   }
 
   @Test
-  @Parameters({ "FAILED", "UNCONFIGURED" })
+  @Parameters({"FAILED","UNCONFIGURED"})
   public void testIsDeployedFailedInfrastructureStatus(States infrState) throws ImClientException {
     Deployment deployment = ControllerTestUtils.createDeployment(2);
     deployment.setDeploymentProvider(DeploymentProvider.IM);
@@ -458,7 +455,7 @@ public class ImServiceTest {
     DeploymentMessage dm = TestUtil.generateDeployDm(deployment);
 
     InfrastructureState infrastructureState = generateInfrastructureState(infrState, 2);
-    List<VirtualMachineInfo> info = generateVirtualMachineInfo(2);
+    List<VirtualMachineInfo> info= generateVirtualMachineInfo(2);
 
     Mockito.when(deploymentRepository.findOne(deployment.getId()))
         .thenReturn(deployment);
@@ -479,7 +476,7 @@ public class ImServiceTest {
 
     assertThatThrownBy(() -> imService.isDeployed(dm)).hasMessageEndingWith(
         "Some error occurred during the contextualization of the IM infrastructure\n" +
-            infrastructureState.getFormattedInfrastructureStateString());
+        infrastructureState.getFormattedInfrastructureStateString());
   }
 
   @Test
@@ -595,8 +592,7 @@ public class ImServiceTest {
     ResponseError responseError = new ResponseError(null, 405);
     Mockito.doThrow(new ImClientErrorException(responseError)).when(infrastructureManager)
         .destroyInfrastructure(Mockito.any(String.class));
-    Mockito.doNothing().when(deploymentStatusHelper).updateOnError(Mockito.anyString(),
-        Mockito.anyString());
+    Mockito.doNothing().when(deploymentStatusHelper).updateOnError(Mockito.anyString(), Mockito.anyString());
 
     assertThatThrownBy(() -> imService.doUndeploy(dm)).isInstanceOf(DeploymentException.class);
   }
@@ -616,8 +612,7 @@ public class ImServiceTest {
     ResponseError responseError = new ResponseError(null, 405);
     Mockito.doThrow(new ImClientErrorException(responseError)).when(infrastructureManager)
         .destroyInfrastructure(Mockito.any(String.class));
-    Mockito.doNothing().when(deploymentStatusHelper).updateOnError(Mockito.anyString(),
-        Mockito.anyString());
+    Mockito.doNothing().when(deploymentStatusHelper).updateOnError(Mockito.anyString(), Mockito.anyString());
 
     Mockito.doThrow(new NullPointerException()).when(infrastructureManager)
         .destroyInfrastructure(Mockito.any(String.class));
@@ -736,8 +731,7 @@ public class ImServiceTest {
     assertThatThrownBy(() -> imService.isUndeployed(dm)).isInstanceOf(DeploymentException.class);
   }
 
-  private void mockMethodForDoUpdate(DeploymentMessage dm, Deployment deployment,
-      InfrastructureUri infrastructureUri,
+  private void mockMethodForDoUpdate(DeploymentMessage dm, Deployment deployment, InfrastructureUri infrastructureUri,
       ArchiveRoot oldAr, ArchiveRoot newAr) throws Exception {
     Mockito.when(deploymentRepository.save(deployment)).thenReturn(deployment);
     Mockito.when(deploymentRepository.findOne(deployment.getId()))
@@ -987,8 +981,7 @@ public class ImServiceTest {
     Mockito.when(resourceRepository.findOne(id)).thenReturn(resource);
     Mockito.doReturn(resource).when(resourceRepository).save(resource);
     InfrastructureManager im = mock(InfrastructureManager.class);
-    Mockito.doReturn(im).when(imClientFactory).build(Mockito.anyListOf(CloudProviderEndpoint.class),
-        Mockito.any());
+    Mockito.doReturn(im).when(imClientFactory).build(Mockito.anyListOf(CloudProviderEndpoint.class), Mockito.any());
     Mockito.doThrow(new ImClientErrorException(new ResponseError("message", 404))).when(im)
         .getInfrastructureState(deployment.getEndpoint());
 

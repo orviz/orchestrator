@@ -35,8 +35,10 @@ public class EnumUtils {
   /**
    * Retrieve a enum value from its class and a user defined predicate.
    *
-   * @param enumClass the class of the enum
-   * @param predicate the the predicate
+   * @param enumClass
+   *          the class of the enum
+   * @param predicate
+   *          the the predicate
    * @return the optional enum value
    */
   public static <T extends Enum<T>> Optional<T> fromPredicate(Class<T> enumClass,
@@ -50,8 +52,10 @@ public class EnumUtils {
    * Collect all the enums represented by a class in a List of objects returned by a mapper
    * function.
    *
-   * @param enumClass enums the class
-   * @param mapper the mapper fuction
+   * @param enumClass
+   *          enums the class
+   * @param mapper
+   *          the mapper fuction
    * @return the list
    */
   public static <T extends Enum<T>, R> List<R> toList(Class<T> enumClass,
@@ -71,8 +75,10 @@ public class EnumUtils {
    * returned from {@link Named#getName()}.
    * </p>
    *
-   * @param enumClass the class of the enum
-   * @param name the enum name
+   * @param enumClass
+   *          the class of the enum
+   * @param name
+   *          the enum name
    * @return the enum value, can be null
    */
   public static <T extends Enum<T> & Named> Optional<T> fromName(Class<T> enumClass, String name) {
@@ -95,8 +101,10 @@ public class EnumUtils {
    * If no enum is found a {@link NoSuchElementException} will be thrown.
    * </p>
    *
-   * @param enumClass the class of the enum
-   * @param name the enum name
+   * @param enumClass
+   *          the class of the enum
+   * @param name
+   *          the enum name
    * @return the enum value, cannot be null
    */
   public static <T extends Enum<T> & Named> T fromNameOrThrow(Class<T> enumClass, String name) {
@@ -118,9 +126,12 @@ public class EnumUtils {
    * If no enum is found the default value will be returned.
    * </p>
    *
-   * @param enumClass the class of the enum
-   * @param name the enum name
-   * @param defaultValue the defaultValue
+   * @param enumClass
+   *          the class of the enum
+   * @param name
+   *          the enum name
+   * @param defaultValue
+   *          the defaultValue
    * @return the enum value, cannot be null
    */
   public static <T extends Enum<T> & Named> T fromNameOrDefault(Class<T> enumClass, String name,

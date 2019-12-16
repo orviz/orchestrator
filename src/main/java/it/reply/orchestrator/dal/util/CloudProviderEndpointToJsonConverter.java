@@ -29,7 +29,8 @@ public class CloudProviderEndpointToJsonConverter
     extends AbstractToJsonConverter<@Nullable CloudProviderEndpoint> {
 
   private static final TypeReference<@Nullable CloudProviderEndpoint> REFERENCE =
-      new TypeReference<@Nullable CloudProviderEndpoint>() {};
+      new TypeReference<@Nullable CloudProviderEndpoint>() {
+      };
 
   public CloudProviderEndpointToJsonConverter() {
     super(REFERENCE);

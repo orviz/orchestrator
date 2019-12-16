@@ -220,7 +220,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     // Build deployment message
     DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, deploymentType);
 
-    populateFromRequestData(request, parsingResult, deploymentMessage);
+    populateFromRequestData(request, parsingResult,  deploymentMessage);
 
     Map<String, ToscaPolicy> placementPolicies = toscaService
         .extractPlacementPolicies(parsingResult);
@@ -385,7 +385,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         toscaService.extractPlacementPolicies(parsingResult);
     deploymentMessage.setPlacementPolicies(placementPolicies);
 
-    populateFromRequestData(request, parsingResult, deploymentMessage);
+    populateFromRequestData(request, parsingResult,  deploymentMessage);
 
     ProcessInstance pi = wfService
         .createProcessInstanceBuilder()

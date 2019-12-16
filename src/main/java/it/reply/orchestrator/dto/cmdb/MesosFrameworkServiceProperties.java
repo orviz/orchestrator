@@ -59,7 +59,8 @@ public class MesosFrameworkServiceProperties {
   /**
    * Generate the local volume path.
    *
-   * @param deploymentId the deployment ID
+   * @param deploymentId
+   *     the deployment ID
    * @return the path
    */
   public String generateLocalVolumesHostPath(String deploymentId) {

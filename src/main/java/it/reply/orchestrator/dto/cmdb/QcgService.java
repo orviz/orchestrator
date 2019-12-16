@@ -28,7 +28,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class QcgService extends CloudService {
+public class QcgService extends  CloudService {
 
   @Builder(builderMethodName = "qcgBuilder")
   public QcgService(
@@ -42,6 +42,6 @@ public class QcgService extends CloudService {
       @NonNull String hostname,
       @Nullable String parentServiceId) {
     super(id, serviceType, endpoint, providerId, type, publicService, region, hostname,
-        parentServiceId);
+            parentServiceId);
   }
 }

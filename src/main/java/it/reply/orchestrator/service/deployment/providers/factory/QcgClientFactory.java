@@ -41,7 +41,6 @@ public class QcgClientFactory {
 
   /**
    * Build a Qcg client object.
-   *
    * @param qcgEndpoint the input qcg service endpoint.
    * @param authInterceptor the input request interceptor.
    * @return the Qcg client object.
@@ -62,7 +61,6 @@ public class QcgClientFactory {
 
   /**
    * Build a Qcg client object.
-   *
    * @param cloudProviderEndpoint the service endpoint.
    * @param accessToken the input accesstoken.
    * @return the Qcg client object.

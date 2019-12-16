@@ -107,7 +107,7 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
 
   protected <R> R executeWithClientForResult(CloudProviderEndpoint cloudProviderEndpoint,
       OidcTokenId requestedWithToken, ThrowingFunction<Qcg, R, QcgException> function)
-      throws QcgException {
+          throws QcgException {
     return oauth2TokenService.executeWithClientForResult(requestedWithToken,
         token -> function.apply(qcgClientFactory.build(cloudProviderEndpoint, token)),
         ex -> ex instanceof QcgException && ((QcgException) ex).getStatus() == 401);
@@ -176,9 +176,10 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
   /**
    * Creates a Job on Qcg.
    *
-   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg instance
-   * @param requestedWithToken the token ID of the request
-   * @param job the IndigoJob to be created
+   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg
+   *                              instance
+   * @param requestedWithToken    the token ID of the request
+   * @param job                   the IndigoJob to be created
    */
   protected Job createJobOnQcg(CloudProviderEndpoint cloudProviderEndpoint,
       OidcTokenId requestedWithToken, DeepJob job) {
@@ -244,9 +245,10 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
   /**
    * Gets the Job status.
    *
-   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg instance
-   * @param requestedWithToken the token ID of the request
-   * @param jobName the name of the Qcg job
+   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg
+   *                              instance
+   * @param requestedWithToken    the token ID of the request
+   * @param jobName               the name of the Qcg job
    * @return the optional {@link Job}.
    */
   protected boolean checkJobsOnQcg(CloudProviderEndpoint cloudProviderEndpoint,
@@ -283,9 +285,10 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
   /**
    * Gets the Job status.
    *
-   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg instance
-   * @param requestedWithToken the token ID of the request
-   * @param jobName the name of the Qcg job
+   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg
+   *                              instance
+   * @param requestedWithToken    the token ID of the request
+   * @param jobName               the name of the Qcg job
    * @return the optional {@link Job}.
    */
   protected Optional<Job> findJobOnQcg(CloudProviderEndpoint cloudProviderEndpoint,
@@ -318,8 +321,8 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
   @Override
   public void doProviderTimeout(DeploymentMessage deploymentMessage) {
     throw new BusinessWorkflowException(ErrorCode.CLOUD_PROVIDER_ERROR,
-        "Error executing request to Qcg service",
-        new DeploymentException("Qcg service timeout during deployment"));
+      "Error executing request to Qcg service",
+      new DeploymentException("Qcg service timeout during deployment"));
   }
 
   @Data
@@ -338,8 +341,8 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
   }
 
   /**
-   * Creates the {@link QcgJob} graph based on the given {@link Deployment} (the TOSCA template is
-   * parsed).
+   * Creates the {@link QcgJob} graph based on the given {@link Deployment} (the
+   * TOSCA template is parsed).
    *
    * @param deployment the input deployment.
    * @return the job graph.
@@ -394,7 +397,6 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
 
   /**
    * Build a QcgJob task object.
-   *
    * @param graph the input nodegraph.
    * @param taskNode the input tasknode.
    * @param taskId the input taskid.
@@ -448,8 +450,8 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
 
     job.setId(qcgjob.getId());
     if (qcgjob.getAttributes() != null) {
-      job.setAttributes(
-          (HashMap<String, String>) ((HashMap<String, String>) qcgjob.getAttributes()).clone());
+      job.setAttributes((HashMap<String, String>) ((HashMap<String, String>)
+          qcgjob.getAttributes()).clone());
     }
     job.setUser(qcgjob.getUser());
     job.setState(qcgjob.getState());
@@ -463,8 +465,8 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
       execution.setArgs((ArrayList<String>) ((ArrayList<String>) qcgjob.getArgs()).clone());
     }
     if (qcgjob.getEnvironment() != null) {
-      execution.setEnvironment(
-          (HashMap<String, String>) ((HashMap<String, String>) qcgjob.getEnvironment()).clone());
+      execution.setEnvironment((HashMap<String, String>) ((HashMap<String, String>)
+          qcgjob.getEnvironment()).clone());
     }
     // default remove policy
     JobWorkingDirectoryPolicy directorypolicy = new JobWorkingDirectoryPolicy();
@@ -508,7 +510,8 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
    * Also logs possible errors and updates the deployment status.
    *
    * @param deploymentMessage the deployment message.
-   * @return <tt>true</tt> if all jobs have been deleted, <tt>false</tt> otherwise.
+   * @return <tt>true</tt> if all jobs have been deleted, <tt>false</tt>
+   *         otherwise.
    */
   @Override
   public boolean doUndeploy(DeploymentMessage deploymentMessage) {
@@ -543,9 +546,10 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
   /**
    * Deletes a job from Qcg.
    *
-   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg instance
-   * @param requestedWithToken the token ID of the request
-   * @param jobIf the Id of the Qcg job
+   * @param cloudProviderEndpoint the {@link CloudProviderEndpoint} of the Qcg
+   *                              instance
+   * @param requestedWithToken    the token ID of the request
+   * @param jobIf                 the Id of the Qcg job
    */
 
   protected void deleteJobsOnQcg(CloudProviderEndpoint cloudProviderEndpoint,
@@ -568,7 +572,7 @@ public class QcgServiceImpl extends AbstractDeploymentProviderService {
   /**
    * Resolves the Tosca functions.
    *
-   * @param deployment the deployment
+   * @param deployment   the deployment
    * @param odParameters the OneData settings
    * @return the populated {@link ArchiveRoot}
    */

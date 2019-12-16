@@ -44,7 +44,8 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
   /**
    * {@link OrchestratorApiException} handler.
    *
-   * @param ex the exception
+   * @param ex
+   *          the exception
    * @return a {@code ResponseEntity} instance
    */
   @ExceptionHandler
@@ -53,10 +54,11 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
   }
 
   /**
-   * OAuth2Exception exception handler. This handler will just re-throw the exception and to let the
-   * {@link AbstractOAuth2SecurityExceptionHandler} handle it.
+   * OAuth2Exception exception handler. This handler will just re-throw the exception and to let
+   * the {@link AbstractOAuth2SecurityExceptionHandler} handle it.
    *
-   * @param ex the exception
+   * @param ex
+   *          the exception
    * @return a {@code ResponseEntity} instance
    */
   @ExceptionHandler
@@ -69,11 +71,11 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
   /**
    * {@link TransientDataAccessException} and {@link FlowableOptimisticLockingException} handler.
    *
-   * @param ex the exception
+   * @param ex
+   *     the exception
    * @return a {@code ResponseEntity} instance
    */
-  @ExceptionHandler({ TransientDataAccessException.class,
-      FlowableOptimisticLockingException.class })
+  @ExceptionHandler({TransientDataAccessException.class, FlowableOptimisticLockingException.class})
   public ResponseEntity<Object> handleTransientDataException(Exception ex, WebRequest request) {
     HttpHeaders headers = new HttpHeaders();
     headers.set(HttpHeaders.RETRY_AFTER, "0");
@@ -90,7 +92,8 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
   /**
    * {@link PersistenceException} handler.
    *
-   * @param ex the exception
+   * @param ex
+   *     the exception
    * @return a {@code ResponseEntity} instance
    */
   @ExceptionHandler
@@ -106,7 +109,8 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
   /**
    * Server Error exception handler.
    *
-   * @param ex the exception
+   * @param ex
+   *          the exception
    * @return a {@code ResponseEntity} instance
    */
   @ExceptionHandler

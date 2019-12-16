@@ -48,16 +48,16 @@ public class DeploymentResourceAssembler
   }
 
   @SuppressWarnings("rawtypes")
-  private CloudProviderEndpointResource getCloudProviderEndpointResource(
-      CloudProviderEndpoint endpoint) {
+  private CloudProviderEndpointResource
+      getCloudProviderEndpointResource(CloudProviderEndpoint endpoint) {
     if (endpoint != null) {
       Map<String, CloudProviderEndpointResource> hybridCloudProviderEndpointsResource =
           new HashMap<>();
       Iterator it = endpoint.getHybridCloudProviderEndpoints().entrySet().iterator();
       while (it.hasNext()) {
-        Map.Entry pair = (Map.Entry) it.next();
-        hybridCloudProviderEndpointsResource.put((String) pair.getKey(),
-            getCloudProviderEndpointResource((CloudProviderEndpoint) pair.getValue()));
+        Map.Entry pair = (Map.Entry)it.next();
+        hybridCloudProviderEndpointsResource.put((String)pair.getKey(),
+            getCloudProviderEndpointResource((CloudProviderEndpoint)pair.getValue()));
       }
       return new CloudProviderEndpointResource(endpoint.getCpEndpoint(),
           endpoint.getCpComputeServiceId(),

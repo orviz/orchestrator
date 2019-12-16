@@ -32,6 +32,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -43,7 +44,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class CloudProviderEndpoint {
 
   public enum IaaSType {
-    OPENSTACK, OPENNEBULA, OCCI, AWS, OTC, AZURE, CHRONOS, MARATHON, QCG;
+    OPENSTACK,
+    OPENNEBULA,
+    OCCI,
+    AWS,
+    OTC,
+    AZURE,
+    CHRONOS,
+    MARATHON,
+    QCG;
   }
 
   @Nullable

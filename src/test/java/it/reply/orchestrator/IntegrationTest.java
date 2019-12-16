@@ -15,7 +15,6 @@
  */
 
 package it.reply.orchestrator;
-
 /**
  * Interface to be used for Integration Test classes.
  *
