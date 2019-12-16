@@ -79,8 +79,8 @@ public class CloudProviderEndpointServiceTest {
                     .providerId("provider-1")
                     .type(CloudServiceType.COMPUTE)
                     .hostname("example.com")
-                    .build())
-            ).build(),
+                    .build()))
+            .build(),
         "provider-2", CloudProvider
             .builder()
             .id("provider-2")
@@ -103,12 +103,11 @@ public class CloudProviderEndpointServiceTest {
                     .providerId("provider-1")
                     .type(CloudServiceType.COMPUTE)
                     .hostname("example.com")
-                    .build())
-            ).build()
-    );
+                    .build()))
+            .build());
   }
 
-  @Parameters({"null", "1", "2", "3"})
+  @Parameters({ "null", "1", "2", "3" })
   @Test
   public void chooseCloudProviderSuccessfull(@Nullable Integer maxCpRetries) {
     RankCloudProvidersMessage rcpm = new RankCloudProvidersMessage();
@@ -158,7 +157,7 @@ public class CloudProviderEndpointServiceTest {
   }
 
   @Test
-  @Parameters({"MARATHON|2", "CHRONOS|2", "TOSCA|2"})
+  @Parameters({ "MARATHON|2", "CHRONOS|2", "TOSCA|2" })
   public void chooseCloudProviderSuccesfulByDeploymentType(DeploymentType deploymentType,
       int expectedSized) {
     RankCloudProvidersMessage rcpm = new RankCloudProvidersMessage();
@@ -253,23 +252,25 @@ public class CloudProviderEndpointServiceTest {
   }
 
   public Object[] getCloudProviderEndpointSuccesfulParams() {
-    return new Object[]{
-        new Object[]{"com.amazonaws.ec2", false, IaaSType.AWS, false},
-        new Object[]{"com.amazonaws.ec2", true, IaaSType.AWS, false},
-        new Object[]{"com.microsoft.azure", false, IaaSType.AZURE, false},
-        new Object[]{"com.microsoft.azure", true, IaaSType.AZURE, false},
-        new Object[]{"eu.otc.compute", false, IaaSType.OTC, false},
-        new Object[]{"eu.otc.compute", true, IaaSType.OTC, false},
-        new Object[]{"eu.egi.cloud.vm-management.occi", false, IaaSType.OCCI, false},
-        new Object[]{"eu.egi.cloud.vm-management.occi", true, IaaSType.OCCI, false},
-        new Object[]{"eu.egi.cloud.vm-management.opennebula", false, IaaSType.OPENNEBULA, false},
-        new Object[]{"eu.egi.cloud.vm-management.opennebula", true, IaaSType.OPENNEBULA, false},
-        new Object[]{"eu.indigo-datacloud.im-tosca.opennebula", false, IaaSType.OPENNEBULA, true},
-        new Object[]{"eu.indigo-datacloud.im-tosca.opennebula", true, IaaSType.OPENNEBULA, false},
-        new Object[]{"org.openstack.nova", false, IaaSType.OPENSTACK, false},
-        new Object[]{"org.openstack.nova", true, IaaSType.OPENSTACK, false},
-        new Object[]{"eu.indigo-datacloud.marathon", false, IaaSType.MARATHON, false},
-        new Object[]{"eu.indigo-datacloud.chronos", false, IaaSType.CHRONOS, false},
+    return new Object[] {
+        new Object[] { "com.amazonaws.ec2", false, IaaSType.AWS, false },
+        new Object[] { "com.amazonaws.ec2", true, IaaSType.AWS, false },
+        new Object[] { "com.microsoft.azure", false, IaaSType.AZURE, false },
+        new Object[] { "com.microsoft.azure", true, IaaSType.AZURE, false },
+        new Object[] { "eu.otc.compute", false, IaaSType.OTC, false },
+        new Object[] { "eu.otc.compute", true, IaaSType.OTC, false },
+        new Object[] { "eu.egi.cloud.vm-management.occi", false, IaaSType.OCCI, false },
+        new Object[] { "eu.egi.cloud.vm-management.occi", true, IaaSType.OCCI, false },
+        new Object[] { "eu.egi.cloud.vm-management.opennebula", false, IaaSType.OPENNEBULA, false },
+        new Object[] { "eu.egi.cloud.vm-management.opennebula", true, IaaSType.OPENNEBULA, false },
+        new Object[] { "eu.indigo-datacloud.im-tosca.opennebula", false, IaaSType.OPENNEBULA,
+            true },
+        new Object[] { "eu.indigo-datacloud.im-tosca.opennebula", true, IaaSType.OPENNEBULA,
+            false },
+        new Object[] { "org.openstack.nova", false, IaaSType.OPENSTACK, false },
+        new Object[] { "org.openstack.nova", true, IaaSType.OPENSTACK, false },
+        new Object[] { "eu.indigo-datacloud.marathon", false, IaaSType.MARATHON, false },
+        new Object[] { "eu.indigo-datacloud.chronos", false, IaaSType.CHRONOS, false },
     };
   }
 
@@ -287,12 +288,12 @@ public class CloudProviderEndpointServiceTest {
 
     assertThatCode(() -> cloudProviderEndpointServiceImpl
         .getCloudProviderEndpoint(cloudService, false))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Unknown Cloud Provider type: " + cloudService);
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unknown Cloud Provider type: " + cloudService);
   }
 
   @Test
-  @Parameters({"CHRONOS|CHRONOS", "MARATHON|MARATHON", "TOSCA|IM"})
+  @Parameters({ "CHRONOS|CHRONOS", "MARATHON|MARATHON", "TOSCA|IM" })
   public void getDeploymentProviderSuccesful(DeploymentType deploymentType,
       DeploymentProvider expectedDeploymentProvider) {
     assertThat(cloudProviderEndpointServiceImpl.getDeploymentProvider(deploymentType, null))

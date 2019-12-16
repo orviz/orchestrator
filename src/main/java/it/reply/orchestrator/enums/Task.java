@@ -18,12 +18,6 @@ package it.reply.orchestrator.enums;
 
 public enum Task {
 
-  NONE,
-  MONITORING,
-  QOS,
-  BROKERING,
-  DMS,
-  DEPLOYER,
-  UNKNOWN;
+  NONE, MONITORING, QOS, BROKERING, DMS, DEPLOYER, UNKNOWN;
 
 }

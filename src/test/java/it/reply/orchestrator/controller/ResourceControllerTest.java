@@ -82,12 +82,14 @@ public class ResourceControllerTest {
         .perform(get("/deployments/" + deployment.getId() + "/resources")
             .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION,
                 OAuth2AccessToken.BEARER_TYPE + " <access token>"))
-        .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.content", hasSize(2)))
         .andExpect(jsonPath("$.content", hasSize(2)))
         .andExpect(jsonPath("$.page.totalElements", equalTo(2)))
         .andExpect(jsonPath("$.links[0].rel", is("self"))).andExpect(jsonPath("$.links[0].href",
-            endsWith("/deployments/" + deployment.getId() + "/resources?page=0&size=10&sort=createdAt,desc")))
+            endsWith("/deployments/" + deployment.getId()
+                + "/resources?page=0&size=10&sort=createdAt,desc")))
 
         .andDo(document("resources", preprocessResponse(prettyPrint()),
             responseFields(fieldWithPath("links[]").ignored(),
@@ -133,7 +135,8 @@ public class ResourceControllerTest {
     mockMvc
         .perform(get("/deployments/" + deployment.getId() + "/resources/" + resource.getId())
             .header(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " <access token>"))
-        .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.uuid", equalTo(resource.getId())))
         .andExpect(jsonPath("$.links[1].rel", equalTo("self")))
         .andExpect(jsonPath("$.links[1].href",

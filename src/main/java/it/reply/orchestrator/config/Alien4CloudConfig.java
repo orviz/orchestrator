@@ -46,7 +46,7 @@ import org.springframework.core.env.MapPropertySource;
 
 @Configuration
 @ComponentScan(
-    basePackages = {"alien4cloud", "org.alien4cloud", "org.elasticsearch.mapping"},
+    basePackages = { "alien4cloud", "org.alien4cloud", "org.elasticsearch.mapping" },
     excludeFilters = {
         @ComponentScan.Filter(type = FilterType.REGEX, pattern = "alien4cloud.security.*"),
         @ComponentScan.Filter(type = FilterType.REGEX, pattern = "alien4cloud.audit.*")
@@ -124,10 +124,8 @@ public class Alien4CloudConfig {
   /**
    * Creates a PropertySourcesPlaceholderConfigurer from the Alien4Cloud Properties.
    *
-   * @param alienProperties
-   *          the Alien4Cloud properties
-   * @param environment
-   *          The Spring injected Environment
+   * @param alienProperties the Alien4Cloud properties
+   * @param environment The Spring injected Environment
    * @return the PropertySourcesPlaceholderConfigurer
    */
   @Bean

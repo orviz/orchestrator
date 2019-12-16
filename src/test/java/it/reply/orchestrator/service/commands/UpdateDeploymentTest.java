@@ -127,7 +127,7 @@ public class UpdateDeploymentTest extends BaseDeployCommandTest<UpdateDeployment
 
     when(cloudProviderEndpointServiceImpl
         .generateCloudProvidersOrderedIterator(rankCloudProvidersMessage, null))
-        .thenReturn(new CloudServicesOrderedIterator(Lists.newArrayList(cs)));
+            .thenReturn(new CloudServicesOrderedIterator(Lists.newArrayList(cs)));
     when(deploymentRepository.findOne(deployment.getId()))
         .thenReturn(deployment);
     doNothing()

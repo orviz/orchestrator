@@ -29,9 +29,7 @@ public class MesosPortMapping {
   @Getter
   public enum Protocol implements Named {
 
-    TCP("tcp"),
-    UDP("udp"),
-    IGMP("igmp");
+    TCP("tcp"), UDP("udp"), IGMP("igmp");
 
     private final String name;
 

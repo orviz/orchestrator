@@ -64,7 +64,8 @@ public class ResourceRepositoryIT extends WebAppConfigurationAwareIT {
    */
   @Test
   public void resourceFound() {
-    Optional<Resource> resource = resourceRepository.findByIdAndDeployment_id(resourceId, deploymentId);
+    Optional<Resource> resource =
+        resourceRepository.findByIdAndDeployment_id(resourceId, deploymentId);
     assertThat(resource).isNotEmpty();
     assertThat(resource.get().getId()).isEqualTo(resourceId);
   }

@@ -21,8 +21,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum CloudServiceType {
 
-  @JsonProperty("compute") COMPUTE,
-  @JsonProperty("storage") STORAGE,
-  @JsonEnumDefaultValue @JsonProperty("unknown") UNKNOWN;
+  @JsonProperty("compute")
+  COMPUTE, @JsonProperty("storage")
+  STORAGE, @JsonEnumDefaultValue
+  @JsonProperty("unknown")
+  UNKNOWN;
 
 }

@@ -82,8 +82,7 @@ public class OidcProperties implements SecurityPrerequisite, InitializingBean {
   /**
    * Run the function if the security is disabled.
    *
-   * @param function
-   *          the function to run
+   * @param function the function to run
    */
   public void runIfSecurityDisabled(Runnable function) {
     if (!enabled) {

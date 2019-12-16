@@ -37,7 +37,7 @@ public class UpdateTest extends BaseDeployCommandTest<Update> {
   }
 
   @Test
-  @Parameters({"true", "false"})
+  @Parameters({ "true", "false" })
   public void testUpdate(boolean complete) throws Exception {
     DeploymentMessage dm = new DeploymentMessage();
     String updateTemplate = "template";
