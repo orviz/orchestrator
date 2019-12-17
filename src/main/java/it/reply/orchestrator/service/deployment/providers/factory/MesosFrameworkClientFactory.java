@@ -53,16 +53,14 @@ public abstract class MesosFrameworkClientFactory<V extends MesosFrameworkServic
         cloudProviderEndpoint.getCpComputeServiceId(), accessToken, GenericCredential.class);
 
     if (imCred.getUsername() != null || imCred.getPassword() != null) {
-      Objects.requireNonNull(imCred.getUsername(), "Username must be provided");
-      Objects.requireNonNull(imCred.getPassword(), "Password must be provided");
-      requestInterceptor =
-          new BasicAuthRequestInterceptor(imCred.getUsername(), imCred.getPassword());
-    } else {
       Objects.requireNonNull(accessToken, "Access Token must not be null");
       requestInterceptor = requestTemplate -> {
         requestTemplate
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
       };
+    } else {
+      requestInterceptor =
+          new BasicAuthRequestInterceptor(imCred.getUsername(), imCred.getPassword());
     }
     return build(cloudProviderEndpoint.getCpEndpoint(), requestInterceptor);
   }

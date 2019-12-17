@@ -34,6 +34,8 @@ import it.reply.orchestrator.dto.dynafed.Dynafed;
 import it.reply.orchestrator.dto.onedata.OneData;
 import it.reply.orchestrator.dto.policies.ToscaPolicy;
 import it.reply.orchestrator.dto.request.DeploymentRequest;
+import it.reply.orchestrator.dto.security.IndigoOAuth2Authentication;
+import it.reply.orchestrator.dto.security.IndigoUserInfo;
 import it.reply.orchestrator.enums.DeploymentProvider;
 import it.reply.orchestrator.enums.DeploymentType;
 import it.reply.orchestrator.enums.NodeStates;
@@ -57,6 +59,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
+
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -103,39 +107,51 @@ public class DeploymentServiceImpl implements DeploymentService {
   @Transactional(readOnly = true)
   public Page<Deployment> getDeployments(Pageable pageable, String owner) {
     if (owner == null) {
-      if (oidcProperties.isEnabled()) {
+      if (oidcProperties.isEnabled() && isAdmin()) {
         OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
         return deploymentRepository.findAll(requester, pageable);
-      } else {
-        return deploymentRepository.findAll(pageable);
       }
+      owner = "me";
+    }
+    OidcEntityId ownerId;
+    if ("me".equals(owner)) {
+      ownerId = oauth2TokenService.generateOidcEntityIdFromCurrentAuth();
     } else {
-      OidcEntityId ownerId;
-      if ("me".equals(owner)) {
-        ownerId = oauth2TokenService.generateOidcEntityIdFromCurrentAuth();
+      Matcher matcher = OWNER_PATTERN.matcher(owner);
+      if (isAdmin() && matcher.matches()) {
+        ownerId = new OidcEntityId();
+        ownerId.setSubject(matcher.group(1));
+        ownerId.setIssuer(matcher.group(2));
       } else {
-        Matcher matcher = OWNER_PATTERN.matcher(owner);
-        if (matcher.matches()) {
-          ownerId = new OidcEntityId();
-          ownerId.setSubject(matcher.group(1));
-          ownerId.setIssuer(matcher.group(2));
-        } else {
-          throw new BadRequestException("Value " + owner + " for param createdBy is illegal");
-        }
-      }
-      if (oidcProperties.isEnabled()) {
-        OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
-        return deploymentRepository.findAllByOwner(requester, ownerId, pageable);
-      } else {
-        return deploymentRepository.findAllByOwner(ownerId, pageable);
+        throw new BadRequestException("Value " + owner + " for param createdBy is illegal");
       }
     }
+    if (oidcProperties.isEnabled()) {
+      OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
+      return deploymentRepository.findAllByOwner(requester, ownerId, pageable);
+    } else {
+      return deploymentRepository.findAllByOwner(ownerId, pageable);
+    }
+  }
+
+  private boolean isAdmin() {
+    boolean isAdmin = false;
+    if (oidcProperties.isEnabled()) {
+      OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
+      String issuer = requester.getOidcEntityId().getIssuer();
+      String group = oidcProperties.getIamProperties().get(issuer).getAdmingroup();
+      IndigoOAuth2Authentication authentication = oauth2TokenService.getCurrentAuthentication();
+      IndigoUserInfo userInfo = (IndigoUserInfo) authentication.getUserInfo();
+      if (userInfo != null) {
+        isAdmin = userInfo.getGroups().contains(group);
+      }
+    }
+    return isAdmin;
   }
 
   @Override
   @Transactional(readOnly = true)
   public Deployment getDeployment(String uuid) {
-
     Deployment deployment = null;
     if (oidcProperties.isEnabled()) {
       OidcEntity requester = oauth2TokenService.generateOidcEntityFromCurrentAuth();
@@ -160,6 +176,33 @@ public class DeploymentServiceImpl implements DeploymentService {
             "Only the owner of the deployment can perform this operation");
       }
     }
+  }
+
+  private void populateFromRequestData(DeploymentRequest request,
+      ArchiveRoot parsingResult, DeploymentMessage deploymentMessage) {
+    Map<String, OneData> odRequirements = toscaService
+        .extractOneDataRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setOneDataRequirements(odRequirements);
+
+    Map<String, Dynafed> dyanfedRequirements = toscaService
+        .extractDyanfedRequirements(parsingResult, request.getParameters());
+    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
+
+    @Nullable
+    Integer timeoutInMins = request.getTimeoutMins();
+    @Nullable
+    Integer providerTimeoutInMins = request.getProviderTimeoutMins();
+
+    if (timeoutInMins != null && providerTimeoutInMins != null
+        && providerTimeoutInMins > timeoutInMins) {
+      throw new BadRequestException("ProviderTimeout must be <= Timeout");
+    }
+
+    deploymentMessage.setTimeoutInMins(timeoutInMins);
+    deploymentMessage.setProviderTimeoutInMins(providerTimeoutInMins);
+
+    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
+    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
   }
 
   @Override
@@ -191,18 +234,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     // Build deployment message
     DeploymentMessage deploymentMessage = buildDeploymentMessage(deployment, deploymentType);
 
-    Map<String, OneData> odRequirements = toscaService
-        .extractOneDataRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setOneDataRequirements(odRequirements);
-
-    Map<String, Dynafed> dyanfedRequirements = toscaService
-        .extractDyanfedRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
-
-    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
-
-    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
-    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
+    populateFromRequestData(request, parsingResult,  deploymentMessage);
 
     Map<String, ToscaPolicy> placementPolicies = toscaService
         .extractPlacementPolicies(parsingResult);
@@ -367,18 +399,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         toscaService.extractPlacementPolicies(parsingResult);
     deploymentMessage.setPlacementPolicies(placementPolicies);
 
-    Map<String, OneData> odRequirements = toscaService
-        .extractOneDataRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setOneDataRequirements(odRequirements);
-
-    Map<String, Dynafed> dyanfedRequirements = toscaService
-        .extractDyanfedRequirements(parsingResult, request.getParameters());
-    deploymentMessage.setDynafedRequirements(dyanfedRequirements);
-
-    deploymentMessage.setTimeoutInMins(request.getTimeoutMins());
-
-    deploymentMessage.setMaxProvidersRetry(request.getMaxProvidersRetry());
-    deploymentMessage.setKeepLastAttempt(request.isKeepLastAttempt());
+    populateFromRequestData(request, parsingResult,  deploymentMessage);
 
     ProcessInstance pi = wfService
         .createProcessInstanceBuilder()

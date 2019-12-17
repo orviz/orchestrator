@@ -53,7 +53,7 @@ public class CredentialProviderService implements CredentialProviderServiceInter
     TokenAuthenticationExtended vaultToken =
         (TokenAuthenticationExtended) vaultService.retrieveToken(uriVault, accessToken);
 
-    String pathVaultComplete = vaultService.getServiceUri().get()
+    String pathVaultComplete = uriVault
         + "/v1/secret/data/"
         + vaultToken.getEntityId()
         + vaultService.getServicePath()

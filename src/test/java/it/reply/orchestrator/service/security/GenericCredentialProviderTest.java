@@ -16,6 +16,7 @@
 
 package it.reply.orchestrator.service.security;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import it.reply.orchestrator.dto.security.GenericCredentialWithTenant;
@@ -93,9 +94,11 @@ public class GenericCredentialProviderTest {
 
     assertNotNull(imCred);
 
-    assertNotNull(imCred.getUsername());
+    assertEquals(imCred.getUsername(), "username");
 
-    assertNotNull(imCred.getPassword());
+    assertEquals(imCred.getPassword(), "password");
+    
+    assertEquals(imCred.getTenant(), "tenant");
   }
 
 }
