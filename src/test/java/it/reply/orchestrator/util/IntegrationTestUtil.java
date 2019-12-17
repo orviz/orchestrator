@@ -681,1440 +681,1310 @@ public class IntegrationTestUtil {
 
     // provider-RECAS-BARI
     mockServer.expect(requestTo(baseUrl + "/monitoring/adapters/zabbix/zones/indigo/types/"
-        + "infrastructure/groups/provider-RECAS-BARI")).andExpect(method(HttpMethod.GET))
+          + "infrastructure/groups/provider-RECAS-BARI")).andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(
             "{\n" +
-                "  \"meta\": {\n" +
-                "    \"status\": 200,\n" +
-                "    \"additionalProperties\": {}\n" +
-                "  },\n" +
-                "  \"result\": {\n" +
-                "    \"groups\": [\n" +
-                "      {\n" +
-                "        \"groupName\": \"provider-RECAS-BARI\",\n" +
-                "        \"paasMachines\": [\n" +
-                "          {\n" +
-                "            \"machineName\": \"4401ac5dc8cfbbb737b0a02575e6f4bc\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"org.openstack.nova\",\n" +
-                "            \"serviceId\": \"IaaS_provider-RECAS-BARI_4401ac5dc8cfbbb737b0a02575e6f4bc\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..clear_responseTime\",\n"
-                +
-                "                    \"metricValue\": 34272,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..clear_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..clear_status\",\n"
-                +
-                "                    \"metricValue\": 204,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..create_responseTime\",\n"
-                +
-                "                    \"metricValue\": 711,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..create_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..create_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..delete_responseTime\",\n"
-                +
-                "                    \"metricValue\": 856,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..delete_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..delete_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"openstack_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..openstack_responseTime\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n"
-                +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"openstack_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..openstack_result\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n"
-                +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"openstack_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..openstack_status\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n"
-                +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..run_responseTime\",\n"
-                +
-                "                    \"metricValue\": 393,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..run_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..run_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          },\n" +
-                "          {\n" +
-                "            \"machineName\": \"61b5f554-c44c-4dcc-8373-3dade70b1901\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"eu.indigo-datacloud.mesos\",\n" +
-                "            \"serviceId\": \"IaaS_provider-RECAS-BARI_61b5f554-c44c-4dcc-8373-3dade70b1901\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.cpus_percent\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_percent\",\n"
-                +
-                "                    \"metricValue\": 0.0556,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.cpus_total\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_total\",\n"
-                +
-                "                    \"metricValue\": 72,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.cpus_used\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_used\",\n"
-                +
-                "                    \"metricValue\": 4,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.disk_percent\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_percent\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.disk_total\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_total\",\n"
-                +
-                "                    \"metricValue\": 3952957,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.disk_used\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_used\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.dropped_messages\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.dropped_messages\",\n"
-                +
-                "                    \"metricValue\": 13,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.elected\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.elected\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.frameworks_disconnected\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_disconnected\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.frameworks_inactive\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_inactive\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.gpus_percent\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_percent\",\n"
-                +
-                "                    \"metricValue\": 0.6667,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.gpus_total\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_total\",\n"
-                +
-                "                    \"metricValue\": 3,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.gpus_used\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_used\",\n"
-                +
-                "                    \"metricValue\": 2,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.mem_percent\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_percent\",\n"
-                +
-                "                    \"metricValue\": 0.0639,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.mem_total\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_total\",\n"
-                +
-                "                    \"metricValue\": 320265,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.mem_used\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_used\",\n"
-                +
-                "                    \"metricValue\": 20480,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.slaves_active\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.slaves_active\",\n"
-                +
-                "                    \"metricValue\": 2,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.tasks_lost\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.tasks_lost\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.uptime_secs\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.uptime_secs\",\n"
-                +
-                "                    \"metricValue\": 9012352,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"secs\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          },\n" +
-                "          {\n" +
-                "            \"machineName\": \"8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"eu.indigo-datacloud.marathon\",\n" +
-                "            \"serviceId\": \"IaaS_provider-RECAS-BARI_8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_responseTime\",\n"
-                +
-                "                    \"metricValue\": 132,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_status\",\n"
-                +
-                "                    \"metricValue\": 404,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_responseTime\",\n"
-                +
-                "                    \"metricValue\": 110,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_responseTime\",\n"
-                +
-                "                    \"metricValue\": 51,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_responseTime\",\n"
-                +
-                "                    \"metricValue\": 20,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          },\n" +
-                "          {\n" +
-                "            \"machineName\": \"8490545c-f5ec-4330-9116-604dc0084caa\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"eu.indigo-datacloud.chronos\",\n" +
-                "            \"serviceId\": \"IaaS_provider-RECAS-BARI_8490545c-f5ec-4330-9116-604dc0084caa\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..clear_responseTime\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..clear_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..clear_status\",\n"
-                +
-                "                    \"metricValue\": 404,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..create_responseTime\",\n"
-                +
-                "                    \"metricValue\": 110,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..create_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..create_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..delete_responseTime\",\n"
-                +
-                "                    \"metricValue\": 15,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..delete_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..delete_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..run_responseTime\",\n"
-                +
-                "                    \"metricValue\": 13,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_result\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..run_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_status\",\n" +
-                "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..run_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          }\n" +
-                "        ]\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  },\n" +
-                "  \"additionalProperties\": {}\n" +
-                "}",
+            "  \"meta\": {\n" +
+            "    \"status\": 200,\n" +
+            "    \"additionalProperties\": {}\n" +
+            "  },\n" +
+            "  \"result\": {\n" +
+            "    \"groups\": [\n" +
+            "      {\n" +
+            "        \"groupName\": \"provider-RECAS-BARI\",\n" +
+            "        \"paasMachines\": [\n" +
+            "          {\n" +
+            "            \"machineName\": \"4401ac5dc8cfbbb737b0a02575e6f4bc\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"org.openstack.nova\",\n" +
+            "            \"serviceId\": \"IaaS_provider-RECAS-BARI_4401ac5dc8cfbbb737b0a02575e6f4bc\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..clear_responseTime\",\n" +
+            "                    \"metricValue\": 34272,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..clear_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..clear_status\",\n" +
+            "                    \"metricValue\": 204,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..create_responseTime\",\n" +
+            "                    \"metricValue\": 711,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..create_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..create_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..delete_responseTime\",\n" +
+            "                    \"metricValue\": 856,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..delete_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..delete_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"openstack_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..openstack_responseTime\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"openstack_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..openstack_result\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"openstack_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..openstack_status\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..run_responseTime\",\n" +
+            "                    \"metricValue\": 393,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..run_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.4401ac5dc8cfbbb737b0a02575e6f4bc..run_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"machineName\": \"61b5f554-c44c-4dcc-8373-3dade70b1901\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"eu.indigo-datacloud.mesos\",\n" +
+            "            \"serviceId\": \"IaaS_provider-RECAS-BARI_61b5f554-c44c-4dcc-8373-3dade70b1901\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.cpus_percent\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_percent\",\n" +
+            "                    \"metricValue\": 0.0556,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.cpus_total\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_total\",\n" +
+            "                    \"metricValue\": 72,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.cpus_used\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_used\",\n" +
+            "                    \"metricValue\": 4,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.disk_percent\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_percent\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.disk_total\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_total\",\n" +
+            "                    \"metricValue\": 3952957,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.disk_used\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_used\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.dropped_messages\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.dropped_messages\",\n" +
+            "                    \"metricValue\": 13,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.elected\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.elected\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.frameworks_disconnected\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_disconnected\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.frameworks_inactive\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_inactive\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.gpus_percent\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_percent\",\n" +
+            "                    \"metricValue\": 0.6667,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.gpus_total\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_total\",\n" +
+            "                    \"metricValue\": 3,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.gpus_used\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_used\",\n" +
+            "                    \"metricValue\": 2,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.mem_percent\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_percent\",\n" +
+            "                    \"metricValue\": 0.0639,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.mem_total\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_total\",\n" +
+            "                    \"metricValue\": 320265,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.mem_used\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_used\",\n" +
+            "                    \"metricValue\": 20480,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.slaves_active\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.slaves_active\",\n" +
+            "                    \"metricValue\": 2,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.tasks_lost\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.tasks_lost\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.uptime_secs\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.61b5f554-c44c-4dcc-8373-3dade70b1901..master.uptime_secs\",\n" +
+            "                    \"metricValue\": 9012352,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"secs\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"machineName\": \"8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"eu.indigo-datacloud.marathon\",\n" +
+            "            \"serviceId\": \"IaaS_provider-RECAS-BARI_8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_responseTime\",\n" +
+            "                    \"metricValue\": 132,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_status\",\n" +
+            "                    \"metricValue\": 404,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_responseTime\",\n" +
+            "                    \"metricValue\": 110,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_responseTime\",\n" +
+            "                    \"metricValue\": 51,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_responseTime\",\n" +
+            "                    \"metricValue\": 20,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"machineName\": \"8490545c-f5ec-4330-9116-604dc0084caa\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"eu.indigo-datacloud.chronos\",\n" +
+            "            \"serviceId\": \"IaaS_provider-RECAS-BARI_8490545c-f5ec-4330-9116-604dc0084caa\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..clear_responseTime\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..clear_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..clear_status\",\n" +
+            "                    \"metricValue\": 404,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..create_responseTime\",\n" +
+            "                    \"metricValue\": 110,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..create_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..create_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..delete_responseTime\",\n" +
+            "                    \"metricValue\": 15,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..delete_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..delete_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..run_responseTime\",\n" +
+            "                    \"metricValue\": 13,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_result\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..run_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_status\",\n" +
+            "                    \"metricKey\": \"provider-RECAS-BARI.8490545c-f5ec-4330-9116-604dc0084caa..run_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          }\n" +
+            "        ]\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  },\n" +
+            "  \"additionalProperties\": {}\n" +
+            "}",
             MediaType.APPLICATION_JSON));
 
     // provider-UPV-GRyCAP
     mockServer.expect(requestTo(baseUrl + "/monitoring/adapters/zabbix/zones/indigo/types/"
-        + "infrastructure/groups/provider-UPV-GRyCAP")).andExpect(method(HttpMethod.GET))
+          + "infrastructure/groups/provider-UPV-GRyCAP")).andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(
             "{\n" +
-                "  \"meta\": {\n" +
-                "    \"status\": 200,\n" +
-                "    \"additionalProperties\": {}\n" +
-                "  },\n" +
-                "  \"result\": {\n" +
-                "    \"groups\": [\n" +
-                "      {\n" +
-                "        \"groupName\": \"provider-UPV-GRyCAP\",\n" +
-                "        \"paasMachines\": [\n" +
-                "          {\n" +
-                "            \"machineName\": \"4401ac5dc8cfbbb737b0a02575e81d9b\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"org.openstack.nova\",\n" +
-                "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_4401ac5dc8cfbbb737b0a02575e81d9b\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..clear_responseTime\",\n"
-                +
-                "                    \"metricValue\": 34272,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..clear_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..clear_status\",\n"
-                +
-                "                    \"metricValue\": 204,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..create_responseTime\",\n"
-                +
-                "                    \"metricValue\": 711,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..create_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..create_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..delete_responseTime\",\n"
-                +
-                "                    \"metricValue\": 856,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..delete_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..delete_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"openstack_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..openstack_responseTime\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n"
-                +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"openstack_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..openstack_result\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n"
-                +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"openstack_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..openstack_status\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n"
-                +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..run_responseTime\",\n"
-                +
-                "                    \"metricValue\": 393,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..run_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..run_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          },\n" +
-                "          {\n" +
-                "            \"machineName\": \"61b5f554-c44c-4dcc-8373-3dade70b1901\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"eu.indigo-datacloud.mesos\",\n" +
-                "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_61b5f554-c44c-4dcc-8373-3dade70b1901\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.cpus_percent\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_percent\",\n"
-                +
-                "                    \"metricValue\": 0.0556,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.cpus_total\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_total\",\n"
-                +
-                "                    \"metricValue\": 72,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.cpus_used\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_used\",\n"
-                +
-                "                    \"metricValue\": 4,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.disk_percent\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_percent\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.disk_total\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_total\",\n"
-                +
-                "                    \"metricValue\": 3952957,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.disk_used\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_used\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.dropped_messages\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.dropped_messages\",\n"
-                +
-                "                    \"metricValue\": 13,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.elected\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.elected\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.frameworks_disconnected\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_disconnected\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.frameworks_inactive\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_inactive\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.gpus_percent\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_percent\",\n"
-                +
-                "                    \"metricValue\": 0.6667,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.gpus_total\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_total\",\n"
-                +
-                "                    \"metricValue\": 3,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.gpus_used\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_used\",\n"
-                +
-                "                    \"metricValue\": 2,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.mem_percent\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_percent\",\n"
-                +
-                "                    \"metricValue\": 0.0639,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.mem_total\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_total\",\n"
-                +
-                "                    \"metricValue\": 320265,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.mem_used\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_used\",\n"
-                +
-                "                    \"metricValue\": 20480,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.slaves_active\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.slaves_active\",\n"
-                +
-                "                    \"metricValue\": 2,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.tasks_lost\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.tasks_lost\",\n"
-                +
-                "                    \"metricValue\": 0,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"master.uptime_secs\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.uptime_secs\",\n"
-                +
-                "                    \"metricValue\": 9012352,\n" +
-                "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
-                "                    \"metricUnit\": \"secs\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          },\n" +
-                "          {\n" +
-                "            \"machineName\": \"8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"eu.indigo-datacloud.marathon\",\n" +
-                "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_responseTime\",\n"
-                +
-                "                    \"metricValue\": 132,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_status\",\n"
-                +
-                "                    \"metricValue\": 404,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_responseTime\",\n"
-                +
-                "                    \"metricValue\": 110,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_responseTime\",\n"
-                +
-                "                    \"metricValue\": 51,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_responseTime\",\n"
-                +
-                "                    \"metricValue\": 20,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          },\n" +
-                "          {\n" +
-                "            \"machineName\": \"8490545c-f5ec-4330-9116-604dc0084caa\",\n" +
-                "            \"ip\": \"127.0.0.1\",\n" +
-                "            \"serviceCategory\": \"eu.indigo-datacloud.chronos\",\n" +
-                "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_8490545c-f5ec-4330-9116-604dc0084caa\",\n"
-                +
-                "            \"services\": [\n" +
-                "              {\n" +
-                "                \"serviceName\": \"\",\n" +
-                "                \"paasMetrics\": [\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..clear_responseTime\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..clear_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"clear_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..clear_status\",\n"
-                +
-                "                    \"metricValue\": 404,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..create_responseTime\",\n"
-                +
-                "                    \"metricValue\": 110,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..create_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"create_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..create_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..delete_responseTime\",\n"
-                +
-                "                    \"metricValue\": 15,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..delete_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"delete_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..delete_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_responseTime\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..run_responseTime\",\n"
-                +
-                "                    \"metricValue\": 13,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"ms\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_result\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..run_result\",\n"
-                +
-                "                    \"metricValue\": 1,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  },\n" +
-                "                  {\n" +
-                "                    \"metricName\": \"run_status\",\n" +
-                "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..run_status\",\n"
-                +
-                "                    \"metricValue\": 200,\n" +
-                "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
-                "                    \"metricUnit\": \"\",\n" +
-                "                    \"paasThresholds\": [],\n" +
-                "                    \"historyClocks\": [],\n" +
-                "                    \"historyValues\": []\n" +
-                "                  }\n" +
-                "                ]\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          }\n" +
-                "        ]\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  },\n" +
-                "  \"additionalProperties\": {}\n" +
-                "}",
+            "  \"meta\": {\n" +
+            "    \"status\": 200,\n" +
+            "    \"additionalProperties\": {}\n" +
+            "  },\n" +
+            "  \"result\": {\n" +
+            "    \"groups\": [\n" +
+            "      {\n" +
+            "        \"groupName\": \"provider-UPV-GRyCAP\",\n" +
+            "        \"paasMachines\": [\n" +
+            "          {\n" +
+            "            \"machineName\": \"4401ac5dc8cfbbb737b0a02575e81d9b\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"org.openstack.nova\",\n" +
+            "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_4401ac5dc8cfbbb737b0a02575e81d9b\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..clear_responseTime\",\n" +
+            "                    \"metricValue\": 34272,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..clear_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..clear_status\",\n" +
+            "                    \"metricValue\": 204,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..create_responseTime\",\n" +
+            "                    \"metricValue\": 711,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..create_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..create_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..delete_responseTime\",\n" +
+            "                    \"metricValue\": 856,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..delete_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..delete_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"openstack_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..openstack_responseTime\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"openstack_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..openstack_result\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"openstack_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..openstack_status\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"Instantnullbecausenometricswerereturnedinthelast24hs\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..run_responseTime\",\n" +
+            "                    \"metricValue\": 393,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..run_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.4401ac5dc8cfbbb737b0a02575e81d9b..run_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:20:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"machineName\": \"61b5f554-c44c-4dcc-8373-3dade70b1901\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"eu.indigo-datacloud.mesos\",\n" +
+            "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_61b5f554-c44c-4dcc-8373-3dade70b1901\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.cpus_percent\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_percent\",\n" +
+            "                    \"metricValue\": 0.0556,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.cpus_total\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_total\",\n" +
+            "                    \"metricValue\": 72,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.cpus_used\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.cpus_used\",\n" +
+            "                    \"metricValue\": 4,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.disk_percent\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_percent\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.disk_total\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_total\",\n" +
+            "                    \"metricValue\": 3952957,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.disk_used\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.disk_used\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.dropped_messages\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.dropped_messages\",\n" +
+            "                    \"metricValue\": 13,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.elected\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.elected\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.frameworks_disconnected\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_disconnected\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.frameworks_inactive\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.frameworks_inactive\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.gpus_percent\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_percent\",\n" +
+            "                    \"metricValue\": 0.6667,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.gpus_total\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_total\",\n" +
+            "                    \"metricValue\": 3,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.gpus_used\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.gpus_used\",\n" +
+            "                    \"metricValue\": 2,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.mem_percent\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_percent\",\n" +
+            "                    \"metricValue\": 0.0639,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.mem_total\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_total\",\n" +
+            "                    \"metricValue\": 320265,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.mem_used\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.mem_used\",\n" +
+            "                    \"metricValue\": 20480,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.slaves_active\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.slaves_active\",\n" +
+            "                    \"metricValue\": 2,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.tasks_lost\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.tasks_lost\",\n" +
+            "                    \"metricValue\": 0,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"master.uptime_secs\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.61b5f554-c44c-4dcc-8373-3dade70b1901..master.uptime_secs\",\n" +
+            "                    \"metricValue\": 9012352,\n" +
+            "                    \"metricTime\": \"03-09-201916:00:08\",\n" +
+            "                    \"metricUnit\": \"secs\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"machineName\": \"8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"eu.indigo-datacloud.marathon\",\n" +
+            "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_8922daf1-1a53-41b4-9f18-7ed536b44f20\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_responseTime\",\n" +
+            "                    \"metricValue\": 132,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..clear_status\",\n" +
+            "                    \"metricValue\": 404,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_responseTime\",\n" +
+            "                    \"metricValue\": 110,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..create_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_responseTime\",\n" +
+            "                    \"metricValue\": 51,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..delete_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_responseTime\",\n" +
+            "                    \"metricValue\": 20,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8922daf1-1a53-41b4-9f18-7ed536b44f20..run_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201915:30:08\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"machineName\": \"8490545c-f5ec-4330-9116-604dc0084caa\",\n" +
+            "            \"ip\": \"127.0.0.1\",\n" +
+            "            \"serviceCategory\": \"eu.indigo-datacloud.chronos\",\n" +
+            "            \"serviceId\": \"IaaS_provider-UPV-GRyCAP_8490545c-f5ec-4330-9116-604dc0084caa\",\n" +
+            "            \"services\": [\n" +
+            "              {\n" +
+            "                \"serviceName\": \"\",\n" +
+            "                \"paasMetrics\": [\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..clear_responseTime\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..clear_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"clear_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..clear_status\",\n" +
+            "                    \"metricValue\": 404,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..create_responseTime\",\n" +
+            "                    \"metricValue\": 110,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..create_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"create_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..create_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..delete_responseTime\",\n" +
+            "                    \"metricValue\": 15,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..delete_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"delete_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..delete_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_responseTime\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..run_responseTime\",\n" +
+            "                    \"metricValue\": 13,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"ms\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_result\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..run_result\",\n" +
+            "                    \"metricValue\": 1,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  },\n" +
+            "                  {\n" +
+            "                    \"metricName\": \"run_status\",\n" +
+            "                    \"metricKey\": \"provider-UPV-GRyCAP.8490545c-f5ec-4330-9116-604dc0084caa..run_status\",\n" +
+            "                    \"metricValue\": 200,\n" +
+            "                    \"metricTime\": \"03-09-201916:15:03\",\n" +
+            "                    \"metricUnit\": \"\",\n" +
+            "                    \"paasThresholds\": [],\n" +
+            "                    \"historyClocks\": [],\n" +
+            "                    \"historyValues\": []\n" +
+            "                  }\n" +
+            "                ]\n" +
+            "              }\n" +
+            "            ]\n" +
+            "          }\n" +
+            "        ]\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  },\n" +
+            "  \"additionalProperties\": {}\n" +
+            "}",
             MediaType.APPLICATION_JSON));
   }
 
