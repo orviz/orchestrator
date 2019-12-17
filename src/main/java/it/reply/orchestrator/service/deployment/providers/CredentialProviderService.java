@@ -48,12 +48,11 @@ public class CredentialProviderService implements CredentialProviderServiceInter
     if (serviceId == null || serviceId.isEmpty()) {
       LOG.error("SeriviceId is empty");
     }
-    URI uriVault = vaultService.getServiceUri().get();
 
     TokenAuthenticationExtended vaultToken =
-        (TokenAuthenticationExtended) vaultService.retrieveToken(uriVault, accessToken);
+        (TokenAuthenticationExtended) vaultService.retrieveToken(vaultService.getServiceUri().get(), accessToken);
 
-    String pathVaultComplete = uriVault
+    String pathVaultComplete = vaultService.getServiceUri().get()
         + "/v1/secret/data/"
         + vaultToken.getEntityId()
         + vaultService.getServicePath()
