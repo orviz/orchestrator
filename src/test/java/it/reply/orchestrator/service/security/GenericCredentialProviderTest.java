@@ -93,11 +93,8 @@ public class GenericCredentialProviderTest {
         "accessToken", GenericCredentialWithTenant.class);
 
     assertNotNull(imCred);
-
     assertEquals(imCred.getUsername(), "username");
-
     assertEquals(imCred.getPassword(), "password");
-    
     assertEquals(imCred.getTenant(), "tenant");
   }
 
