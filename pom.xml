@@ -114,9 +114,9 @@
 
   <repositories>
     <repository>
-      <id>indigo-dc-nexus-repository</id>
-      <name>INDIGO-DC repository</name>
-      <url>https://repository.indigo-datacloud.eu/repository/maven-public</url>
+      <id>concept-reply-nexus-repository</id>
+      <name>Concept Reply Nexus</name>
+      <url>http://nexusconcept.cloud.reply.eu/content/groups/public</url>
     </repository>
   </repositories>
 
