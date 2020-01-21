@@ -114,9 +114,9 @@
 
   <repositories>
     <repository>
-      <id>concept-reply-nexus-repository</id>
-      <name>Concept Reply Nexus</name>
-      <url>http://nexusconcept.cloud.reply.eu/content/groups/public</url>
+      <id>indigo-dc-nexus-repository</id>
+      <name>INDIGO-DC repository</name>
+      <url>https://repository.indigo-datacloud.eu/repository/maven-public</url>
     </repository>
   </repositories>
 
@@ -430,12 +430,6 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
-      <version>2.0</version>
     </dependency>
 
   </dependencies>
