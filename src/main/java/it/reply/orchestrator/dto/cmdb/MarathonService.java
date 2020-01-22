@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2019 Santer Reply S.p.A.
+ * Copyright © 2015-2020 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,9 +51,10 @@ public class MarathonService extends MesosFrameworkService<MarathonServiceProper
       @Nullable String region,
       @NonNull String hostname,
       @Nullable String parentServiceId,
-      @NonNull MarathonServiceProperties properties) {
+      @NonNull MarathonServiceProperties properties,
+      boolean iamEnabled) {
     super(id, serviceType, endpoint, providerId, type, publicService, region, hostname,
-            parentServiceId, properties);
+            parentServiceId, properties, iamEnabled);
   }
 
   @Data

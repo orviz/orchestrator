@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2019 Santer Reply S.p.A.
+ * Copyright © 2015-2020 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,17 +53,12 @@ public class ToscaConstants {
 
       private static final String BASE_INDIGO_NAME = "tosca.policies.indigo.";
       public static final String SLA_PLACEMENT = BASE_INDIGO_NAME + "SlaPlacement";
-      public static final String CREDENTIALS_AWARE_SLA_PLACEMENT =
-          BASE_INDIGO_NAME + "CredentialsAwareSlaPlacement";
     }
 
     @UtilityClass
     public static class Properties {
 
       public static final String PLACEMENT_ID = "sla_id";
-      public static final String USERNAME = "username";
-      public static final String PASSWORD = "password";
-      public static final String TENANT_ID = "subscription_id";
     }
   }
 }

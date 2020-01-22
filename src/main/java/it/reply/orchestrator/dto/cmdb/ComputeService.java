@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2019 Santer Reply S.p.A.
+ * Copyright © 2015-2020 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,9 +84,10 @@ public class ComputeService extends CloudService {
       @NonNull String hostname,
       @Nullable String parentServiceId,
       @NonNull List<Image> images,
-      @NonNull List<Flavor> flavors) {
+      @NonNull List<Flavor> flavors,
+      boolean iamEnabled) {
     super(id, serviceType, endpoint, providerId, type, publicService, region, hostname,
-            parentServiceId);
+            parentServiceId, iamEnabled);
     this.images = CommonUtils.notNullOrDefaultValue(images, ArrayList::new);
     this.flavors = CommonUtils.notNullOrDefaultValue(flavors, ArrayList::new);
   }

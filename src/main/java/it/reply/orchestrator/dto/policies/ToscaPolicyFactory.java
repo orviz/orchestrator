@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2019 Santer Reply S.p.A.
+ * Copyright © 2015-2020 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,27 +41,6 @@ public class ToscaPolicyFactory {
           .extractScalar(policyTemplate.getProperties(), Properties.PLACEMENT_ID)
           .orElse(null);
       return new SlaPlacementPolicy(policyTemplate.getTargets(), slaIdProperty);
-    } else if (Types.CREDENTIALS_AWARE_SLA_PLACEMENT.equals(policyTemplate.getType())) {
-      String slaIdProperty = ToscaUtils
-          .extractScalar(policyTemplate.getProperties(), Properties.PLACEMENT_ID)
-          .orElse(null);
-      String usernameProperty = ToscaUtils
-          .extractScalar(policyTemplate.getProperties(), Properties.USERNAME)
-          .orElse(null);
-      String passwordProperty = ToscaUtils
-          .extractScalar(policyTemplate.getProperties(), Properties.PASSWORD)
-          .orElse(null);
-      String tenantProperty = ToscaUtils
-          .extractScalar(policyTemplate.getProperties(), Properties.TENANT_ID)
-          .orElse(null);
-
-      return new CredentialsAwareSlaPlacementPolicy(
-          policyTemplate.getTargets(),
-          slaIdProperty,
-          usernameProperty,
-          passwordProperty,
-          tenantProperty
-      );
     } else {
       return new GenericToscaPolicy(policyTemplate.getType(), policyTemplate.getTargets());
     }

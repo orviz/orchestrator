@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2019 Santer Reply S.p.A.
+ * Copyright © 2015-2020 Santer Reply S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,9 +71,10 @@ public class MesosFrameworkService<T extends MesosFrameworkServiceProperties> ex
       @Nullable String region,
       @NonNull String hostname,
       @Nullable String parentServiceId,
-      @NonNull T properties) {
+      @NonNull T properties,
+      boolean iamEnabled) {
     super(id, serviceType, endpoint, providerId, type, publicService, region, hostname,
-            parentServiceId);
+            parentServiceId, iamEnabled);
     this.properties = properties;
   }
 }
